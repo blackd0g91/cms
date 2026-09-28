@@ -180,3 +180,39 @@ test('image fields store a media id and must point to existing media', function 
     $this->get(route('cp.templates.posts.edit', [$template, $post]))
         ->assertInertia(fn ($page) => $page->where("media.{$media->id}.url", $media->url));
 });
+
+test('a post can be duplicated into a draft', function () {
+    $post = Post::factory()->published()->for($this->template)->create([
+        'title' => 'Soup',
+        'slug' => 'soup',
+        'data' => ['servings' => 4, 'ingredients' => ['Water']],
+    ]);
+
+    $this->post(route('cp.templates.posts.duplicate', [$this->template, $post]))
+        ->assertRedirect(route('cp.templates.posts.edit', [$this->template, Post::latest('id')->first()]));
+
+    $copy = Post::latest('id')->first();
+
+    expect($copy->id)->not->toBe($post->id)
+        ->and($copy->title)->toBe('Soup (copy)')
+        ->and($copy->slug)->toBe('soup-copy')
+        ->and($copy->isPublished())->toBeFalse()
+        ->and($copy->published_at)->toBeNull()
+        ->and($copy->data)->toBe($post->data)
+        ->and($copy->search_index)->toContain('soup (copy)');
+});
+
+test('duplicate slugs get a number', function () {
+    $post = Post::factory()->for($this->template)->create(['slug' => 'soup']);
+    Post::factory()->for($this->template)->create(['slug' => 'soup-copy']);
+
+    $this->post(route('cp.templates.posts.duplicate', [$this->template, $post]));
+
+    expect(Post::latest('id')->first()->slug)->toBe('soup-copy-2');
+});
+
+test('posts can only be duplicated through their own template', function () {
+    $post = Post::factory()->create();
+
+    $this->post(route('cp.templates.posts.duplicate', [$this->template, $post]))->assertNotFound();
+});

@@ -176,3 +176,20 @@ test('original handles the template does not have are ignored', function () {
 
     expect($post->fresh()->data)->toBe(['body' => 'Hello']);
 });
+
+test('a template can be duplicated without its posts', function () {
+    $template = Template::factory()->create(['name' => 'Recipes', 'handle' => 'recipes']);
+    Post::factory()->for($template)->create();
+    Template::factory()->create(['handle' => 'recipes-copy']);
+
+    $this->post(route('cp.templates.duplicate', $template))
+        ->assertRedirect(route('cp.templates.edit', Template::latest('id')->first()));
+
+    $copy = Template::latest('id')->first();
+
+    expect($copy->name)->toBe('Recipes (copy)')
+        ->and($copy->handle)->toBe('recipes-copy-2')
+        ->and($copy->fields)->toBe($template->fields)
+        ->and($copy->layout)->toBe($template->layout)
+        ->and($copy->posts()->count())->toBe(0);
+});

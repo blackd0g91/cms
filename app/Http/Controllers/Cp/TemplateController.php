@@ -63,6 +63,19 @@ class TemplateController extends Controller
         return redirect()->route('cp.templates.edit', $template);
     }
 
+    /**
+     * Copy a template's fields and layout into a new template, without posts.
+     */
+    public function duplicate(Template $template): RedirectResponse
+    {
+        $copy = $template->replicate();
+        $copy->name = "{$template->name} (copy)";
+        $copy->handle = $this->uniqueHandle("{$template->handle}-copy");
+        $copy->save();
+
+        return redirect()->route('cp.templates.edit', $copy);
+    }
+
     public function destroy(Template $template): RedirectResponse
     {
         if ($template->posts()->exists()) {
@@ -74,6 +87,20 @@ class TemplateController extends Controller
         $template->delete();
 
         return redirect()->route('cp.templates.index');
+    }
+
+    /**
+     * The handle, or the handle with the first free number appended.
+     */
+    private function uniqueHandle(string $handle): string
+    {
+        $candidate = $handle;
+
+        for ($i = 2; Template::query()->where('handle', $candidate)->exists(); $i++) {
+            $candidate = "{$handle}-{$i}";
+        }
+
+        return $candidate;
     }
 
     /**

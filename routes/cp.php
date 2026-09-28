@@ -35,10 +35,14 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
 
         Route::resource('templates', TemplateController::class)->except('show');
+        Route::post('templates/{template}/duplicate', [TemplateController::class, 'duplicate'])->name('templates.duplicate');
         Route::get('posts', [PostController::class, 'index'])->name('posts.index');
         Route::get('posts/create', [PostController::class, 'choose'])->name('posts.create');
         Route::resource('templates.posts', PostController::class)
             ->only(['create', 'store', 'edit', 'update', 'destroy'])
             ->scoped(['post' => 'id']);
+        Route::post('templates/{template}/posts/{post}/duplicate', [PostController::class, 'duplicate'])
+            ->scopeBindings()
+            ->name('templates.posts.duplicate');
     });
 });

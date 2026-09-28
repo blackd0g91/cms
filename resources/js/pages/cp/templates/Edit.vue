@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { slugify } from '@/lib/utils';
-import { destroy, index, store, update } from '@/routes/cp/templates';
+import {
+    destroy,
+    duplicate,
+    index,
+    store,
+    update,
+} from '@/routes/cp/templates';
 import type { Field, FieldType, FieldTypeOption, Template } from '@/types';
 
 defineOptions({ layout: CpLayout });
@@ -172,14 +178,26 @@ const variables = computed(() => [
         :title="template ? template.name : 'New template'"
         :back="{ label: 'Templates', href: index().url }"
     >
-        <a
-            v-if="template"
-            :href="`/${template.handle}`"
-            target="_blank"
-            class="cp-btn"
-        >
-            View
-        </a>
+        <template v-if="template">
+            <Link
+                :href="duplicate(template.id)"
+                method="post"
+                as="button"
+                :preserve-state="false"
+                class="cp-btn"
+                :disabled="form.isDirty"
+                :title="
+                    form.isDirty
+                        ? 'Save your changes before duplicating'
+                        : 'Create a copy of this template, without its posts'
+                "
+            >
+                Duplicate
+            </Link>
+            <a :href="`/${template.handle}`" target="_blank" class="cp-btn">
+                View
+            </a>
+        </template>
     </PageHeader>
 
     <form class="max-w-4xl space-y-6" @submit.prevent="submit">

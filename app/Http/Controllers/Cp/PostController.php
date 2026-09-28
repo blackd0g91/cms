@@ -105,6 +105,21 @@ class PostController extends Controller
         return redirect()->route('cp.templates.posts.edit', [$template, $post]);
     }
 
+    /**
+     * Copy a post into a new draft and open it.
+     */
+    public function duplicate(Template $template, Post $post): RedirectResponse
+    {
+        $copy = $post->replicate(['published_at', 'search_index']);
+        $copy->title = "{$post->title} (copy)";
+        $copy->slug = $this->uniqueSlug($template, "{$post->slug}-copy");
+        $copy->status = PostStatus::Draft;
+        $copy->setRelation('template', $template);
+        $copy->save();
+
+        return redirect()->route('cp.templates.posts.edit', [$template, $copy]);
+    }
+
     public function destroy(Template $template, Post $post): RedirectResponse
     {
         $post->delete();
@@ -126,6 +141,20 @@ class PostController extends Controller
             ->filter();
 
         return Media::query()->whereKey($ids)->get()->keyBy('id')->all();
+    }
+
+    /**
+     * The slug, or the slug with the first free number appended.
+     */
+    private function uniqueSlug(Template $template, string $slug): string
+    {
+        $candidate = $slug;
+
+        for ($i = 2; $template->posts()->where('slug', $candidate)->exists(); $i++) {
+            $candidate = "{$slug}-{$i}";
+        }
+
+        return $candidate;
     }
 
     /**

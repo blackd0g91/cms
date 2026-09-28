@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import FieldInput from '@/components/cp/FieldInput.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
@@ -7,7 +7,7 @@ import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { slugify } from '@/lib/utils';
 import { index } from '@/routes/cp/posts';
-import { destroy, store, update } from '@/routes/cp/templates/posts';
+import { destroy, duplicate, store, update } from '@/routes/cp/templates/posts';
 import type {
     Field,
     FieldValue,
@@ -101,7 +101,24 @@ const deletePost = () => {
         :title="post ? post.title : 'New post'"
         :back="{ label: 'Posts', href: index().url }"
     >
-        <a v-if="post" :href="post.url" target="_blank" class="cp-btn">View</a>
+        <template v-if="post">
+            <Link
+                :href="duplicate([template.id, post.id])"
+                method="post"
+                as="button"
+                :preserve-state="false"
+                class="cp-btn"
+                :disabled="form.isDirty"
+                :title="
+                    form.isDirty
+                        ? 'Save your changes before duplicating'
+                        : 'Create a draft copy of this post'
+                "
+            >
+                Duplicate
+            </Link>
+            <a :href="post.url" target="_blank" class="cp-btn">View</a>
+        </template>
     </PageHeader>
 
     <form
