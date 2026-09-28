@@ -1,7 +1,8 @@
 @extends('site.layout', ['title' => $post->title])
 
 @section('content')
-    <article class="hue max-w-3xl" style="{{ $post->template->accentStyle() }}">
+    <div class="hue flex gap-12" style="{{ $post->template->accentStyle() }}">
+    <article @class(['min-w-0 flex-1', 'max-w-3xl' => $headings === []])>
         @unless ($post->isPublished())
             <p class="mb-6 rounded-xl border border-dashed border-accent bg-accent-soft px-4 py-2 font-mono text-xs">
                 Draft preview. Only you can see this.
@@ -32,8 +33,26 @@
             </div>
         </header>
 
+        @if ($headings !== [])
+            <details class="mb-8 rounded-2xl border border-line bg-card px-5 py-3 xl:hidden">
+                <summary class="cursor-pointer font-mono text-xs tracking-widest text-muted uppercase">On this page</summary>
+                <div class="mt-3 [&_[data-toc]>p]:hidden">
+                    @include('site.partials.toc', ['headings' => $headings])
+                </div>
+            </details>
+        @endif
+
         <div class="prose max-w-none">
             {{ $content }}
         </div>
     </article>
+
+    @if ($headings !== [])
+        <aside class="hidden w-48 shrink-0 xl:block">
+            <div class="sticky top-10 max-h-[calc(100vh-5rem)] overflow-y-auto">
+                @include('site.partials.toc', ['headings' => $headings])
+            </div>
+        </aside>
+    @endif
+    </div>
 @endsection

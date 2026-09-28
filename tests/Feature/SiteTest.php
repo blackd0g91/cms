@@ -181,3 +181,25 @@ test('a chosen template color is used for its accents', function () {
     $this->get('/recipes/soup')->assertSee($style, false);
     $this->get(route('home'))->assertSee($style, false);
 });
+
+test('posts with several headings get a table of contents', function () {
+    Post::factory()->published()->for($this->template)->create([
+        'slug' => 'git',
+        'data' => ['method' => "## Setup\n\ntext\n\n### Config\n\ntext\n\n## Branches\n\ntext"],
+    ]);
+
+    $this->get('/recipes/git')
+        ->assertOk()
+        ->assertSee('<h2 id="setup">Setup</h2>', false)
+        ->assertSee('data-toc', false)
+        ->assertSeeInOrder(['href="#setup"', 'href="#config"', 'href="#branches"'], false);
+});
+
+test('posts with fewer than two headings have no table of contents', function () {
+    Post::factory()->published()->for($this->template)->create([
+        'slug' => 'short',
+        'data' => ['method' => "## Only one\n\ntext"],
+    ]);
+
+    $this->get('/recipes/short')->assertOk()->assertDontSee('data-toc', false);
+});

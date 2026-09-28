@@ -39,3 +39,33 @@ document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
     pre.classList.add('group');
     pre.append(button);
 });
+
+// Highlight the table of contents entry for the section being read.
+const tocLinks = Array.from(
+    document.querySelectorAll<HTMLAnchorElement>('[data-toc] a[href^="#"]'),
+);
+
+const tocTargets = [...new Set(tocLinks.map((link) => link.hash.slice(1)))]
+    .map((id) => document.getElementById(id))
+    .filter((heading): heading is HTMLElement => heading !== null);
+
+if (tocTargets.length > 0) {
+    const setActive = (id: string) =>
+        tocLinks.forEach((link) =>
+            link.toggleAttribute('data-active', link.hash === `#${id}`),
+        );
+
+    const update = () => {
+        // The last heading above the top quarter of the screen is "current".
+        const line = window.innerHeight * 0.25;
+        const current =
+            tocTargets
+                .filter((h) => h.getBoundingClientRect().top <= line)
+                .pop() ?? tocTargets[0];
+
+        setActive(current.id);
+    };
+
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+}
