@@ -5,6 +5,7 @@ use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
@@ -19,10 +20,47 @@ beforeEach(function () {
     ]);
 });
 
-test('the posts of a template are listed', function () {
-    Post::factory()->for($this->template)->create();
+test('all posts are listed with their template', function () {
+    $post = Post::factory()->for($this->template)->create(['updated_at' => now()]);
+    $other = Post::factory()->published()->create(['updated_at' => now()->subDay()]);
 
-    $this->get(route('cp.templates.posts.index', $this->template))->assertOk();
+    $this->get(route('cp.posts.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('cp/posts/Index')
+            ->has('posts.data', 2)
+            ->where('posts.data.0.id', $post->id)
+            ->where('posts.data.0.template.name', $this->template->name)
+            ->where('posts.data.1.id', $other->id)
+            ->where('filters', ['template' => null, 'status' => null]));
+});
+
+test('posts can be filtered by template and status', function () {
+    $draft = Post::factory()->for($this->template)->create();
+    Post::factory()->published()->for($this->template)->create();
+    Post::factory()->create();
+
+    $this->get(route('cp.posts.index', ['template' => $this->template->id]))
+        ->assertInertia(fn (Assert $page) => $page->has('posts.data', 2));
+
+    $this->get(route('cp.posts.index', ['template' => $this->template->id, 'status' => 'draft']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('posts.data', 1)
+            ->where('posts.data.0.id', $draft->id)
+            ->where('filters', ['template' => $this->template->id, 'status' => 'draft']));
+});
+
+test('new posts start by choosing a template', function () {
+    Template::factory()->create();
+
+    $this->get(route('cp.posts.create'))
+        ->assertInertia(fn (Assert $page) => $page->component('cp/posts/Choose')->has('templates', 2));
+});
+
+test('with a single template the choice is skipped', function () {
+    Template::query()->delete();
+    $template = Template::factory()->create();
+
+    $this->get(route('cp.posts.create'))->assertRedirect(route('cp.templates.posts.create', $template));
 });
 
 test('a post can be created', function () {
@@ -103,7 +141,7 @@ test('a post can be deleted', function () {
     $post = Post::factory()->for($this->template)->create();
 
     $this->delete(route('cp.templates.posts.destroy', [$this->template, $post]))
-        ->assertRedirect(route('cp.templates.posts.index', $this->template));
+        ->assertRedirect(route('cp.posts.index'));
 
     $this->assertModelMissing($post);
 });

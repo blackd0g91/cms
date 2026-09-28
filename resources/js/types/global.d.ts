@@ -1,6 +1,5 @@
 import type { Directive } from 'vue';
 import type { Auth } from '@/types/auth';
-import type { TemplateSummary } from '@/types/cms';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -20,7 +19,6 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
-            templates: TemplateSummary[];
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

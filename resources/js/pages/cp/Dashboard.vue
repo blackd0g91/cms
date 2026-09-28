@@ -5,11 +5,9 @@ import PostList from '@/components/cp/PostList.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { index as mediaIndex } from '@/routes/cp/media';
 import { create as createTemplate } from '@/routes/cp/templates';
-import {
-    create as createPost,
-    index as postsIndex,
-} from '@/routes/cp/templates/posts';
-import type { DashboardPost, TemplateSummary } from '@/types';
+import { index as postsIndex } from '@/routes/cp/posts';
+import { create as createPost } from '@/routes/cp/templates/posts';
+import type { PostListItem, TemplateSummary } from '@/types';
 
 defineOptions({ layout: CpLayout });
 
@@ -24,8 +22,8 @@ defineProps<{
         posts_count: number;
         drafts_count: number;
     })[];
-    recentPosts: DashboardPost[];
-    drafts: DashboardPost[];
+    recentPosts: PostListItem[];
+    drafts: PostListItem[];
 }>();
 </script>
 
@@ -81,7 +79,7 @@ defineProps<{
             >
                 <div class="min-w-0">
                     <Link
-                        :href="postsIndex(template.id)"
+                        :href="postsIndex({ query: { template: template.id } })"
                         class="text-sm font-medium hover:underline"
                     >
                         {{ template.name }}

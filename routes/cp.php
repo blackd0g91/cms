@@ -30,6 +30,10 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
 
         Route::resource('templates', TemplateController::class)->except('show');
-        Route::resource('templates.posts', PostController::class)->except('show')->scoped(['post' => 'id']);
+        Route::get('posts', [PostController::class, 'index'])->name('posts.index');
+        Route::get('posts/create', [PostController::class, 'choose'])->name('posts.create');
+        Route::resource('templates.posts', PostController::class)
+            ->only(['create', 'store', 'edit', 'update', 'destroy'])
+            ->scoped(['post' => 'id']);
     });
 });

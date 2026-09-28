@@ -108,10 +108,3 @@ test('a template with posts can not be deleted', function () {
 
     $this->assertModelExists($post->template);
 });
-
-test('templates are shared with the control panel navigation', function () {
-    $template = Template::factory()->create();
-
-    $this->get(route('cp.dashboard'))
-        ->assertInertia(fn (Assert $page) => $page->where('templates.0.handle', $template->handle));
-});

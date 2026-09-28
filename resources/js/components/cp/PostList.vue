@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import { edit } from '@/routes/cp/templates/posts';
-import type { DashboardPost } from '@/types';
+import type { PostListItem } from '@/types';
 
 defineProps<{
-    posts: DashboardPost[];
+    posts: PostListItem[];
     empty: string;
 }>();
 

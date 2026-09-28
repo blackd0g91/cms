@@ -3,28 +3,66 @@
 namespace App\Http\Controllers\Cp;
 
 use App\Enums\FieldType;
+use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cp\PostRequest;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PostController extends Controller
 {
-    public function index(Template $template): Response
+    /**
+     * Every post, newest edits first, optionally filtered by template and status.
+     */
+    public function index(Request $request): Response
     {
+        $filters = $request->validate([
+            'template' => ['nullable', 'integer'],
+            'status' => ['nullable', Rule::enum(PostStatus::class)],
+        ]);
+
+        $posts = Post::query()
+            ->with('template:id,name,handle')
+            ->when($filters['template'] ?? null, fn ($query, $id) => $query->where('template_id', $id))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->latest('updated_at')
+            ->paginate(30, ['id', 'template_id', 'title', 'slug', 'status', 'published_at', 'updated_at'])
+            ->withQueryString()
+            ->through(fn (Post $post) => [
+                ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at']),
+                'template' => $post->template->only(['id', 'name']),
+                'url' => $post->url(),
+            ]);
+
         return Inertia::render('cp/posts/Index', [
-            'template' => $template->only(['id', 'name', 'handle']),
-            'posts' => $template->posts()
-                ->latest('updated_at')
-                ->get(['id', 'template_id', 'title', 'slug', 'status', 'published_at', 'updated_at'])
-                ->map(fn (Post $post) => [
-                    ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at']),
-                    'url' => $post->setRelation('template', $template)->url(),
-                ]),
+            'posts' => $posts,
+            'templates' => Template::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'template' => isset($filters['template']) ? (int) $filters['template'] : null,
+                'status' => $filters['status'] ?? null,
+            ],
+        ]);
+    }
+
+    /**
+     * Pick the template for a new post. With a single template, skip the choice.
+     */
+    public function choose(): Response|RedirectResponse
+    {
+        $templates = Template::query()->orderBy('name')->get(['id', 'name', 'handle', 'description']);
+
+        if ($templates->count() === 1) {
+            return redirect()->route('cp.templates.posts.create', $templates->first());
+        }
+
+        return Inertia::render('cp/posts/Choose', [
+            'templates' => $templates,
         ]);
     }
 
@@ -71,7 +109,7 @@ class PostController extends Controller
     {
         $post->delete();
 
-        return redirect()->route('cp.templates.posts.index', $template);
+        return redirect()->route('cp.posts.index');
     }
 
     /**

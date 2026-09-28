@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Cms\Settings;
-use App\Models\Template;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -43,9 +42,6 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'templates' => fn () => $request->user()
-                ? Template::query()->orderBy('name')->get(['id', 'name', 'handle'])
-                : [],
         ];
     }
 }

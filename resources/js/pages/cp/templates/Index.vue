@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { create, edit } from '@/routes/cp/templates';
-import { index as postsIndex } from '@/routes/cp/templates/posts';
+import { index as postsIndex } from '@/routes/cp/posts';
 import type { Template } from '@/types';
 
 defineOptions({ layout: CpLayout });
@@ -58,7 +58,9 @@ defineProps<{
                 </p>
             </div>
             <div class="flex gap-2">
-                <Link :href="postsIndex(template.id)" class="cp-btn"
+                <Link
+                    :href="postsIndex({ query: { template: template.id } })"
+                    class="cp-btn"
                     >Posts</Link
                 >
                 <Link :href="edit(template.id)" class="cp-btn">Edit</Link>

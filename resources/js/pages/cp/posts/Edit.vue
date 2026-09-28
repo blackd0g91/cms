@@ -5,7 +5,8 @@ import FieldInput from '@/components/cp/FieldInput.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { slugify } from '@/lib/utils';
-import { destroy, index, store, update } from '@/routes/cp/templates/posts';
+import { index } from '@/routes/cp/posts';
+import { destroy, store, update } from '@/routes/cp/templates/posts';
 import type {
     Field,
     FieldValue,
@@ -85,7 +86,7 @@ const deletePost = () => {
     <Head :title="post ? post.title : `New ${template.name} post`" />
     <PageHeader
         :title="post ? post.title : 'New post'"
-        :back="{ label: template.name, href: index(template.id).url }"
+        :back="{ label: 'Posts', href: index().url }"
     >
         <a v-if="post" :href="post.url" target="_blank" class="cp-btn">View</a>
     </PageHeader>

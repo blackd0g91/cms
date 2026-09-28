@@ -4,9 +4,9 @@ import { computed, ref } from 'vue';
 import { cn } from '@/lib/utils';
 import { dashboard, logout } from '@/routes/cp';
 import { index as mediaIndex } from '@/routes/cp/media';
+import { index as postsIndex } from '@/routes/cp/posts';
 import { edit as settingsEdit } from '@/routes/cp/settings';
 import { index as templatesIndex } from '@/routes/cp/templates';
-import { index as postsIndex } from '@/routes/cp/templates/posts';
 
 type NavItem = {
     title: string;
@@ -27,6 +27,12 @@ const mainNav: NavItem[] = [
         active: (path) => path === dashboard().url,
     },
     {
+        title: 'Posts',
+        href: postsIndex().url,
+        active: (path) =>
+            path.startsWith(postsIndex().url) || isPostsPath(path),
+    },
+    {
         title: 'Templates',
         href: templatesIndex().url,
         active: (path) =>
@@ -43,18 +49,6 @@ const mainNav: NavItem[] = [
         active: (path) => path === settingsEdit().url,
     },
 ];
-
-const contentNav = computed<NavItem[]>(() =>
-    page.props.templates.map((template) => {
-        const href = postsIndex(template.id).url;
-
-        return {
-            title: template.name,
-            href,
-            active: (path) => path.startsWith(href),
-        };
-    }),
-);
 
 const linkClass = (item: NavItem) =>
     cn(
@@ -100,25 +94,6 @@ const linkClass = (item: NavItem) =>
                         </Link>
                     </li>
                 </ul>
-
-                <div v-if="contentNav.length">
-                    <p
-                        class="mb-1 px-3 text-xs font-medium tracking-wide text-neutral-500 uppercase"
-                    >
-                        Content
-                    </p>
-                    <ul class="space-y-1">
-                        <li v-for="item in contentNav" :key="item.href">
-                            <Link
-                                :href="item.href"
-                                :class="linkClass(item)"
-                                @click="sidebarOpen = false"
-                            >
-                                {{ item.title }}
-                            </Link>
-                        </li>
-                    </ul>
-                </div>
             </nav>
 
             <div

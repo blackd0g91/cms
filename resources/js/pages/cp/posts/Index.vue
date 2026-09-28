@@ -1,72 +1,115 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import PostList from '@/components/cp/PostList.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
-import { edit as editTemplate } from '@/routes/cp/templates';
-import { create, edit } from '@/routes/cp/templates/posts';
-import type { Post, TemplateSummary } from '@/types';
+import { create, index } from '@/routes/cp/posts';
+import type { Paginated, PostListItem, PostStatus } from '@/types';
 
 defineOptions({ layout: CpLayout });
 
-defineProps<{
-    template: TemplateSummary;
-    posts: Omit<Post, 'data'>[];
+const props = defineProps<{
+    posts: Paginated<PostListItem>;
+    templates: { id: number; name: string }[];
+    filters: { template: number | null; status: PostStatus | null };
 }>();
 
-const formatDate = (value: string) =>
-    new Date(value).toLocaleDateString(undefined, { dateStyle: 'medium' });
+const filter = (changes: Partial<typeof props.filters>) => {
+    const query = { ...props.filters, ...changes };
+
+    router.get(
+        index({
+            query: {
+                template: query.template ?? undefined,
+                status: query.status ?? undefined,
+            },
+        }).url,
+        {},
+        { preserveScroll: true, preserveState: true, replace: true },
+    );
+};
+
+const selectValue = (event: Event) =>
+    (event.target as HTMLSelectElement).value || null;
 </script>
 
 <template>
-    <Head :title="template.name" />
-    <PageHeader :title="template.name">
-        <Link :href="editTemplate(template.id)" class="cp-btn">
-            Edit template
-        </Link>
-        <Link :href="create(template.id)" class="cp-btn-primary">New post</Link>
+    <Head title="Posts" />
+    <PageHeader title="Posts">
+        <Link :href="create()" class="cp-btn-primary">New post</Link>
     </PageHeader>
 
-    <p v-if="posts.length === 0" class="cp-card p-6 text-sm text-neutral-500">
-        No posts yet.
-    </p>
-
-    <ul
-        v-else
-        class="cp-card divide-y divide-neutral-200 dark:divide-neutral-800"
-    >
-        <li
-            v-for="post in posts"
-            :key="post.id"
-            class="flex flex-wrap items-center justify-between gap-3 p-4"
+    <div class="mb-4 flex flex-wrap gap-3">
+        <select
+            :value="filters.template ?? ''"
+            aria-label="Filter by template"
+            class="cp-input w-auto"
+            @change="
+                filter({
+                    template: selectValue($event)
+                        ? Number(selectValue($event))
+                        : null,
+                })
+            "
         >
-            <div class="min-w-0">
-                <Link
-                    :href="edit([template.id, post.id])"
-                    class="font-medium hover:underline"
-                >
-                    {{ post.title }}
-                </Link>
-                <p class="text-sm text-neutral-500">
-                    <span
-                        :class="
-                            post.status === 'published'
-                                ? 'text-green-700 dark:text-green-400'
-                                : 'text-amber-700 dark:text-amber-400'
-                        "
-                    >
-                        {{
-                            post.status === 'published' ? 'Published' : 'Draft'
-                        }}
-                    </span>
-                    &middot; updated {{ formatDate(post.updated_at) }}
-                </p>
-            </div>
-            <div class="flex gap-2">
-                <a :href="post.url" target="_blank" class="cp-btn">View</a>
-                <Link :href="edit([template.id, post.id])" class="cp-btn">
-                    Edit
-                </Link>
-            </div>
-        </li>
-    </ul>
+            <option value="">All templates</option>
+            <option
+                v-for="template in templates"
+                :key="template.id"
+                :value="template.id"
+            >
+                {{ template.name }}
+            </option>
+        </select>
+        <select
+            :value="filters.status ?? ''"
+            aria-label="Filter by status"
+            class="cp-input w-auto"
+            @change="
+                filter({ status: selectValue($event) as PostStatus | null })
+            "
+        >
+            <option value="">Any status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+        </select>
+    </div>
+
+    <section class="cp-card">
+        <PostList
+            :posts="posts.data"
+            :empty="
+                filters.template || filters.status
+                    ? 'No posts match these filters.'
+                    : 'No posts yet.'
+            "
+        />
+    </section>
+
+    <nav
+        v-if="posts.last_page > 1"
+        class="mt-4 flex items-center justify-between text-sm"
+    >
+        <Link
+            v-if="posts.prev_page_url"
+            :href="posts.prev_page_url"
+            class="cp-btn"
+            preserve-scroll
+        >
+            &larr; Newer
+        </Link>
+        <span v-else />
+        <span class="text-neutral-500">
+            Page {{ posts.current_page }} of {{ posts.last_page }}
+        </span>
+        <Link
+            v-if="posts.next_page_url"
+            :href="posts.next_page_url"
+            class="cp-btn"
+            preserve-scroll
+        >
+            Older &rarr;
+        </Link>
+        <span v-else />
+    </nav>
 </template>
