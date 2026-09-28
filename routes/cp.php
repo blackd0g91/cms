@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Cp\AccountController;
 use App\Http\Controllers\Cp\Auth\LoginController;
 use App\Http\Controllers\Cp\DashboardController;
 use App\Http\Controllers\Cp\MarkdownPreviewController;
@@ -25,6 +26,10 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::post('media', [MediaController::class, 'store'])->name('media.store');
         Route::patch('media/{media}', [MediaController::class, 'update'])->name('media.update');
         Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+
+        Route::get('account', [AccountController::class, 'edit'])->name('account.edit');
+        Route::put('account', [AccountController::class, 'update'])->name('account.update');
+        Route::put('account/password', [AccountController::class, 'updatePassword'])->name('account.password');
 
         Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');

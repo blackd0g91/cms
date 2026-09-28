@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { cn } from '@/lib/utils';
 import { dashboard, logout } from '@/routes/cp';
+import { edit as accountEdit } from '@/routes/cp/account';
 import { index as mediaIndex } from '@/routes/cp/media';
 import { index as postsIndex } from '@/routes/cp/posts';
 import { edit as settingsEdit } from '@/routes/cp/settings';
@@ -99,16 +100,29 @@ const linkClass = (item: NavItem) =>
             <div
                 class="border-t border-neutral-200 p-3 text-sm dark:border-neutral-800"
             >
-                <p class="truncate px-3 font-medium">
-                    {{ page.props.auth.user.name }}
-                </p>
-                <p class="truncate px-3 text-xs text-neutral-500">
-                    {{ page.props.auth.user.email }}
-                </p>
+                <Link
+                    :href="accountEdit()"
+                    title="Account"
+                    :class="
+                        cn(
+                            'block rounded-md px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800',
+                            path === accountEdit().url &&
+                                'bg-neutral-100 dark:bg-neutral-800',
+                        )
+                    "
+                    @click="sidebarOpen = false"
+                >
+                    <span class="block truncate font-medium">
+                        {{ page.props.auth.user.name }}
+                    </span>
+                    <span class="block truncate text-xs text-neutral-500">
+                        {{ page.props.auth.user.email }}
+                    </span>
+                </Link>
                 <Link
                     :href="logout()"
                     as="button"
-                    class="mt-2 w-full rounded-md px-3 py-2 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    class="mt-1 w-full rounded-md px-3 py-2 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 >
                     Log out
                 </Link>
