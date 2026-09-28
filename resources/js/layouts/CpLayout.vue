@@ -72,7 +72,7 @@ const linkClass = (item: NavItem) =>
         <aside
             :class="
                 cn(
-                    'fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-neutral-200 bg-white transition-transform md:static md:translate-x-0 dark:border-neutral-800 dark:bg-neutral-900',
+                    'fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white transition-transform md:sticky md:top-0 md:h-screen md:translate-x-0 dark:border-neutral-800 dark:bg-neutral-900',
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full',
                 )
             "
