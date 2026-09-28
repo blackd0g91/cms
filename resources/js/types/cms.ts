@@ -59,3 +59,12 @@ export type Media = {
     alt: string | null;
     created_at: string;
 };
+
+export type DashboardPost = {
+    id: number;
+    title: string;
+    status: PostStatus;
+    updated_at: string;
+    template: { id: number; name: string };
+    url: string;
+};

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Cp\Auth\LoginController;
+use App\Http\Controllers\Cp\DashboardController;
 use App\Http\Controllers\Cp\MarkdownPreviewController;
 use App\Http\Controllers\Cp\MediaController;
 use App\Http\Controllers\Cp\PostController;
@@ -15,7 +16,7 @@ Route::prefix('cp')->name('cp.')->group(function () {
     });
 
     Route::middleware('auth')->group(function () {
-        Route::inertia('/', 'cp/Dashboard')->name('dashboard');
+        Route::get('/', DashboardController::class)->name('dashboard');
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::post('markdown/preview', MarkdownPreviewController::class)->name('markdown.preview');
 
