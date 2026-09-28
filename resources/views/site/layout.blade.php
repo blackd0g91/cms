@@ -9,8 +9,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ isset($title) ? $title.' - '.$siteName : $siteName }}</title>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        @include('partials.icons')
 
         @fonts
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,9 +20,17 @@
         <header class="border-b border-line">
             <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-5">
                 <a href="{{ route('home') }}" class="group flex min-w-0 flex-1 items-center gap-3 sm:flex-none">
-                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink font-display text-xl font-semibold text-paper transition group-hover:-rotate-6">
-                        {{ Str::upper(Str::substr($siteName, 0, 1)) }}
-                    </span>
+                    @if ($logo = $settings->logo())
+                        <img
+                            src="{{ $logo->url }}"
+                            alt=""
+                            class="h-10 w-auto max-w-40 shrink-0 object-contain"
+                        >
+                    @else
+                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink font-display text-xl font-semibold text-paper transition group-hover:-rotate-6">
+                            {{ Str::upper(Str::substr($siteName, 0, 1)) }}
+                        </span>
+                    @endif
                     <span class="min-w-0">
                         <span class="block truncate font-display text-2xl leading-tight font-semibold tracking-tight">{{ $siteName }}</span>
                         @if ($settings->get('tagline'))

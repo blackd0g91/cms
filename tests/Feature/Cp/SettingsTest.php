@@ -1,6 +1,7 @@
 <?php
 
 use App\Cms\Settings;
+use App\Models\Media;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -69,4 +70,65 @@ test('the footer has a default', function () {
     app(Settings::class)->update(['site_name' => 'Garmr']);
 
     $this->get(route('home'))->assertSee('© '.now()->year.' Garmr');
+});
+
+test('a logo and site icon can be chosen', function () {
+    $logo = Media::factory()->create();
+    $icon = Media::factory()->create(['mime_type' => 'image/png']);
+
+    $this->actingAs(User::factory()->create())
+        ->put(route('cp.settings.update'), [
+            'site_name' => 'Garmr',
+            'logo_id' => $logo->id,
+            'favicon_id' => $icon->id,
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->get(route('cp.settings.edit'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('settings.logo_id', $logo->id)
+            ->where("media.{$logo->id}.url", $logo->url)
+            ->where("media.{$icon->id}.url", $icon->url));
+
+    $this->get(route('home'))
+        ->assertSee('src="'.$logo->url.'"', false)
+        ->assertSee('<link rel="icon" href="'.$icon->url.'" type="image/png">', false)
+        ->assertSee('<link rel="apple-touch-icon" href="'.$icon->url.'">', false)
+        ->assertDontSee('/favicon.ico');
+
+    $this->get(route('cp.dashboard'))->assertSee('<link rel="icon" href="'.$icon->url.'"', false);
+});
+
+test('logo and icon must be existing media', function () {
+    $this->actingAs(User::factory()->create())
+        ->put(route('cp.settings.update'), ['site_name' => 'Garmr', 'logo_id' => 999, 'favicon_id' => 999])
+        ->assertSessionHasErrors(['logo_id', 'favicon_id']);
+});
+
+test('without a logo and icon the defaults are used', function () {
+    app(Settings::class)->update(['site_name' => 'Garmr']);
+
+    $this->get(route('home'))
+        ->assertSee('/favicon.ico')
+        ->assertSee('/apple-touch-icon.png')
+        ->assertSee('rounded-full bg-ink', false);
+});
+
+test('a deleted logo falls back to the letter badge', function () {
+    $logo = Media::factory()->create();
+    app(Settings::class)->update(['site_name' => 'Garmr', 'logo_id' => $logo->id]);
+
+    $this->actingAs(User::factory()->create())
+        ->delete(route('cp.media.destroy', ['media' => $logo, 'force' => 1]));
+
+    $this->get(route('home'))->assertOk()->assertDontSee($logo->url);
+});
+
+test('the logo and icon count as media usage', function () {
+    $logo = Media::factory()->create();
+    app(Settings::class)->update(['logo_id' => $logo->id]);
+
+    $this->actingAs(User::factory()->create())
+        ->delete(route('cp.media.destroy', $logo))
+        ->assertSessionHasErrors(['media' => 'This image is still used in: Site logo.']);
 });

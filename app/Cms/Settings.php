@@ -2,6 +2,7 @@
 
 namespace App\Cms;
 
+use App\Models\Media;
 use App\Models\Setting;
 use Illuminate\Container\Attributes\Singleton;
 use Illuminate\Support\Facades\Cache;
@@ -22,7 +23,7 @@ class Settings
     /**
      * Every setting with its default value.
      *
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null}
+     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, favicon_id: int|null}
      */
     public function defaults(): array
     {
@@ -31,11 +32,13 @@ class Settings
             'tagline' => null,
             'home_intro' => null,
             'footer_text' => null,
+            'logo_id' => null,
+            'favicon_id' => null,
         ];
     }
 
     /**
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null}
+     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, favicon_id: int|null}
      */
     public function all(): array
     {
@@ -61,6 +64,29 @@ class Settings
     public function siteName(): string
     {
         return $this->all()['site_name'];
+    }
+
+    /**
+     * The logo shown beside the site name, if one is set and still exists.
+     */
+    public function logo(): ?Media
+    {
+        return $this->media('logo_id');
+    }
+
+    /**
+     * The icon for browser tabs and bookmarks, if one is set and still exists.
+     */
+    public function favicon(): ?Media
+    {
+        return $this->media('favicon_id');
+    }
+
+    private function media(string $key): ?Media
+    {
+        $id = $this->get($key);
+
+        return is_int($id) ? Media::query()->find($id) : null;
     }
 
     /**

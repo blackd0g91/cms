@@ -8,8 +8,9 @@ use App\Models\Post;
 use Illuminate\Support\Collection;
 
 /**
- * Finds where images are used: post thumbnails, image fields, images inserted into markdown
- * (or any other text) by URL, and the home page intro.
+ * Finds where images are used: post thumbnails, image fields, images inserted
+ * into markdown (or any other text) by URL, the home page intro, and the site
+ * logo and icon.
  */
 class MediaUsage
 {
@@ -50,6 +51,14 @@ class MediaUsage
         foreach ($media as $item) {
             if (is_string($intro) && str_contains($intro, $item->path)) {
                 $usages[$item->id][] = ['label' => 'Home page intro', 'post_id' => null, 'template_id' => null];
+            }
+
+            if ($this->settings->get('logo_id') === $item->id) {
+                $usages[$item->id][] = ['label' => 'Site logo', 'post_id' => null, 'template_id' => null];
+            }
+
+            if ($this->settings->get('favicon_id') === $item->id) {
+                $usages[$item->id][] = ['label' => 'Site icon', 'post_id' => null, 'template_id' => null];
             }
         }
 
