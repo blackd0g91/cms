@@ -1,0 +1,123 @@
+<?php
+
+use App\Enums\PostStatus;
+use App\Models\Post;
+use App\Models\Template;
+use App\Models\User;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+
+    $this->template = Template::factory()->create([
+        'fields' => [
+            ['handle' => 'servings', 'label' => 'Servings', 'type' => 'number', 'required' => true, 'options' => []],
+            ['handle' => 'vegan', 'label' => 'Vegan', 'type' => 'boolean', 'required' => false, 'options' => []],
+            ['handle' => 'ingredients', 'label' => 'Ingredients', 'type' => 'list', 'required' => false, 'options' => []],
+            ['handle' => 'difficulty', 'label' => 'Difficulty', 'type' => 'select', 'required' => false, 'options' => ['Easy', 'Hard']],
+        ],
+    ]);
+});
+
+test('the posts of a template are listed', function () {
+    Post::factory()->for($this->template)->create();
+
+    $this->get(route('cp.templates.posts.index', $this->template))->assertOk();
+});
+
+test('a post can be created', function () {
+    $this->post(route('cp.templates.posts.store', $this->template), [
+        'title' => 'Pão de Queijo',
+        'slug' => '',
+        'status' => 'draft',
+        'data' => [
+            'servings' => '4',
+            'vegan' => false,
+            'ingredients' => ['Cheese', '', 'Tapioca flour'],
+            'unknown' => 'dropped',
+        ],
+    ])->assertRedirect();
+
+    $post = Post::sole();
+
+    expect($post->slug)->toBe('pao-de-queijo')
+        ->and($post->status)->toBe(PostStatus::Draft)
+        ->and($post->published_at)->toBeNull()
+        ->and($post->data)->toBe([
+            'servings' => 4,
+            'vegan' => false,
+            'ingredients' => ['Cheese', 'Tapioca flour'],
+            'difficulty' => null,
+        ]);
+});
+
+test('publishing a post records when it was published', function () {
+    $post = Post::factory()->for($this->template)->create(['data' => ['servings' => 2]]);
+
+    $this->put(route('cp.templates.posts.update', [$this->template, $post]), [
+        'title' => $post->title,
+        'slug' => 'a-custom-slug',
+        'status' => 'published',
+        'data' => ['servings' => 2],
+    ])->assertRedirect(route('cp.templates.posts.edit', [$this->template, $post]));
+
+    $post->refresh();
+
+    expect($post->slug)->toBe('a-custom-slug')
+        ->and($post->isPublished())->toBeTrue()
+        ->and($post->published_at)->not->toBeNull();
+});
+
+test('post fields are validated against the template', function (array $data, string $error) {
+    $this->post(route('cp.templates.posts.store', $this->template), [
+        'title' => 'Soup',
+        'status' => 'draft',
+        'data' => ['servings' => 2, ...$data],
+    ])->assertSessionHasErrors($error);
+})->with([
+    'missing required field' => [['servings' => null], 'data.servings'],
+    'not a number' => [['servings' => 'many'], 'data.servings'],
+    'option not allowed' => [['difficulty' => 'Medium'], 'data.difficulty'],
+]);
+
+test('slugs are unique within a template', function () {
+    Post::factory()->for($this->template)->create(['slug' => 'soup']);
+    Post::factory()->create(['slug' => 'elsewhere']);
+
+    $payload = ['title' => 'Soup', 'status' => 'draft', 'data' => ['servings' => 1]];
+
+    $this->post(route('cp.templates.posts.store', $this->template), [...$payload, 'slug' => 'soup'])
+        ->assertSessionHasErrors('slug');
+
+    $this->post(route('cp.templates.posts.store', $this->template), [...$payload, 'slug' => 'elsewhere'])
+        ->assertSessionHasNoErrors();
+});
+
+test('posts are scoped to their template', function () {
+    $post = Post::factory()->create();
+
+    $this->get(route('cp.templates.posts.edit', [$this->template, $post]))->assertNotFound();
+});
+
+test('a post can be deleted', function () {
+    $post = Post::factory()->for($this->template)->create();
+
+    $this->delete(route('cp.templates.posts.destroy', [$this->template, $post]))
+        ->assertRedirect(route('cp.templates.posts.index', $this->template));
+
+    $this->assertModelMissing($post);
+});
+
+test('markdown can be previewed', function () {
+    $this->postJson(route('cp.markdown.preview'), [
+        'markdown' => "# Hello\n\n```php\necho 'hi';\n```",
+    ])
+        ->assertOk()
+        ->assertJsonPath('html', fn (string $html) => str_contains($html, '<h1>Hello</h1>')
+            && str_contains($html, 'class="phiki language-php'));
+});
+
+test('guests can not preview markdown', function () {
+    auth()->logout();
+
+    $this->postJson(route('cp.markdown.preview'), ['markdown' => 'hi'])->assertUnauthorized();
+});

@@ -1,0 +1,17 @@
+/* Highlighted code blocks rendered by Phiki (app/Cms/Markdown.php). */
+
+.phiki {
+    overflow-x: auto;
+    tab-size: 4;
+}
+
+@media (prefers-color-scheme: dark) {
+    .phiki {
+        color: var(--phiki-dark-color) !important;
+        background-color: var(--phiki-dark-background-color) !important;
+    }
+
+    .phiki span {
+        color: var(--phiki-dark-color) !important;
+    }
+}

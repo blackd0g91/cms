@@ -1,0 +1,23 @@
+<?php
+
+use App\Http\Controllers\Cp\Auth\LoginController;
+use App\Http\Controllers\Cp\MarkdownPreviewController;
+use App\Http\Controllers\Cp\PostController;
+use App\Http\Controllers\Cp\TemplateController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('cp')->name('cp.')->group(function () {
+    Route::middleware('guest')->group(function () {
+        Route::get('login', [LoginController::class, 'create'])->name('login');
+        Route::post('login', [LoginController::class, 'store'])->name('login.store');
+    });
+
+    Route::middleware('auth')->group(function () {
+        Route::inertia('/', 'cp/Dashboard')->name('dashboard');
+        Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+        Route::post('markdown/preview', MarkdownPreviewController::class)->name('markdown.preview');
+
+        Route::resource('templates', TemplateController::class)->except('show');
+        Route::resource('templates.posts', PostController::class)->except('show')->scoped(['post' => 'id']);
+    });
+});
