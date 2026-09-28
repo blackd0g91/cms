@@ -27,7 +27,7 @@ class TemplateFactory extends Factory
             'fields' => [
                 ['handle' => 'body', 'label' => 'Body', 'type' => 'markdown', 'required' => false, 'options' => []],
             ],
-            'layout' => '<h1>{{ title }}</h1>{{ body }}',
+            'layout' => '{{ body }}',
         ];
     }
 }

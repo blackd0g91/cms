@@ -216,3 +216,38 @@ test('posts can only be duplicated through their own template', function () {
 
     $this->post(route('cp.templates.posts.duplicate', [$this->template, $post]))->assertNotFound();
 });
+
+test('a post can have a thumbnail', function () {
+    $media = Media::factory()->create();
+    $payload = ['title' => 'Soup', 'status' => 'draft', 'data' => ['servings' => 2]];
+
+    $this->post(route('cp.templates.posts.store', $this->template), [...$payload, 'thumbnail_id' => 999])
+        ->assertSessionHasErrors('thumbnail_id');
+
+    $this->post(route('cp.templates.posts.store', $this->template), [...$payload, 'thumbnail_id' => $media->id])
+        ->assertSessionHasNoErrors();
+
+    $post = Post::sole();
+    expect($post->thumbnail->is($media))->toBeTrue();
+
+    $this->get(route('cp.templates.posts.edit', [$this->template, $post]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('post.thumbnail_id', $media->id)
+            ->where("media.{$media->id}.id", $media->id));
+});
+
+test('deleting the thumbnail image clears it from the post', function () {
+    $media = Media::factory()->create();
+    $post = Post::factory()->for($this->template)->create(['thumbnail_id' => $media->id]);
+
+    $this->delete(route('cp.media.destroy', ['media' => $media, 'force' => 1]))->assertSessionHasNoErrors();
+
+    expect($post->fresh()->thumbnail_id)->toBeNull();
+});
+
+test('thumbnails count as media usage', function () {
+    $media = Media::factory()->create();
+    Post::factory()->for($this->template)->create(['thumbnail_id' => $media->id]);
+
+    $this->delete(route('cp.media.destroy', $media))->assertSessionHasErrors('media');
+});

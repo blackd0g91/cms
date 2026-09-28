@@ -4,6 +4,7 @@ namespace App\Http\Requests\Cp;
 
 use App\Enums\FieldType;
 use App\Enums\PostStatus;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use Illuminate\Foundation\Http\FormRequest;
@@ -55,6 +56,7 @@ class PostRequest extends FormRequest
                 Rule::unique(Post::class)->where('template_id', $this->template()->id)->ignore($post),
             ],
             'status' => ['required', Rule::enum(PostStatus::class)],
+            'thumbnail_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],
             'data' => ['array'],
         ];
 
@@ -91,7 +93,7 @@ class PostRequest extends FormRequest
     /**
      * The validated attributes, keeping only data for the template's fields.
      *
-     * @return array{title: string, slug: string, status: PostStatus, data: array<string, mixed>}
+     * @return array{title: string, slug: string, status: PostStatus, thumbnail_id: int|null, data: array<string, mixed>}
      */
     public function postAttributes(): array
     {
@@ -103,6 +105,7 @@ class PostRequest extends FormRequest
             'title' => $this->validated('title'),
             'slug' => $this->validated('slug'),
             'status' => PostStatus::from($this->validated('status')),
+            'thumbnail_id' => $this->filled('thumbnail_id') ? $this->integer('thumbnail_id') : null,
             'data' => $data,
         ];
     }

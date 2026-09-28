@@ -421,7 +421,8 @@ const variables = computed(() => [
                     class="underline"
                     >Mustache</a
                 >
-                tags. Leave it empty to generate one from the fields.
+                tags. The post's title and thumbnail are shown above it
+                automatically. Leave it empty to generate one from the fields.
             </p>
 
             <div class="grid gap-4 lg:grid-cols-[1fr_16rem]">

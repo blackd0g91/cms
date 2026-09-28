@@ -19,7 +19,7 @@ class SearchController extends Controller
         $posts = $query === '' || Post::searchTerms($query) === []
             ? null
             : Post::query()
-                ->with('template')
+                ->with(['template', 'thumbnail'])
                 ->where('status', PostStatus::Published)
                 ->search($query)
                 ->latest('published_at')

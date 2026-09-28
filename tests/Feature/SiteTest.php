@@ -120,3 +120,32 @@ test('image fields render as images in layouts', function () {
         ->assertSee('|none', false)
         ->assertDontSee('never');
 });
+
+test('the post page shows the title and thumbnail above the layout', function () {
+    $media = Media::factory()->create(['alt' => 'A bowl']);
+    Post::factory()->published()->for($this->template)->create([
+        'title' => 'Soup',
+        'slug' => 'soup',
+        'thumbnail_id' => $media->id,
+    ]);
+
+    $this->get('/recipes/soup')
+        ->assertOk()
+        ->assertSeeInOrder(['src="'.$media->url.'"', '<h1 class="text-3xl', 'Soup</h1>', $this->template->name], false);
+});
+
+test('listings show thumbnails when a post has one', function () {
+    $media = Media::factory()->create();
+    Post::factory()->published()->for($this->template)->create(['title' => 'With', 'thumbnail_id' => $media->id]);
+    Post::factory()->published()->for($this->template)->create(['title' => 'Without']);
+
+    $this->get('/recipes')->assertSee('src="'.$media->url.'"', false)->assertSee('aria-hidden="true"', false);
+    $this->get(route('home'))->assertSee('src="'.$media->url.'"', false);
+    $this->get(route('search', ['q' => 'with']))->assertSee('src="'.$media->url.'"', false);
+});
+
+test('listings without any thumbnails leave no empty space', function () {
+    Post::factory()->published()->for($this->template)->create(['title' => 'Plain']);
+
+    $this->get('/recipes')->assertOk()->assertDontSee('size-16', false);
+});

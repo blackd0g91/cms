@@ -22,11 +22,13 @@ use Illuminate\Support\Str;
  * @property CarbonImmutable|null $published_at
  * @property array<string, mixed> $data
  * @property string|null $search_index
+ * @property int|null $thumbnail_id
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read Template $template
+ * @property-read Media|null $thumbnail
  */
-#[Fillable(['title', 'slug', 'status', 'published_at', 'data'])]
+#[Fillable(['title', 'slug', 'status', 'published_at', 'data', 'thumbnail_id'])]
 class Post extends Model
 {
     /** @use HasFactory<PostFactory> */
@@ -115,6 +117,16 @@ class Post extends Model
     public function template(): BelongsTo
     {
         return $this->belongsTo(Template::class);
+    }
+
+    /**
+     * The main image, shown in listings and next to the title.
+     *
+     * @return BelongsTo<Media, $this>
+     */
+    public function thumbnail(): BelongsTo
+    {
+        return $this->belongsTo(Media::class);
     }
 
     public function isPublished(): bool

@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import FieldInput from '@/components/cp/FieldInput.vue';
+import ImageField from '@/components/cp/ImageField.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
@@ -40,6 +41,7 @@ const form = useForm({
     title: props.post?.title ?? '',
     slug: props.post?.slug ?? '',
     status: (props.post?.status ?? 'draft') as PostStatus,
+    thumbnail_id: props.post?.thumbnail_id ?? null,
     // "data" is reserved by useForm, so it is renamed when submitting.
     values: Object.fromEntries(
         props.template.fields.map((field) => [
@@ -171,6 +173,20 @@ const deletePost = () => {
         </section>
 
         <aside class="space-y-4">
+            <section class="cp-card space-y-2 p-4">
+                <label for="thumbnail" class="cp-label">Thumbnail</label>
+                <ImageField
+                    id="thumbnail"
+                    v-model="form.thumbnail_id"
+                    :initial="
+                        form.thumbnail_id ? media[form.thumbnail_id] : null
+                    "
+                />
+                <p v-if="form.errors.thumbnail_id" class="cp-error">
+                    {{ form.errors.thumbnail_id }}
+                </p>
+            </section>
+
             <section class="cp-card space-y-4 p-4">
                 <div class="space-y-1.5">
                     <label for="status" class="cp-label">Status</label>

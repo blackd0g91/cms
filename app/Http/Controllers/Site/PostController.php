@@ -21,6 +21,7 @@ class PostController extends Controller
         return view('site.index', [
             'template' => $template,
             'posts' => $template->posts()
+                ->with('thumbnail')
                 ->where('status', PostStatus::Published)
                 ->latest('published_at')
                 ->get()

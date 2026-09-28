@@ -8,7 +8,7 @@ use App\Models\Post;
 use Illuminate\Support\Collection;
 
 /**
- * Finds where images are used: image fields, images inserted into markdown
+ * Finds where images are used: post thumbnails, image fields, images inserted into markdown
  * (or any other text) by URL, and the home page intro.
  */
 class MediaUsage
@@ -31,7 +31,7 @@ class MediaUsage
         }
 
         Post::query()->with('template')->each(function (Post $post) use ($media, &$usages) {
-            $imageIds = $this->imageFieldIds($post);
+            $imageIds = [...$this->imageFieldIds($post), ...array_filter([$post->thumbnail_id])];
             $text = $this->text($post->data);
 
             foreach ($media as $item) {

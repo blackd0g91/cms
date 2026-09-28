@@ -22,7 +22,7 @@ class HomeController extends Controller
         return view('site.home', [
             'intro' => is_string($intro) && $intro !== '' ? new HtmlString($markdown->render($intro)) : null,
             'posts' => Post::query()
-                ->with('template')
+                ->with(['template', 'thumbnail'])
                 ->where('status', PostStatus::Published)
                 ->latest('published_at')
                 ->limit(20)

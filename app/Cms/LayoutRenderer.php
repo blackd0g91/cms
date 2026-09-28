@@ -69,7 +69,8 @@ class LayoutRenderer
      */
     public static function defaultLayout(array $fields): string
     {
-        $lines = ['<article>', '  <h1>{{ title }}</h1>'];
+        // The post page shows the title and thumbnail above the layout.
+        $lines = ['<article>'];
 
         foreach ($fields as $field) {
             ['handle' => $handle, 'label' => $label] = $field;

@@ -57,7 +57,7 @@ test('an empty layout is generated from the fields', function () {
     $this->post(route('cp.templates.store'), templatePayload(['layout' => '']));
 
     expect(Template::sole()->layout)
-        ->toContain('{{ title }}')
+        ->not->toContain('{{ title }}')
         ->toContain('{{ servings }}')
         ->toContain('{{# ingredients }}<li>{{ . }}</li>{{/ ingredients }}');
 });
