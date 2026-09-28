@@ -39,6 +39,15 @@ class Template extends Model
     public const array RESERVED_FIELD_HANDLES = ['title', 'slug', 'url', 'published_at', 'template'];
 
     /**
+     * The template's accent color hue (0-359) on the public site. Stepping by
+     * the golden angle keeps consecutive templates far apart on the wheel.
+     */
+    public function hue(): int
+    {
+        return (int) fmod(20 + $this->id * 137.508, 360);
+    }
+
+    /**
      * @return HasMany<Post, $this>
      */
     public function posts(): HasMany

@@ -12,6 +12,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/css/site.css',
+                'resources/js/site.ts',
                 'resources/js/app.ts',
             ],
             refresh: true,

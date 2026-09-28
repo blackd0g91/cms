@@ -71,7 +71,7 @@ test('drafts can be previewed when logged in', function () {
     $this->actingAs(User::factory()->create())
         ->get('/recipes/secret')
         ->assertOk()
-        ->assertSee('This post is a draft');
+        ->assertSee('Draft preview');
 });
 
 test('posts are found by slug within their template', function () {
@@ -131,7 +131,7 @@ test('the post page shows the title and thumbnail above the layout', function ()
 
     $this->get('/recipes/soup')
         ->assertOk()
-        ->assertSeeInOrder(['src="'.$media->url.'"', '<h1 class="text-3xl', 'Soup</h1>', $this->template->name], false);
+        ->assertSeeInOrder([$this->template->name, 'src="'.$media->url.'"', 'Soup</h1>', 'min read'], false);
 });
 
 test('listings show thumbnails when a post has one', function () {
@@ -144,8 +144,29 @@ test('listings show thumbnails when a post has one', function () {
     $this->get(route('search', ['q' => 'with']))->assertSee('src="'.$media->url.'"', false);
 });
 
-test('listings without any thumbnails leave no empty space', function () {
-    Post::factory()->published()->for($this->template)->create(['title' => 'Plain']);
+test('posts without a thumbnail get a lettered placeholder in the accent color', function () {
+    Post::factory()->published()->for($this->template)->create(['title' => 'plain toast']);
 
-    $this->get('/recipes')->assertOk()->assertDontSee('size-16', false);
+    $this->get('/recipes')
+        ->assertOk()
+        ->assertSee('style="--hue: '.$this->template->hue().'"', false)
+        ->assertSeeInOrder(['text-accent', '>P</span>'], false);
+});
+
+test('templates get distinct accent hues', function () {
+    $hues = Template::factory()->count(5)->create()->map->hue();
+
+    expect($hues->unique())->toHaveCount(5)
+        ->and($hues->every(fn (int $hue) => $hue >= 0 && $hue < 360))->toBeTrue();
+});
+
+test('posts show a reading time', function () {
+    $post = Post::factory()->published()->for($this->template)->create([
+        'slug' => 'long',
+        'data' => ['method' => str_repeat('word ', 450)],
+    ]);
+
+    expect($post->readingMinutes())->toBe(3);
+
+    $this->get('/recipes/long')->assertSee('3 min read');
 });

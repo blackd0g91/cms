@@ -96,6 +96,14 @@ class Post extends Model
         return trim((string) preg_replace('/\s+/', ' ', implode(' ', $parts)));
     }
 
+    /**
+     * Rough reading time, at 200 words a minute.
+     */
+    public function readingMinutes(): int
+    {
+        return max(1, (int) ceil(str_word_count($this->plainText()) / 200));
+    }
+
     private static function stripMarkdown(string $markdown): string
     {
         return (string) preg_replace(

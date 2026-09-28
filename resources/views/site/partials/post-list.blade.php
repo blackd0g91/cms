@@ -1,36 +1,28 @@
-{{--
-    Expects $posts with their template and thumbnail relations loaded.
-    Thumbnails only take up space when at least one post in the list has one.
---}}
-@php($withThumbnails = $posts->contains(fn ($post) => $post->thumbnail !== null))
-<ul class="divide-y divide-neutral-200 dark:divide-neutral-800">
+{{-- Posts as a compact list with excerpts. Expects $posts (template and thumbnail loaded) and $excerpt. --}}
+<ul class="space-y-3">
     @forelse ($posts as $post)
-        <li class="flex gap-4 py-4">
-            @if ($withThumbnails)
-                <a href="{{ $post->url() }}" tabindex="-1" aria-hidden="true">
-                    @include('site.partials.thumbnail', ['post' => $post, 'size' => 'size-16'])
-                </a>
-            @endif
-            <div class="min-w-0">
-                <a href="{{ $post->url() }}" class="font-medium hover:underline">{{ $post->title }}</a>
-                <p class="mt-1 text-sm text-neutral-500">
-                    @if ($showTemplate ?? false)
-                        <a href="{{ route('site.template', $post->template) }}" class="hover:underline">{{ $post->template->name }}</a>
-                        &middot;
-                    @endif
-                    {{ $post->published_at?->format('F j, Y') }}
-                </p>
-                @isset($excerpt)
+        <li class="hue" style="--hue: {{ $post->template->hue() }}">
+            <a href="{{ $post->url() }}" class="group flex gap-4 rounded-2xl border border-line bg-card p-4 transition hover:border-accent">
+                @include('site.partials.thumbnail', ['post' => $post, 'class' => 'size-16 shrink-0 rounded-xl'])
+                <div class="min-w-0">
+                    <p class="flex items-center gap-2 font-mono text-[11px] tracking-wider text-muted uppercase">
+                        <span class="size-2 rounded-full bg-accent"></span>
+                        {{ $post->template->name }} &middot; {{ $post->published_at?->format('M j, Y') }}
+                    </p>
+                    <p class="mt-1 font-display text-lg font-semibold decoration-accent decoration-2 underline-offset-4 group-hover:underline">{{ $post->title }}</p>
                     @php($snippet = $excerpt($post))
                     @if ($snippet->toHtml() !== '')
-                        <p class="mt-2 text-sm text-neutral-700 dark:text-neutral-300 [&_mark]:rounded-sm [&_mark]:bg-amber-200 [&_mark]:px-0.5 dark:[&_mark]:bg-amber-800 dark:[&_mark]:text-neutral-100">
+                        <p class="mt-1 text-sm text-muted [&_mark]:rounded-sm [&_mark]:bg-accent-soft [&_mark]:px-0.5 [&_mark]:text-ink">
                             {{ $snippet }}
                         </p>
                     @endif
-                @endisset
-            </div>
+                </div>
+            </a>
         </li>
     @empty
-        <li class="py-4 text-neutral-500">{{ $empty ?? 'Nothing here yet.' }}</li>
+        <li class="rounded-2xl border border-dashed border-line p-10 text-center">
+            <p class="font-display text-2xl italic">Nothing turned up.</p>
+            <p class="mt-1 text-sm text-muted">{{ $empty ?? 'Try different or fewer words.' }}</p>
+        </li>
     @endforelse
 </ul>

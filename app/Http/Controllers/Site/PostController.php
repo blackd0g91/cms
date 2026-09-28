@@ -37,7 +37,7 @@ class PostController extends Controller
     {
         abort_unless($post->isPublished() || $request->user(), 404);
 
-        $post->setRelation('template', $template);
+        $post->setRelation('template', $template)->load('thumbnail');
 
         return view('site.post', [
             'post' => $post,

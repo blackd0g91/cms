@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Cms\Settings;
+use App\Enums\PostStatus;
 use App\Models\Template;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -30,7 +31,10 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('site.layout', function ($view) {
             $view->with([
-                'navTemplates' => Template::query()->orderBy('name')->get(['id', 'name', 'handle']),
+                'navTemplates' => Template::query()
+                    ->withCount(['posts' => fn ($query) => $query->where('status', PostStatus::Published)])
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'handle']),
                 'settings' => app(Settings::class),
             ]);
         });

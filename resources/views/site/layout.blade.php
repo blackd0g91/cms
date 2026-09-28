@@ -1,56 +1,65 @@
 @php
     $currentTemplate = request()->route('template');
+    $siteName = $settings->siteName();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ isset($title) ? $title.' - '.$settings->siteName() : $settings->siteName() }}</title>
+        <title>{{ isset($title) ? $title.' - '.$siteName : $siteName }}</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
         @fonts
-        @vite('resources/css/site.css')
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link rel="stylesheet" href="https://fonts.bunny.net/css?family=fraunces:400,400i,600,700|jetbrains-mono:400,500&display=swap">
+        @vite(['resources/css/site.css', 'resources/js/site.ts'])
     </head>
-    <body class="flex min-h-screen flex-col bg-white font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
-        <header class="border-b border-neutral-200 dark:border-neutral-800">
-            <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-                <div class="min-w-0">
-                    <a href="{{ route('home') }}" class="text-lg font-semibold">{{ $settings->siteName() }}</a>
-                    @if ($settings->get('tagline'))
-                        <p class="truncate text-sm text-neutral-500">{{ $settings->get('tagline') }}</p>
-                    @endif
-                </div>
+    <body class="flex min-h-screen flex-col bg-paper font-sans text-ink antialiased">
+        <header class="border-b border-line">
+            <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-5">
+                <a href="{{ route('home') }}" class="group flex min-w-0 flex-1 items-center gap-3 sm:flex-none">
+                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink font-display text-xl font-semibold text-paper transition group-hover:-rotate-6">
+                        {{ Str::upper(Str::substr($siteName, 0, 1)) }}
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block truncate font-display text-2xl leading-tight font-semibold tracking-tight">{{ $siteName }}</span>
+                        @if ($settings->get('tagline'))
+                            <span class="block truncate font-mono text-xs text-muted">{{ $settings->get('tagline') }}</span>
+                        @endif
+                    </span>
+                </a>
 
-                <form action="{{ route('search') }}" method="get" role="search" class="ml-auto w-full max-w-xs">
+                <form action="{{ route('search') }}" method="get" role="search" class="relative order-last w-full sm:order-none sm:ml-auto sm:max-w-xs">
                     <label for="site-search" class="sr-only">Search</label>
                     <input
                         id="site-search"
                         type="search"
                         name="q"
                         value="{{ request()->routeIs('search') ? request('q') : '' }}"
-                        placeholder="Search…"
-                        class="w-full rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:focus:ring-neutral-800"
+                        placeholder="Search"
+                        class="w-full rounded-full border border-line bg-card py-2 pr-10 pl-4 text-sm placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent-soft focus:outline-none"
                     >
+                    <kbd class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-line px-1.5 font-mono text-[10px] text-muted sm:block">/</kbd>
                 </form>
 
                 {{-- On small screens the sidebar collapses into this menu. --}}
-                <details class="group relative shrink-0 md:hidden">
-                    <summary class="cursor-pointer list-none rounded-md px-3 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                        Menu
+                <details class="relative shrink-0 md:hidden">
+                    <summary class="cursor-pointer list-none rounded-full border border-line bg-card px-4 py-2 text-sm">
+                        Index
                     </summary>
-                    <div class="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-neutral-200 bg-white p-2 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+                    <div class="absolute right-0 z-10 mt-2 w-64 rounded-xl border border-line bg-card p-3 shadow-xl">
                         @include('site.partials.nav')
                     </div>
                 </details>
             </div>
         </header>
 
-        <div class="mx-auto flex w-full max-w-6xl flex-1 gap-10 px-4 py-8">
-            <aside class="hidden w-48 shrink-0 md:block">
-                <div class="sticky top-8">
+        <div class="mx-auto flex w-full max-w-6xl flex-1 gap-12 px-4 py-10">
+            <aside class="hidden w-52 shrink-0 md:block">
+                <div class="sticky top-10">
                     @include('site.partials.nav')
                 </div>
             </aside>
@@ -60,9 +69,10 @@
             </main>
         </div>
 
-        <footer class="border-t border-neutral-200 dark:border-neutral-800">
-            <div class="mx-auto max-w-6xl px-4 py-6 text-sm text-neutral-500">
-                {{ $settings->footer() }}
+        <footer class="border-t border-line">
+            <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 font-mono text-xs text-muted">
+                <span>{{ $settings->footer() }}</span>
+                <a href="#" class="hover:text-ink">Back to top ↑</a>
             </div>
         </footer>
     </body>

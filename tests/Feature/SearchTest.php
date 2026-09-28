@@ -21,7 +21,7 @@ function recipe(array $attributes, array $data = []): Post
 }
 
 test('the search page renders without a query', function () {
-    $this->get(route('search'))->assertOk()->assertSee('Type something');
+    $this->get(route('search'))->assertOk()->assertSee('Looking for something?');
 });
 
 test('posts are found by title and field content', function () {

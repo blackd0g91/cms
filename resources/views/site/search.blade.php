@@ -1,22 +1,19 @@
 @extends('site.layout', ['title' => $query === '' ? 'Search' : "Search: {$query}"])
 
 @section('content')
+    <p class="font-mono text-xs tracking-widest text-muted uppercase">Search</p>
+
     @if ($posts === null)
-        <h1 class="mb-2 text-2xl font-bold">Search</h1>
-        <p class="text-neutral-500">Type something in the search box to find posts.</p>
+        <h1 class="mt-2 font-display text-4xl font-semibold tracking-tight">Looking for something?</h1>
+        <p class="mt-2 text-muted">Type in the search box above, or press <kbd class="rounded border border-line px-1.5 font-mono text-xs">/</kbd> anywhere.</p>
     @else
-        <h1 class="mb-6 text-2xl font-bold">
-            {{ $posts->total() }} {{ Str::plural('result', $posts->total()) }} for “{{ $query }}”
+        <h1 class="mt-2 mb-8 font-display text-4xl font-semibold tracking-tight">
+            {{ $posts->total() }} {{ Str::plural('result', $posts->total()) }} for <em class="font-normal text-accent">“{{ $query }}”</em>
         </h1>
 
-        @include('site.partials.post-list', [
-            'posts' => $posts,
-            'showTemplate' => true,
-            'excerpt' => $excerpt,
-            'empty' => 'Nothing matched. Try different or fewer words.',
-        ])
+        @include('site.partials.post-list', ['posts' => $posts, 'excerpt' => $excerpt])
 
-        <div class="mt-6">
+        <div class="mt-8">
             {{ $posts->links() }}
         </div>
     @endif
