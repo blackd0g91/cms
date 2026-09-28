@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { destroy, store, update } from '@/routes/cp/media';
-import type { Media } from '@/types';
+import { edit as editPost } from '@/routes/cp/templates/posts';
+import type { Media, MediaUsage } from '@/types';
 
 defineOptions({ layout: CpLayout });
 
-defineProps<{
+const props = defineProps<{
     media: Media[];
+    usages: Record<number, MediaUsage[]>;
 }>();
+
+const usagesOf = (item: Media) => props.usages[item.id] ?? [];
 
 const form = useForm<{ file: File | null }>({ file: null });
 
@@ -41,15 +45,27 @@ const saveAlt = (item: Media, alt: string) => {
 };
 
 const remove = (item: Media) => {
-    if (
-        !confirm(
-            `Delete "${item.filename}"? Posts using it will no longer show it.`,
-        )
-    ) {
+    const usages = usagesOf(item);
+    const message =
+        usages.length === 0
+            ? `Delete "${item.filename}"?`
+            : [
+                  `"${item.filename}" is still used in:`,
+                  ...usages.map((usage) => `• ${usage.label}`),
+                  '',
+                  'Those places will show no image, or a broken one if it was inserted into markdown. Delete anyway?',
+              ].join('\n');
+
+    if (!confirm(message)) {
         return;
     }
 
-    router.delete(destroy(item.id).url, { preserveScroll: true });
+    router.delete(
+        destroy(item.id, {
+            query: { force: usages.length > 0 ? 1 : undefined },
+        }).url,
+        { preserveScroll: true },
+    );
 };
 
 const formatSize = (bytes: number) =>
@@ -77,6 +93,9 @@ const copyUrl = (item: Media) => navigator.clipboard.writeText(item.url);
     </PageHeader>
 
     <p v-if="form.errors.file" class="cp-error mb-4">{{ form.errors.file }}</p>
+    <p v-if="$page.props.errors.media" class="cp-error mb-4">
+        {{ $page.props.errors.media }}
+    </p>
 
     <p v-if="media.length === 0" class="cp-card p-6 text-sm text-neutral-500">
         No images yet.
@@ -106,6 +125,29 @@ const copyUrl = (item: Media) => navigator.clipboard.writeText(item.url);
                     </template>
                     {{ formatSize(item.size) }}
                 </p>
+                <details v-if="usagesOf(item).length" class="text-xs">
+                    <summary
+                        class="cursor-pointer text-neutral-600 dark:text-neutral-400"
+                    >
+                        Used in {{ usagesOf(item).length }}
+                        {{ usagesOf(item).length === 1 ? 'place' : 'places' }}
+                    </summary>
+                    <ul class="mt-1 space-y-0.5 pl-3">
+                        <li v-for="(usage, i) in usagesOf(item)" :key="i">
+                            <Link
+                                v-if="usage.post_id && usage.template_id"
+                                :href="
+                                    editPost([usage.template_id, usage.post_id])
+                                "
+                                class="hover:underline"
+                            >
+                                {{ usage.label }}
+                            </Link>
+                            <span v-else>{{ usage.label }}</span>
+                        </li>
+                    </ul>
+                </details>
+                <p v-else class="text-xs text-neutral-400">Not used anywhere</p>
                 <input
                     type="text"
                     :value="item.alt ?? ''"

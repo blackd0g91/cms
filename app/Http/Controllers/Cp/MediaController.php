@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Cp;
 
+use App\Cms\MediaUsage;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,10 +20,13 @@ class MediaController extends Controller
      */
     private const array RULES = ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp,avif', 'max:10240'];
 
-    public function index(): Response
+    public function index(MediaUsage $usage): Response
     {
+        $media = $this->all();
+
         return Inertia::render('cp/media/Index', [
-            'media' => $this->all(),
+            'media' => $media,
+            'usages' => $usage->forMedia($media),
         ]);
     }
 
@@ -53,8 +58,20 @@ class MediaController extends Controller
         return back();
     }
 
-    public function destroy(Media $media): RedirectResponse
+    /**
+     * Images that are still in use are only deleted when the request
+     * confirms it with "force".
+     */
+    public function destroy(Request $request, Media $media, MediaUsage $usage): RedirectResponse
     {
+        $usages = $usage->for($media);
+
+        if ($usages !== [] && ! $request->boolean('force')) {
+            throw ValidationException::withMessages([
+                'media' => 'This image is still used in: '.implode(', ', array_column($usages, 'label')).'.',
+            ]);
+        }
+
         $media->deleteWithFile();
 
         return back();

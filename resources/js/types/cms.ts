@@ -77,3 +77,9 @@ export type Paginated<T> = {
     prev_page_url: string | null;
     next_page_url: string | null;
 };
+
+export type MediaUsage = {
+    label: string;
+    post_id: number | null;
+    template_id: number | null;
+};

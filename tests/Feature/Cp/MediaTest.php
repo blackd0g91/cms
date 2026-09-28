@@ -1,6 +1,9 @@
 <?php
 
+use App\Cms\Settings;
 use App\Models\Media;
+use App\Models\Post;
+use App\Models\Template;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -85,4 +88,57 @@ test('deleting media removes the file', function () {
 
     $this->assertModelMissing($media);
     Storage::disk('public')->assertMissing($media->path);
+});
+
+function imageTemplate(): Template
+{
+    return Template::factory()->create([
+        'name' => 'Recipes',
+        'fields' => [
+            ['handle' => 'photo', 'label' => 'Photo', 'type' => 'image', 'required' => false, 'options' => []],
+            ['handle' => 'method', 'label' => 'Method', 'type' => 'markdown', 'required' => false, 'options' => []],
+        ],
+    ]);
+}
+
+test('media usage is listed for image fields, markdown and the home intro', function () {
+    $inField = Media::factory()->create();
+    $inMarkdown = Media::factory()->create();
+    $inIntro = Media::factory()->create();
+    $unused = Media::factory()->create();
+
+    $template = imageTemplate();
+    $post = Post::factory()->for($template)->create([
+        'title' => 'Soup',
+        'data' => ['photo' => $inField->id, 'method' => "Look:\n\n![soup]({$inMarkdown->url})"],
+    ]);
+    app(Settings::class)->update(['home_intro' => "![me]({$inIntro->url})"]);
+
+    $this->get(route('cp.media.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where("usages.{$inField->id}", [['label' => 'Soup (Recipes)', 'post_id' => $post->id, 'template_id' => $template->id]])
+            ->where("usages.{$inMarkdown->id}.0.post_id", $post->id)
+            ->where("usages.{$inIntro->id}", [['label' => 'Home page intro', 'post_id' => null, 'template_id' => null]])
+            ->where("usages.{$unused->id}", []));
+});
+
+test('images in use are only deleted when forced', function () {
+    $media = Media::factory()->create();
+    Post::factory()->for(imageTemplate())->create(['title' => 'Soup', 'data' => ['photo' => $media->id]]);
+
+    $this->delete(route('cp.media.destroy', $media))->assertSessionHasErrors(['media' => 'This image is still used in: Soup (Recipes).']);
+    $this->assertModelExists($media);
+
+    $this->delete(route('cp.media.destroy', ['media' => $media, 'force' => 1]))->assertSessionHasNoErrors();
+    $this->assertModelMissing($media);
+});
+
+test('a number in another field type does not count as image usage', function () {
+    $media = Media::factory()->create();
+    $template = Template::factory()->create([
+        'fields' => [['handle' => 'servings', 'label' => 'Servings', 'type' => 'number', 'required' => false, 'options' => []]],
+    ]);
+    Post::factory()->for($template)->create(['data' => ['servings' => $media->id]]);
+
+    $this->delete(route('cp.media.destroy', $media))->assertSessionHasNoErrors();
 });
