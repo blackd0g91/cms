@@ -1,4 +1,7 @@
-@extends('site.layout', ['title' => $query === '' ? 'Search' : "Search: {$query}"])
+@extends('site.layout', [
+    'title' => $query === '' ? 'Search' : "Search: {$query}",
+    'meta' => ['noindex' => true],
+])
 
 @section('content')
     <p class="font-mono text-xs tracking-widest text-muted uppercase">Search</p>

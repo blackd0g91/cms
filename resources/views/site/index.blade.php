@@ -1,4 +1,10 @@
-@extends('site.layout', ['title' => $template->name])
+@extends('site.layout', [
+    'title' => $template->name,
+    'meta' => [
+        'description' => $template->description,
+        'feed' => ['title' => $template->name, 'url' => route('site.template.feed', $template)],
+    ],
+])
 
 @section('content')
     <div class="hue" style="{{ $template->accentStyle() }}">

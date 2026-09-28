@@ -1,4 +1,16 @@
-@extends('site.layout', ['title' => $post->title])
+@extends('site.layout', [
+    'title' => $post->title,
+    'meta' => [
+        'description' => $post->summary(),
+        'image' => $post->thumbnail?->url,
+        'type' => 'article',
+        'published_time' => $post->published_at?->toIso8601String(),
+        'modified_time' => $post->updated_at?->toIso8601String(),
+        // Drafts are only visible to you, so keep them out of search engines.
+        'noindex' => ! $post->isPublished(),
+        'feed' => ['title' => $post->template->name, 'url' => route('site.template.feed', $post->template)],
+    ],
+])
 
 @section('content')
     <div class="hue flex gap-12" style="{{ $post->template->accentStyle() }}">

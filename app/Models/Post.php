@@ -97,6 +97,14 @@ class Post extends Model
     }
 
     /**
+     * A short plain-text summary, for page descriptions, link previews and feeds.
+     */
+    public function summary(int $length = 180): string
+    {
+        return Str::limit($this->plainText(), $length);
+    }
+
+    /**
      * Rough reading time, at 200 words a minute.
      */
     public function readingMinutes(): int

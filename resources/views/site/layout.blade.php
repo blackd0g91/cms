@@ -8,6 +8,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ isset($title) ? $title.' - '.$siteName : $siteName }}</title>
+        @include('site.partials.meta')
 
         @include('partials.icons')
 
