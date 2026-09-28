@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\PostStatus;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use App\Models\User;
@@ -120,4 +121,24 @@ test('guests can not preview markdown', function () {
     auth()->logout();
 
     $this->postJson(route('cp.markdown.preview'), ['markdown' => 'hi'])->assertUnauthorized();
+});
+
+test('image fields store a media id and must point to existing media', function () {
+    $template = Template::factory()->create([
+        'fields' => [['handle' => 'photo', 'label' => 'Photo', 'type' => 'image', 'required' => false, 'options' => []]],
+    ]);
+    $media = Media::factory()->create();
+    $payload = ['title' => 'Soup', 'status' => 'draft'];
+
+    $this->post(route('cp.templates.posts.store', $template), [...$payload, 'data' => ['photo' => 999]])
+        ->assertSessionHasErrors('data.photo');
+
+    $this->post(route('cp.templates.posts.store', $template), [...$payload, 'data' => ['photo' => $media->id]])
+        ->assertSessionHasNoErrors();
+
+    $post = Post::sole();
+    expect($post->data['photo'])->toBe($media->id);
+
+    $this->get(route('cp.templates.posts.edit', [$template, $post]))
+        ->assertInertia(fn ($page) => $page->where("media.{$media->id}.url", $media->url));
 });

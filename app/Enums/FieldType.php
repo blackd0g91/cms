@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
+use App\Cms\Image;
 use App\Cms\Markdown;
+use App\Models\Media;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
 
@@ -16,6 +18,7 @@ enum FieldType: string
     case Select = 'select';
     case Date = 'date';
     case List = 'list';
+    case Image = 'image';
 
     public function label(): string
     {
@@ -28,6 +31,7 @@ enum FieldType: string
             self::Select => 'Select',
             self::Date => 'Date',
             self::List => 'List',
+            self::Image => 'Image',
         };
     }
 
@@ -53,6 +57,7 @@ enum FieldType: string
                 $key => $required ? ['required', 'array', 'min:1'] : ['nullable', 'array'],
                 "{$key}.*" => ['string'],
             ],
+            self::Image => [$key => [$presence, 'integer', Rule::exists(Media::class, 'id')]],
         };
     }
 
@@ -64,6 +69,7 @@ enum FieldType: string
         return match ($this) {
             self::Boolean => (bool) $value,
             self::Number => $value === null ? null : $value + 0,
+            self::Image => $value === null ? null : (int) $value,
             self::List => array_values((array) $value),
             default => $value,
         };
@@ -79,6 +85,9 @@ enum FieldType: string
             self::Textarea => new HtmlString(nl2br(e((string) $value))),
             self::Boolean => (bool) $value,
             self::List => array_values((array) $value),
+            self::Image => is_int($value) && ($media = Media::query()->find($value)) instanceof Media
+                ? Image::fromMedia($media)
+                : null,
             default => $value,
         };
     }

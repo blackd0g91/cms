@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import ImageField from '@/components/cp/ImageField.vue';
 import MarkdownEditor from '@/components/cp/MarkdownEditor.vue';
-import type { Field, FieldValue } from '@/types';
+import type { Field, FieldValue, Media } from '@/types';
 
 const props = defineProps<{
     field: Field;
     id: string;
+    media?: Media | null;
 }>();
 
 const model = defineModel<FieldValue>();
@@ -46,6 +48,14 @@ const inputValue = () =>
         v-else-if="props.field.type === 'markdown'"
         :id="id"
         :model-value="typeof model === 'string' ? model : null"
+        @update:model-value="model = $event ?? null"
+    />
+
+    <ImageField
+        v-else-if="props.field.type === 'image'"
+        :id="id"
+        :initial="props.media"
+        :model-value="typeof model === 'number' ? model : null"
         @update:model-value="model = $event ?? null"
     />
 

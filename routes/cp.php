@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Cp\Auth\LoginController;
 use App\Http\Controllers\Cp\MarkdownPreviewController;
+use App\Http\Controllers\Cp\MediaController;
 use App\Http\Controllers\Cp\PostController;
 use App\Http\Controllers\Cp\TemplateController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,12 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::inertia('/', 'cp/Dashboard')->name('dashboard');
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::post('markdown/preview', MarkdownPreviewController::class)->name('markdown.preview');
+
+        Route::get('media', [MediaController::class, 'index'])->name('media.index');
+        Route::get('media/library', [MediaController::class, 'library'])->name('media.library');
+        Route::post('media', [MediaController::class, 'store'])->name('media.store');
+        Route::patch('media/{media}', [MediaController::class, 'update'])->name('media.update');
+        Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
 
         Route::resource('templates', TemplateController::class)->except('show');
         Route::resource('templates.posts', PostController::class)->except('show')->scoped(['post' => 'id']);

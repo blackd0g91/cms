@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Cp;
 
+use App\Enums\FieldType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cp\PostRequest;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +33,7 @@ class PostController extends Controller
         return Inertia::render('cp/posts/Edit', [
             'template' => $template->only(['id', 'name', 'handle', 'fields']),
             'post' => null,
+            'media' => [],
         ]);
     }
 
@@ -51,6 +54,7 @@ class PostController extends Controller
                 ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'data']),
                 'url' => $post->url(),
             ],
+            'media' => $this->selectedMedia($template, $post),
         ]);
     }
 
@@ -68,6 +72,22 @@ class PostController extends Controller
         $post->delete();
 
         return redirect()->route('cp.templates.posts.index', $template);
+    }
+
+    /**
+     * The images selected in a post's image fields, keyed by id.
+     *
+     * @return array<int, Media>
+     */
+    private function selectedMedia(Template $template, Post $post): array
+    {
+        $ids = collect($template->fieldTypes())
+            ->filter(fn (FieldType $type) => $type === FieldType::Image)
+            ->keys()
+            ->map(fn (string $handle) => $post->data[$handle] ?? null)
+            ->filter();
+
+        return Media::query()->whereKey($ids)->get()->keyBy('id')->all();
     }
 
     /**

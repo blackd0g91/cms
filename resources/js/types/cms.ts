@@ -6,7 +6,8 @@ export type FieldType =
     | 'boolean'
     | 'select'
     | 'date'
-    | 'list';
+    | 'list'
+    | 'image';
 
 export type Field = {
     handle: string;
@@ -45,4 +46,16 @@ export type Post = {
     updated_at: string;
     data: Record<string, FieldValue>;
     url: string;
+};
+
+export type Media = {
+    id: number;
+    url: string;
+    filename: string;
+    mime_type: string;
+    size: number;
+    width: number | null;
+    height: number | null;
+    alt: string | null;
+    created_at: string;
 };

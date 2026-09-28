@@ -126,6 +126,8 @@ const usage = (handle: string, type: FieldType) => {
             return `{{# ${handle} }}<li>{{ . }}</li>{{/ ${handle} }}`;
         case 'boolean':
             return `{{# ${handle} }}...{{/ ${handle} }}`;
+        case 'image':
+            return `{{ ${handle} }} or {{# ${handle} }}{{ url }} {{ alt }}{{/ ${handle} }}`;
         default:
             return `{{ ${handle} }}`;
     }

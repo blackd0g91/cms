@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import MediaPicker from '@/components/cp/MediaPicker.vue';
+import { requestJson } from '@/lib/http';
 import { cn } from '@/lib/utils';
 import { preview as previewRoute } from '@/routes/cp/markdown';
+import type { Media } from '@/types';
 
 defineProps<{
     id: string;
@@ -13,41 +16,48 @@ const tab = ref<'write' | 'preview'>('write');
 const html = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
-
-const xsrfToken = () =>
-    decodeURIComponent(
-        document.cookie
-            .split('; ')
-            .find((cookie) => cookie.startsWith('XSRF-TOKEN='))
-            ?.slice('XSRF-TOKEN='.length) ?? '',
-    );
+const textareaRef = ref<HTMLTextAreaElement>();
+const picker = ref<InstanceType<typeof MediaPicker>>();
 
 const renderPreview = async () => {
     loading.value = true;
     error.value = null;
 
     try {
-        const response = await fetch(previewRoute().url, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-XSRF-TOKEN': xsrfToken(),
-            },
-            body: JSON.stringify({ markdown: model.value ?? '' }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Preview failed (${response.status})`);
-        }
-
-        html.value = ((await response.json()) as { html: string }).html;
+        html.value = (
+            await requestJson<{ html: string }>(previewRoute().url, {
+                method: 'POST',
+                body: { markdown: model.value ?? '' },
+            })
+        ).html;
     } catch (e) {
         error.value = e instanceof Error ? e.message : 'Preview failed';
     } finally {
         loading.value = false;
     }
+};
+
+const insertImage = (media: Media) => {
+    const textarea = textareaRef.value;
+    const alt = (media.alt ?? media.filename).replace(/[[\]]/g, '');
+    const markdown = `![${alt}](${media.url})`;
+
+    tab.value = 'write';
+
+    if (!textarea) {
+        model.value = `${model.value ?? ''}${markdown}`;
+
+        return;
+    }
+
+    textarea.setRangeText(
+        markdown,
+        textarea.selectionStart,
+        textarea.selectionEnd,
+        'end',
+    );
+    model.value = textarea.value;
+    textarea.focus();
 };
 
 watch(tab, (value) => {
@@ -81,7 +91,7 @@ const tabClass = (name: typeof tab.value) =>
 
 <template>
     <div>
-        <div class="mb-2 flex gap-1" role="tablist">
+        <div class="mb-2 flex items-center gap-1" role="tablist">
             <button
                 type="button"
                 role="tab"
@@ -100,11 +110,20 @@ const tabClass = (name: typeof tab.value) =>
             >
                 Preview
             </button>
+            <button
+                type="button"
+                class="ml-auto rounded-md px-3 py-1 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+                @click="picker?.open()"
+            >
+                Insert image
+            </button>
         </div>
+        <MediaPicker ref="picker" @select="insertImage" />
 
         <textarea
             v-show="tab === 'write'"
             :id="id"
+            ref="textareaRef"
             :value="model ?? ''"
             rows="14"
             spellcheck="false"

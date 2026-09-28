@@ -82,7 +82,7 @@ test('template validation', function (array $overrides, string $error) {
         ['handle' => 'a', 'label' => 'A', 'type' => 'text'],
         ['handle' => 'a', 'label' => 'B', 'type' => 'text'],
     ]], 'fields.0.handle'],
-    'unknown field type' => [['fields' => [['handle' => 'a', 'label' => 'A', 'type' => 'image']]], 'fields.0.type'],
+    'unknown field type' => [['fields' => [['handle' => 'a', 'label' => 'A', 'type' => 'video']]], 'fields.0.type'],
     'select without options' => [['fields' => [['handle' => 'a', 'label' => 'A', 'type' => 'select', 'options' => []]]], 'fields.0.options'],
     'broken layout' => [['layout' => '{{# open }}never closed'], 'layout'],
 ]);

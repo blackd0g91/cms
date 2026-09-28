@@ -6,13 +6,21 @@ import PageHeader from '@/components/cp/PageHeader.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { slugify } from '@/lib/utils';
 import { destroy, index, store, update } from '@/routes/cp/templates/posts';
-import type { Field, FieldValue, Post, PostStatus, Template } from '@/types';
+import type {
+    Field,
+    FieldValue,
+    Media,
+    Post,
+    PostStatus,
+    Template,
+} from '@/types';
 
 defineOptions({ layout: CpLayout });
 
 const props = defineProps<{
     template: Pick<Template, 'id' | 'name' | 'handle' | 'fields'>;
     post: Omit<Post, 'updated_at'> | null;
+    media: Record<number, Media>;
 }>();
 
 const emptyValue = (field: Field): FieldValue => {
@@ -119,6 +127,11 @@ const deletePost = () => {
                     :id="`data-${field.handle}`"
                     v-model="form.values[field.handle]"
                     :field="field"
+                    :media="
+                        field.type === 'image'
+                            ? media[form.values[field.handle] as number]
+                            : null
+                    "
                 />
                 <p v-if="dataError(field.handle)" class="cp-error">
                     {{ dataError(field.handle) }}

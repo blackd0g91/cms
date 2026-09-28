@@ -85,6 +85,9 @@ class LayoutRenderer
                     "    {{# {$handle} }}<li>{{ . }}</li>{{/ {$handle} }}",
                     '  </ul>',
                 ],
+                FieldType::Image => [
+                    "  {{ {$handle} }}",
+                ],
                 FieldType::Boolean => [
                     "  {{# {$handle} }}<p>{$label}</p>{{/ {$handle} }}",
                 ],

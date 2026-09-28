@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use App\Models\User;
@@ -95,4 +96,27 @@ test('unknown templates are not found', function () {
 
 test('the control panel is not captured by the public routes', function () {
     $this->get('/cp/login')->assertOk();
+});
+
+test('image fields render as images in layouts', function () {
+    $media = Media::factory()->create(['alt' => 'Soup "bowl"', 'width' => 640, 'height' => 480]);
+    $template = Template::factory()->create([
+        'handle' => 'photos',
+        'fields' => [
+            ['handle' => 'photo', 'label' => 'Photo', 'type' => 'image', 'required' => false, 'options' => []],
+            ['handle' => 'missing', 'label' => 'Missing', 'type' => 'image', 'required' => false, 'options' => []],
+        ],
+        'layout' => '{{ photo }}|{{# photo }}<a href="{{ url }}">{{ alt }}</a>{{/ photo }}|{{# missing }}never{{/ missing }}{{^ missing }}none{{/ missing }}',
+    ]);
+    Post::factory()->published()->for($template)->create([
+        'slug' => 'one',
+        'data' => ['photo' => $media->id, 'missing' => 12345],
+    ]);
+
+    $this->get('/photos/one')
+        ->assertOk()
+        ->assertSee('<img src="'.$media->url.'" alt="Soup &quot;bowl&quot;" width="640" height="480" loading="lazy">', false)
+        ->assertSee('<a href="'.$media->url.'">Soup &quot;bowl&quot;</a>', false)
+        ->assertSee('|none', false)
+        ->assertDontSee('never');
 });
