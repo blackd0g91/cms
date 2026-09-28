@@ -1,7 +1,7 @@
 @extends('site.layout', ['title' => $post->title])
 
 @section('content')
-    <article class="hue max-w-3xl" style="--hue: {{ $post->template->hue() }}">
+    <article class="hue max-w-3xl" style="{{ $post->template->accentStyle() }}">
         @unless ($post->isPublished())
             <p class="mb-6 rounded-xl border border-dashed border-accent bg-accent-soft px-4 py-2 font-mono text-xs">
                 Draft preview. Only you can see this.

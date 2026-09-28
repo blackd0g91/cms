@@ -1,7 +1,7 @@
 {{-- Posts as a compact list with excerpts. Expects $posts (template and thumbnail loaded) and $excerpt. --}}
 <ul class="space-y-3">
     @forelse ($posts as $post)
-        <li class="hue" style="--hue: {{ $post->template->hue() }}">
+        <li class="hue" style="{{ $post->template->accentStyle() }}">
             <a href="{{ $post->url() }}" class="group flex gap-4 rounded-2xl border border-line bg-card p-4 transition hover:border-accent">
                 @include('site.partials.thumbnail', ['post' => $post, 'class' => 'size-16 shrink-0 rounded-xl'])
                 <div class="min-w-0">

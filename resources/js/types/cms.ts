@@ -27,6 +27,7 @@ export type Template = {
     name: string;
     handle: string;
     description: string | null;
+    color: string | null;
     fields: Field[];
     layout: string;
 };

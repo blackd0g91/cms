@@ -6,6 +6,7 @@ use App\Cms\LayoutRenderer;
 use App\Enums\FieldType;
 use App\Models\Template;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Mustache\Exception\SyntaxException;
@@ -31,6 +32,7 @@ class TemplateRequest extends FormRequest
                 Rule::unique(Template::class)->ignore($template),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
+            'color' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'fields' => ['present', 'array'],
             'fields.*.handle' => [
                 'required', 'string', 'max:64', 'distinct',
@@ -55,6 +57,7 @@ class TemplateRequest extends FormRequest
         return [
             'handle.regex' => 'The handle may only contain lowercase letters, numbers and dashes.',
             'handle.not_in' => 'This handle is reserved.',
+            'color.regex' => 'The color must be a hex color like #c2410c.',
             'fields.*.handle.regex' => 'Field handles must start with a letter and contain only lowercase letters, numbers and underscores.',
             'fields.*.handle.not_in' => 'This field handle is reserved.',
             'fields.*.handle.distinct' => 'Field handles must be unique.',
@@ -117,7 +120,7 @@ class TemplateRequest extends FormRequest
      * The validated attributes, with fields normalized and an empty layout
      * replaced by one generated from the fields.
      *
-     * @return array{name: string, handle: string, description: string|null, fields: list<array{handle: string, label: string, type: string, required: bool, options: list<string>}>, layout: string}
+     * @return array{name: string, handle: string, description: string|null, color: string|null, fields: list<array{handle: string, label: string, type: string, required: bool, options: list<string>}>, layout: string}
      */
     public function templateAttributes(): array
     {
@@ -135,6 +138,7 @@ class TemplateRequest extends FormRequest
             'name' => $this->string('name')->toString(),
             'handle' => $this->string('handle')->toString(),
             'description' => $this->filled('description') ? $this->string('description')->toString() : null,
+            'color' => $this->filled('color') ? Str::lower($this->string('color')->toString()) : null,
             'fields' => $fields,
             'layout' => $this->filled('layout')
                 ? $this->string('layout')->toString()

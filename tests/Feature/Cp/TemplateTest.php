@@ -85,6 +85,8 @@ test('template validation', function (array $overrides, string $error) {
     'unknown field type' => [['fields' => [['handle' => 'a', 'label' => 'A', 'type' => 'video']]], 'fields.0.type'],
     'select without options' => [['fields' => [['handle' => 'a', 'label' => 'A', 'type' => 'select', 'options' => []]]], 'fields.0.options'],
     'broken layout' => [['layout' => '{{# open }}never closed'], 'layout'],
+    'invalid color' => [['color' => 'red'], 'color'],
+    'short hex color' => [['color' => '#abc'], 'color'],
 ]);
 
 test('template handles must be unique', function () {
@@ -192,4 +194,15 @@ test('a template can be duplicated without its posts', function () {
         ->and($copy->fields)->toBe($template->fields)
         ->and($copy->layout)->toBe($template->layout)
         ->and($copy->posts()->count())->toBe(0);
+});
+
+test('a template can have an accent color, or go back to automatic', function () {
+    $this->post(route('cp.templates.store'), templatePayload(['color' => '#C2410C']))->assertSessionHasNoErrors();
+
+    $template = Template::sole();
+    expect($template->color)->toBe('#c2410c');
+
+    $this->put(route('cp.templates.update', $template), templatePayload(['color' => '']))->assertSessionHasNoErrors();
+
+    expect($template->fresh()->color)->toBeNull();
 });

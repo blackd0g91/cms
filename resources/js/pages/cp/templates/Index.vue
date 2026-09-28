@@ -9,7 +9,10 @@ import type { Template } from '@/types';
 defineOptions({ layout: CpLayout });
 
 defineProps<{
-    templates: (Pick<Template, 'id' | 'name' | 'handle' | 'description'> & {
+    templates: (Pick<
+        Template,
+        'id' | 'name' | 'handle' | 'description' | 'color'
+    > & {
         posts_count: number;
     })[];
 }>();
@@ -39,6 +42,20 @@ defineProps<{
             class="flex flex-wrap items-center justify-between gap-3 p-4"
         >
             <div class="min-w-0">
+                <span
+                    class="mr-2 inline-block size-2.5 rounded-full border"
+                    :class="
+                        template.color
+                            ? 'border-transparent'
+                            : 'border-neutral-400 dark:border-neutral-600'
+                    "
+                    :style="
+                        template.color
+                            ? { backgroundColor: template.color }
+                            : undefined
+                    "
+                    :title="template.color ?? 'Automatic color'"
+                />
                 <Link
                     :href="edit(template.id)"
                     class="font-medium hover:underline"

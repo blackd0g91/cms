@@ -46,6 +46,7 @@ const form = useForm({
     name: props.template?.name ?? '',
     handle: props.template?.handle ?? '',
     description: props.template?.description ?? '',
+    color: props.template?.color ?? '',
     fields: (props.template?.fields ?? []).map(toEditable),
     layout: props.template?.layout ?? '',
 });
@@ -244,6 +245,49 @@ const variables = computed(() => [
                 />
                 <p v-if="form.errors.description" class="cp-error">
                     {{ form.errors.description }}
+                </p>
+            </div>
+            <div class="space-y-1.5">
+                <label for="color" class="cp-label">Accent color</label>
+                <div v-if="form.color" class="flex items-center gap-2">
+                    <input
+                        id="color"
+                        v-model="form.color"
+                        type="color"
+                        class="h-9 w-12 cursor-pointer rounded-md border border-neutral-300 bg-white p-1 dark:border-neutral-700 dark:bg-neutral-950"
+                    />
+                    <input
+                        v-model="form.color"
+                        type="text"
+                        aria-label="Accent color hex value"
+                        maxlength="7"
+                        class="cp-input w-28 font-mono"
+                    />
+                    <button
+                        type="button"
+                        class="cp-btn"
+                        @click="form.color = ''"
+                    >
+                        Use automatic
+                    </button>
+                </div>
+                <div v-else class="flex items-center gap-3">
+                    <span class="text-sm text-neutral-500">Automatic</span>
+                    <button
+                        id="color"
+                        type="button"
+                        class="cp-btn"
+                        @click="form.color = '#c2410c'"
+                    >
+                        Pick a color
+                    </button>
+                </div>
+                <p class="text-xs text-neutral-500">
+                    Used for this template's accents on the site: its sidebar
+                    dot, tags, links and highlights.
+                </p>
+                <p v-if="form.errors.color" class="cp-error">
+                    {{ form.errors.color }}
                 </p>
             </div>
         </section>

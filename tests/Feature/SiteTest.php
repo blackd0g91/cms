@@ -149,7 +149,7 @@ test('posts without a thumbnail get a lettered placeholder in the accent color',
 
     $this->get('/recipes')
         ->assertOk()
-        ->assertSee('style="--hue: '.$this->template->hue().'"', false)
+        ->assertSee('style="--hue: '.$this->template->hue().'; --accent-base: initial"', false)
         ->assertSeeInOrder(['text-accent', '>P</span>'], false);
 });
 
@@ -169,4 +169,15 @@ test('posts show a reading time', function () {
     expect($post->readingMinutes())->toBe(3);
 
     $this->get('/recipes/long')->assertSee('3 min read');
+});
+
+test('a chosen template color is used for its accents', function () {
+    $this->template->update(['color' => '#c2410c']);
+    Post::factory()->published()->for($this->template)->create(['slug' => 'soup']);
+
+    $style = 'style="--hue: '.$this->template->hue().'; --accent-base: #c2410c"';
+
+    $this->get('/recipes')->assertSee($style, false);
+    $this->get('/recipes/soup')->assertSee($style, false);
+    $this->get(route('home'))->assertSee($style, false);
 });

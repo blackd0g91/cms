@@ -17,12 +17,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $handle
  * @property string|null $description
+ * @property string|null $color Accent color as #rrggbb, or null for an automatic one
  * @property list<array{handle: string, label: string, type: string, required: bool, options: list<string>}> $fields
  * @property string $layout
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['name', 'handle', 'description', 'fields', 'layout'])]
+#[Fillable(['name', 'handle', 'description', 'color', 'fields', 'layout'])]
 class Template extends Model
 {
     /** @use HasFactory<TemplateFactory> */
@@ -39,12 +40,22 @@ class Template extends Model
     public const array RESERVED_FIELD_HANDLES = ['title', 'slug', 'url', 'published_at', 'template'];
 
     /**
-     * The template's accent color hue (0-359) on the public site. Stepping by
-     * the golden angle keeps consecutive templates far apart on the wheel.
+     * The hue (0-359) of the automatic accent color, used when no color is
+     * set. Stepping by the golden angle keeps consecutive templates far apart.
      */
     public function hue(): int
     {
         return (int) fmod(20 + $this->id * 137.508, 360);
+    }
+
+    /**
+     * CSS variables for the template's accent, for an element with the "hue"
+     * class (see resources/css/site.css). The chosen color is reset when
+     * there is none, so it is never inherited from an outer template.
+     */
+    public function accentStyle(): string
+    {
+        return "--hue: {$this->hue()}; --accent-base: ".($this->color ?? 'initial');
     }
 
     /**

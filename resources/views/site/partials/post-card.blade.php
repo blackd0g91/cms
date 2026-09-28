@@ -1,6 +1,6 @@
 {{-- A post as a card. Expects $post (template and thumbnail loaded) and optionally $featured. --}}
 @php($featured ??= false)
-<article @class(['hue group', 'sm:col-span-2' => $featured]) style="--hue: {{ $post->template->hue() }}">
+<article @class(['hue group', 'sm:col-span-2' => $featured]) style="{{ $post->template->accentStyle() }}">
     <a
         href="{{ $post->url() }}"
         @class([

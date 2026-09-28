@@ -53,11 +53,46 @@
     }
 }
 
-/* Recomputed wherever --hue changes, so nested templates get their own color. */
+/*
+ * Recomputed on every .hue element, so nested templates get their own color:
+ * the template's chosen --accent-base, or an automatic one from --hue.
+ */
 :root,
 .hue {
-    --accent: oklch(var(--accent-l) var(--accent-c) var(--hue));
-    --accent-soft: oklch(var(--accent-l) var(--accent-c) var(--hue) / 0.14);
+    --accent: var(
+        --accent-base,
+        oklch(var(--accent-l) var(--accent-c) var(--hue))
+    );
+    --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+}
+
+/* Keep chosen colors readable: not too light on paper, not too dark on ink. */
+@supports (color: oklch(from red l c h)) {
+    :root,
+    .hue {
+        --accent: oklch(
+            from
+                var(
+                    --accent-base,
+                    oklch(var(--accent-l) var(--accent-c) var(--hue))
+                )
+                min(l, 0.68) c h
+        );
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root,
+        .hue {
+            --accent: oklch(
+                from
+                    var(
+                        --accent-base,
+                        oklch(var(--accent-l) var(--accent-c) var(--hue))
+                    )
+                    max(l, 0.7) c h
+            );
+        }
+    }
 }
 
 body {

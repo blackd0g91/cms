@@ -21,7 +21,7 @@ class TemplateController extends Controller
             'templates' => Template::query()
                 ->withCount('posts')
                 ->orderBy('name')
-                ->get(['id', 'name', 'handle', 'description']),
+                ->get(['id', 'name', 'handle', 'description', 'color']),
         ]);
     }
 
@@ -43,7 +43,7 @@ class TemplateController extends Controller
     public function edit(Template $template): Response
     {
         return Inertia::render('cp/templates/Edit', [
-            'template' => $template->only(['id', 'name', 'handle', 'description', 'fields', 'layout']),
+            'template' => $template->only(['id', 'name', 'handle', 'description', 'color', 'fields', 'layout']),
             'fieldTypes' => $this->fieldTypes(),
         ]);
     }

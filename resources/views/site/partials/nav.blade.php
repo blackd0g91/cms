@@ -2,7 +2,7 @@
 <nav class="text-sm">
     <ul class="space-y-0.5">
         @foreach ($navTemplates as $navTemplate)
-            <li class="hue" style="--hue: {{ $navTemplate->hue() }}">
+            <li class="hue" style="{{ $navTemplate->accentStyle() }}">
                 <a
                     href="{{ route('site.template', $navTemplate) }}"
                     @class([
