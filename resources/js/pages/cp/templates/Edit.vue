@@ -16,6 +16,8 @@ const props = defineProps<{
 
 type EditableField = Omit<Field, 'options'> & {
     key: number;
+    // The handle as last saved, so the server can move post data on rename.
+    originalHandle: string | null;
     optionsText: string;
     handleTouched: boolean;
 };
@@ -29,6 +31,7 @@ const toEditable = (field: Field): EditableField => ({
     required: field.required,
     optionsText: field.options.join(', '),
     key: nextKey++,
+    originalHandle: field.handle,
     handleTouched: true,
 });
 
@@ -63,6 +66,7 @@ const addField = () => {
         required: false,
         optionsText: '',
         key: nextKey++,
+        originalHandle: null,
         handleTouched: false,
     });
 };
@@ -88,6 +92,7 @@ const submit = () => {
     form.transform((data) => ({
         ...data,
         fields: data.fields.map((field) => ({
+            original_handle: field.originalHandle,
             handle: field.handle,
             label: field.label,
             type: field.type,
@@ -103,7 +108,12 @@ const submit = () => {
     })).submit(props.template ? update(props.template.id) : store(), {
         preserveScroll: true,
         // An empty layout is generated on the server, so show the result.
-        onSuccess: () => (form.layout = props.template?.layout ?? form.layout),
+        onSuccess: () => {
+            form.layout = props.template?.layout ?? form.layout;
+            form.fields.forEach(
+                (field) => (field.originalHandle = field.handle),
+            );
+        },
     });
 };
 
@@ -269,6 +279,17 @@ const variables = computed(() => [
                             />
                             <p v-if="fieldError(i, 'handle')" class="cp-error">
                                 {{ fieldError(i, 'handle') }}
+                            </p>
+                            <p
+                                v-else-if="
+                                    field.originalHandle &&
+                                    field.handle !== field.originalHandle
+                                "
+                                class="text-xs text-neutral-500"
+                            >
+                                Renamed from
+                                <code>{{ field.originalHandle }}</code
+                                >. Posts and the layout will be updated on save.
                             </p>
                         </div>
                         <div class="space-y-1.5">

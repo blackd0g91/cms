@@ -47,6 +47,35 @@ class Template extends Model
     }
 
     /**
+     * Move post values to renamed field handles, given as [old => new].
+     * Renames are applied together, so swapping two handles works.
+     *
+     * @param  array<string, string>  $renames
+     */
+    public function renameFieldsInPosts(array $renames): void
+    {
+        if ($renames === []) {
+            return;
+        }
+
+        $this->posts()->each(function (Post $post) use ($renames) {
+            $original = $post->data;
+            $data = array_diff_key($original, $renames);
+
+            foreach ($renames as $old => $new) {
+                if (array_key_exists($old, $original)) {
+                    $data[$new] = $original[$old];
+                }
+            }
+
+            // Moving data around is not an edit, so leave updated_at alone.
+            $post->timestamps = false;
+            $post->setRelation('template', $this);
+            $post->update(['data' => $data]);
+        });
+    }
+
+    /**
      * The field type of each field, keyed by field handle.
      *
      * @return array<string, FieldType>

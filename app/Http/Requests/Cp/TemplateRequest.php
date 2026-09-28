@@ -37,6 +37,7 @@ class TemplateRequest extends FormRequest
                 'regex:/^[a-z][a-z0-9_]*$/',
                 Rule::notIn(Template::RESERVED_FIELD_HANDLES),
             ],
+            'fields.*.original_handle' => ['nullable', 'string', 'distinct'],
             'fields.*.label' => ['required', 'string', 'max:255'],
             'fields.*.type' => ['required', Rule::enum(FieldType::class)],
             'fields.*.required' => ['boolean'],
@@ -81,6 +82,35 @@ class TemplateRequest extends FormRequest
                 }
             },
         ];
+    }
+
+    /**
+     * Field handles that changed, as [old handle => new handle]. Only handles
+     * the template currently has count, so stale or made-up ones are ignored.
+     *
+     * @return array<string, string>
+     */
+    public function renamedFields(): array
+    {
+        /** @var Template|null $template */
+        $template = $this->route('template');
+
+        if ($template === null) {
+            return [];
+        }
+
+        $existing = array_column($template->fields, 'handle');
+        $renames = [];
+
+        foreach ($this->array('fields') as $field) {
+            $old = $field['original_handle'] ?? null;
+
+            if (is_string($old) && in_array($old, $existing, true) && $old !== $field['handle']) {
+                $renames[$old] = (string) $field['handle'];
+            }
+        }
+
+        return $renames;
     }
 
     /**

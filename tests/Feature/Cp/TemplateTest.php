@@ -108,3 +108,71 @@ test('a template with posts can not be deleted', function () {
 
     $this->assertModelExists($post->template);
 });
+
+test('renaming a field moves post data and updates the layout', function () {
+    $template = Template::factory()->create([
+        'fields' => [
+            ['handle' => 'body', 'label' => 'Body', 'type' => 'markdown', 'required' => false, 'options' => []],
+            ['handle' => 'notes', 'label' => 'Notes', 'type' => 'text', 'required' => false, 'options' => []],
+        ],
+        'layout' => '{{ body }}{{# notes }}<p>{{ notes }}</p>{{/ notes }}{{ bodyguard }}',
+    ]);
+    $post = Post::factory()->for($template)->create([
+        'data' => ['body' => 'Stir well', 'notes' => 'Serve hot'],
+        'updated_at' => now()->subWeek(),
+    ]);
+
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [
+            ['original_handle' => 'body', 'handle' => 'method', 'label' => 'Method', 'type' => 'markdown'],
+            ['original_handle' => 'notes', 'handle' => 'notes', 'label' => 'Notes', 'type' => 'text'],
+        ],
+        'layout' => $template->layout,
+    ]))->assertSessionHasNoErrors();
+
+    $post->refresh();
+
+    expect($post->data)->toBe(['notes' => 'Serve hot', 'method' => 'Stir well'])
+        ->and($post->search_index)->toContain('stir well')
+        ->and($post->updated_at->isSameDay(now()->subWeek()))->toBeTrue()
+        ->and($template->fresh()->layout)->toBe('{{ method }}{{# notes }}<p>{{ notes }}</p>{{/ notes }}{{ bodyguard }}');
+});
+
+test('two field handles can be swapped', function () {
+    $template = Template::factory()->create([
+        'fields' => [
+            ['handle' => 'a', 'label' => 'A', 'type' => 'text', 'required' => false, 'options' => []],
+            ['handle' => 'b', 'label' => 'B', 'type' => 'text', 'required' => false, 'options' => []],
+        ],
+        'layout' => '{{ a }}-{{ b }}',
+    ]);
+    $post = Post::factory()->for($template)->create(['data' => ['a' => 'first', 'b' => 'second']]);
+
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [
+            ['original_handle' => 'a', 'handle' => 'b', 'label' => 'A', 'type' => 'text'],
+            ['original_handle' => 'b', 'handle' => 'a', 'label' => 'B', 'type' => 'text'],
+        ],
+        'layout' => $template->layout,
+    ]))->assertSessionHasNoErrors();
+
+    expect($post->fresh()->data)->toBe(['b' => 'first', 'a' => 'second'])
+        ->and($template->fresh()->layout)->toBe('{{ b }}-{{ a }}');
+});
+
+test('original handles the template does not have are ignored', function () {
+    $template = Template::factory()->create();
+    $post = Post::factory()->for($template)->create(['data' => ['body' => 'Hello']]);
+
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [
+            ['original_handle' => 'body', 'handle' => 'body', 'label' => 'Body', 'type' => 'markdown'],
+            ['original_handle' => 'made_up', 'handle' => 'extra', 'label' => 'Extra', 'type' => 'text'],
+        ],
+    ]))->assertSessionHasNoErrors();
+
+    expect($post->fresh()->data)->toBe(['body' => 'Hello']);
+});

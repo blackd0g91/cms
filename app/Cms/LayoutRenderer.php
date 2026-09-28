@@ -102,6 +102,28 @@ class LayoutRenderer
         return implode("\n", $lines)."\n";
     }
 
+    /**
+     * Point Mustache tags at renamed field handles, given as [old => new].
+     * Covers {{ x }}, {{{ x }}}, {{& x }}, sections, inverted sections and
+     * dotted names like {{ x.url }}. All renames apply in one pass.
+     *
+     * @param  array<string, string>  $renames
+     */
+    public static function renameVariables(string $layout, array $renames): string
+    {
+        if ($renames === []) {
+            return $layout;
+        }
+
+        $names = implode('|', array_map(fn (string $name) => preg_quote($name, '/'), array_keys($renames)));
+
+        return (string) preg_replace_callback(
+            '/(\{\{\{?\s*[#^\/&]?\s*)('.$names.')(?=\s*\}|\.)/',
+            fn (array $match) => $match[1].$renames[$match[2]],
+            $layout,
+        );
+    }
+
     private static function escape(mixed $value): string
     {
         return match (true) {

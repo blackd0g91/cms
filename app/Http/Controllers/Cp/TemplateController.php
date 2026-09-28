@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Cp;
 
+use App\Cms\LayoutRenderer;
 use App\Enums\FieldType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cp\TemplateRequest;
 use App\Models\Template;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -48,7 +50,15 @@ class TemplateController extends Controller
 
     public function update(TemplateRequest $request, Template $template): RedirectResponse
     {
-        $template->update($request->templateAttributes());
+        DB::transaction(function () use ($request, $template) {
+            $renames = $request->renamedFields();
+
+            $attributes = $request->templateAttributes();
+            $attributes['layout'] = LayoutRenderer::renameVariables($attributes['layout'], $renames);
+
+            $template->update($attributes);
+            $template->renameFieldsInPosts($renames);
+        });
 
         return redirect()->route('cp.templates.edit', $template);
     }
