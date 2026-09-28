@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 import { cn } from '@/lib/utils';
 import { dashboard, logout } from '@/routes/cp';
 import { index as mediaIndex } from '@/routes/cp/media';
+import { edit as settingsEdit } from '@/routes/cp/settings';
 import { index as templatesIndex } from '@/routes/cp/templates';
 import { index as postsIndex } from '@/routes/cp/templates/posts';
 
@@ -35,6 +36,11 @@ const mainNav: NavItem[] = [
         title: 'Media',
         href: mediaIndex().url,
         active: (path) => path.startsWith(mediaIndex().url),
+    },
+    {
+        title: 'Settings',
+        href: settingsEdit().url,
+        active: (path) => path === settingsEdit().url,
     },
 ];
 

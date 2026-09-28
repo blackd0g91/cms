@@ -1,9 +1,11 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
-
 void createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: (title, page) => {
+        const siteName = String(page.props.name);
+
+        return title ? `${title} - ${siteName}` : siteName;
+    },
     withApp: (app) => {
         app.directive('focus', {
             mounted: (el: HTMLElement, shouldFocus) => {

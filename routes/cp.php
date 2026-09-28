@@ -4,6 +4,7 @@ use App\Http\Controllers\Cp\Auth\LoginController;
 use App\Http\Controllers\Cp\MarkdownPreviewController;
 use App\Http\Controllers\Cp\MediaController;
 use App\Http\Controllers\Cp\PostController;
+use App\Http\Controllers\Cp\SettingsController;
 use App\Http\Controllers\Cp\TemplateController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,9 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::post('media', [MediaController::class, 'store'])->name('media.store');
         Route::patch('media/{media}', [MediaController::class, 'update'])->name('media.update');
         Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+
+        Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
+        Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
 
         Route::resource('templates', TemplateController::class)->except('show');
         Route::resource('templates.posts', PostController::class)->except('show')->scoped(['post' => 'id']);

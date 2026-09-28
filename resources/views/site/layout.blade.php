@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ isset($title) ? $title.' - '.config('app.name') : config('app.name') }}</title>
+        <title>{{ isset($title) ? $title.' - '.$settings->siteName() : $settings->siteName() }}</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,8 +16,13 @@
     </head>
     <body class="flex min-h-screen flex-col bg-white font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
         <header class="border-b border-neutral-200 dark:border-neutral-800">
-            <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-                <a href="{{ route('home') }}" class="text-lg font-semibold">{{ config('app.name') }}</a>
+            <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+                <div class="min-w-0">
+                    <a href="{{ route('home') }}" class="text-lg font-semibold">{{ $settings->siteName() }}</a>
+                    @if ($settings->get('tagline'))
+                        <p class="truncate text-sm text-neutral-500">{{ $settings->get('tagline') }}</p>
+                    @endif
+                </div>
 
                 {{-- On small screens the sidebar collapses into this menu. --}}
                 <details class="group relative md:hidden">
@@ -45,7 +50,7 @@
 
         <footer class="border-t border-neutral-200 dark:border-neutral-800">
             <div class="mx-auto max-w-6xl px-4 py-6 text-sm text-neutral-500">
-                &copy; {{ now()->year }} {{ config('app.name') }}
+                {{ $settings->footer() }}
             </div>
         </footer>
     </body>
