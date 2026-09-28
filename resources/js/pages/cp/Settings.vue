@@ -2,6 +2,7 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import MarkdownEditor from '@/components/cp/MarkdownEditor.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { update } from '@/routes/cp/settings';
 
@@ -24,8 +25,16 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.submit(update(), { preserveScroll: true });
+    form.submit(update(), {
+        preserveScroll: true,
+        onSuccess: () => form.defaults(),
+    });
 };
+
+useUnsavedChanges({
+    isDirty: () => form.isDirty,
+    save: () => !form.processing && submit(),
+});
 </script>
 
 <template>
@@ -109,6 +118,12 @@ const submit = () => {
                 class="text-sm text-neutral-500"
             >
                 Saved.
+            </span>
+            <span
+                v-else-if="form.isDirty"
+                class="text-sm text-amber-700 dark:text-amber-400"
+            >
+                Unsaved changes &middot; Ctrl+S to save
             </span>
         </div>
     </form>

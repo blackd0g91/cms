@@ -2,6 +2,7 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { slugify } from '@/lib/utils';
 import { destroy, index, store, update } from '@/routes/cp/templates';
@@ -113,9 +114,17 @@ const submit = () => {
             form.fields.forEach(
                 (field) => (field.originalHandle = field.handle),
             );
+            // The page stays mounted after creating, so the handle is now fixed.
+            handleTouched.value = true;
+            form.defaults();
         },
     });
 };
+
+useUnsavedChanges({
+    isDirty: () => form.isDirty,
+    save: () => !form.processing && submit(),
+});
 
 const deleteTemplate = () => {
     if (
@@ -443,6 +452,12 @@ const variables = computed(() => [
                     class="text-sm text-neutral-500"
                 >
                     Saved.
+                </span>
+                <span
+                    v-else-if="form.isDirty"
+                    class="text-sm text-amber-700 dark:text-amber-400"
+                >
+                    Unsaved changes &middot; Ctrl+S to save
                 </span>
             </div>
             <div v-if="template" class="flex items-center gap-3">

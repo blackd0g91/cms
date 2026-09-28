@@ -3,6 +3,7 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import FieldInput from '@/components/cp/FieldInput.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { slugify } from '@/lib/utils';
 import { index } from '@/routes/cp/posts';
@@ -69,9 +70,21 @@ const submit = () => {
         props.post
             ? update([props.template.id, props.post.id])
             : store(props.template.id),
-        { preserveScroll: true },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                // The page stays mounted after creating, so the slug is now fixed.
+                slugTouched.value = true;
+                form.defaults();
+            },
+        },
     );
 };
+
+useUnsavedChanges({
+    isDirty: () => form.isDirty,
+    save: () => !form.processing && submit(),
+});
 
 const deletePost = () => {
     if (!props.post || !confirm(`Delete "${props.post.title}"?`)) {
@@ -181,6 +194,12 @@ const deletePost = () => {
                     class="text-center text-sm text-neutral-500"
                 >
                     Saved.
+                </p>
+                <p
+                    v-else-if="form.isDirty"
+                    class="text-center text-sm text-amber-700 dark:text-amber-400"
+                >
+                    Unsaved changes &middot; Ctrl+S to save
                 </p>
             </section>
 
