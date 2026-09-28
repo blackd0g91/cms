@@ -24,8 +24,20 @@
                     @endif
                 </div>
 
+                <form action="{{ route('search') }}" method="get" role="search" class="ml-auto w-full max-w-xs">
+                    <label for="site-search" class="sr-only">Search</label>
+                    <input
+                        id="site-search"
+                        type="search"
+                        name="q"
+                        value="{{ request()->routeIs('search') ? request('q') : '' }}"
+                        placeholder="Search…"
+                        class="w-full rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:focus:ring-neutral-800"
+                    >
+                </form>
+
                 {{-- On small screens the sidebar collapses into this menu. --}}
-                <details class="group relative md:hidden">
+                <details class="group relative shrink-0 md:hidden">
                     <summary class="cursor-pointer list-none rounded-md px-3 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
                         Menu
                     </summary>

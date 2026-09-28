@@ -3,6 +3,7 @@
 @plugin '@tailwindcss/typography';
 
 @source '../views/site';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @theme inline {
     --font-sans:
