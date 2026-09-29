@@ -113,7 +113,7 @@ defineExpose({ open });
                         @click="choose(item)"
                     >
                         <img
-                            :src="item.url"
+                            :src="item.thumb_url ?? item.url"
                             :alt="item.alt ?? item.filename"
                             class="aspect-square w-full object-cover"
                             loading="lazy"

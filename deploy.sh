@@ -82,6 +82,9 @@ rm -rf "$shim"
 step "Running database migrations"
 artisan migrate --force
 
+step "Creating resized copies of new images"
+artisan app:image-variants
+
 if [[ ! -e public/storage ]]; then
     step "Linking the storage folder"
     artisan storage:link

@@ -32,6 +32,7 @@
                 @include('site.partials.thumbnail', [
                     'post' => $post,
                     'class' => 'size-24 shrink-0 -rotate-3 rounded-2xl shadow-lg ring-4 ring-card sm:size-32',
+                    'sizes' => '128px',
                 ])
             @endif
             <div class="min-w-0">

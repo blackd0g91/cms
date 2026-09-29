@@ -1,10 +1,15 @@
 {{--
     A post thumbnail, or a placeholder with the title's first letter in the
-    template's accent color. Expects $post and $class (size and shape).
+    template's accent color. Expects $post, $class (size and shape) and
+    $sizes (how wide it is shown, so the browser can pick a resized copy).
 --}}
 @if ($post->thumbnail)
     <img
-        src="{{ $post->thumbnail->url }}"
+        src="{{ $post->thumbnail->urlFor(800) }}"
+        @if ($srcset = $post->thumbnail->srcset())
+            srcset="{{ $srcset }}"
+            sizes="{{ $sizes ?? '100vw' }}"
+        @endif
         alt="{{ $post->thumbnail->alt ?? '' }}"
         loading="lazy"
         class="{{ $class }} bg-accent-soft object-cover"

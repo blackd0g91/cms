@@ -3,7 +3,7 @@
     @forelse ($posts as $post)
         <li class="hue" style="{{ $post->template->accentStyle() }}">
             <a href="{{ $post->url() }}" class="group flex gap-4 rounded-2xl border border-line bg-card p-4 transition hover:border-accent">
-                @include('site.partials.thumbnail', ['post' => $post, 'class' => 'size-16 shrink-0 rounded-xl'])
+                @include('site.partials.thumbnail', ['post' => $post, 'class' => 'size-16 shrink-0 rounded-xl', 'sizes' => '64px'])
                 <div class="min-w-0">
                     <p class="flex items-center gap-2 font-mono text-[11px] tracking-wider text-muted uppercase">
                         <span class="size-2 rounded-full bg-accent"></span>

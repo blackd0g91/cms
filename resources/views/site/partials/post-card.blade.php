@@ -13,6 +13,7 @@
             'post' => $post,
             'class' => $featured ? 'aspect-[4/3] w-full sm:aspect-auto sm:w-1/2' : 'aspect-[4/3] w-full',
             'letter' => $featured ? 'text-8xl' : 'text-6xl',
+            'sizes' => $featured ? '(min-width: 640px) 450px, 100vw' : '(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw',
         ])
         <div @class(['flex flex-1 flex-col p-5', 'sm:justify-center sm:p-8' => $featured])>
             <p class="flex items-center gap-2 font-mono text-[11px] tracking-wider text-muted uppercase">

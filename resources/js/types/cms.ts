@@ -53,6 +53,8 @@ export type Post = {
 export type Media = {
     id: number;
     url: string;
+    // A small version for grids and pickers (the original if there is none).
+    thumb_url?: string;
     filename: string;
     mime_type: string;
     size: number;

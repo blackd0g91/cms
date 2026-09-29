@@ -35,7 +35,7 @@ const clear = () => {
     <div class="flex items-start gap-4">
         <img
             v-if="selected"
-            :src="selected.url"
+            :src="selected.thumb_url ?? selected.url"
             :alt="selected.alt ?? selected.filename"
             class="h-24 w-24 rounded-md border border-neutral-200 object-cover dark:border-neutral-800"
         />

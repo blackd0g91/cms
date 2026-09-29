@@ -109,7 +109,7 @@ const copyUrl = (item: Media) => navigator.clipboard.writeText(item.url);
         >
             <a :href="item.url" target="_blank">
                 <img
-                    :src="item.url"
+                    :src="item.thumb_url ?? item.url"
                     :alt="item.alt ?? item.filename"
                     class="aspect-video w-full bg-neutral-100 object-cover dark:bg-neutral-800"
                     loading="lazy"

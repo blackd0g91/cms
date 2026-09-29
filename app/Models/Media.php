@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Cms\ImageVariants;
 use App\Cms\Svg;
 use Carbon\CarbonImmutable;
 use Database\Factories\MediaFactory;
@@ -26,13 +27,15 @@ use Illuminate\Validation\ValidationException;
  * @property int $size
  * @property int|null $width
  * @property int|null $height
+ * @property array<string, string>|null $variants Resized copies, keyed by width
  * @property string|null $alt
  * @property-read string $url
+ * @property-read string $thumb_url A small version, for grids and pickers
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['disk', 'path', 'filename', 'mime_type', 'size', 'width', 'height', 'alt'])]
-#[Appends(['url'])]
+#[Appends(['url', 'thumb_url'])]
 class Media extends Model
 {
     /** @use HasFactory<MediaFactory> */
@@ -53,7 +56,7 @@ class Media extends Model
         $path = $file->store('media', 'public');
         $dimensions = @getimagesize($file->getRealPath()) ?: [null, null];
 
-        return self::create([
+        $media = self::create([
             'disk' => 'public',
             'path' => $path,
             'filename' => $file->getClientOriginalName(),
@@ -62,6 +65,44 @@ class Media extends Model
             'width' => $dimensions[0],
             'height' => $dimensions[1],
         ]);
+
+        app(ImageVariants::class)->generate($media);
+
+        return $media;
+    }
+
+    /**
+     * The URL of the smallest version at least $width pixels wide.
+     */
+    public function urlFor(int $width): string
+    {
+        foreach ($this->variants ?? [] as $variantWidth => $path) {
+            if ((int) $variantWidth >= $width) {
+                return Storage::disk($this->disk)->url($path);
+            }
+        }
+
+        return $this->url;
+    }
+
+    /**
+     * Every version with its width, for an <img srcset>. Empty when there
+     * are no resized copies.
+     */
+    public function srcset(): string
+    {
+        if (! $this->variants) {
+            return '';
+        }
+
+        $sources = collect($this->variants)
+            ->map(fn (string $path, string|int $width) => Storage::disk($this->disk)->url($path)." {$width}w");
+
+        if ($this->width) {
+            $sources->push("{$this->url} {$this->width}w");
+        }
+
+        return $sources->implode(', ');
     }
 
     public function isSvg(): bool
@@ -100,6 +141,7 @@ class Media extends Model
      */
     public function deleteWithFile(): void
     {
+        app(ImageVariants::class)->deleteFiles($this);
         Storage::disk($this->disk)->delete($this->path);
 
         $this->delete();
@@ -114,6 +156,14 @@ class Media extends Model
     }
 
     /**
+     * @return Attribute<string, never>
+     */
+    protected function thumbUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->urlFor(400));
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -124,6 +174,7 @@ class Media extends Model
             'size' => 'integer',
             'width' => 'integer',
             'height' => 'integer',
+            'variants' => 'array',
         ];
     }
 }
