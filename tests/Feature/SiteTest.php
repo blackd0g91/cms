@@ -203,3 +203,12 @@ test('posts with fewer than two headings have no table of contents', function ()
 
     $this->get('/recipes/short')->assertOk()->assertDontSee('data-toc', false);
 });
+
+test('posts have a keep screen on button, hidden until the browser supports it', function () {
+    Post::factory()->published()->for($this->template)->create(['slug' => 'soup']);
+
+    $this->get('/recipes/soup')
+        ->assertOk()
+        ->assertSee('data-wake-lock', false)
+        ->assertSeeInOrder(['data-wake-lock', 'hidden', 'Keep screen on'], false);
+});

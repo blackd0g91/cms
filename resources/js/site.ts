@@ -69,3 +69,57 @@ if (tocTargets.length > 0) {
     window.addEventListener('scroll', update, { passive: true });
     update();
 }
+
+// "Keep screen on", for following a recipe without the phone going to sleep.
+// Browsers release the lock when the tab is hidden, so it is taken again
+// when the page comes back.
+const wakeButton =
+    document.querySelector<HTMLButtonElement>('[data-wake-lock]');
+
+if (wakeButton && 'wakeLock' in navigator) {
+    const label = wakeButton.querySelector('[data-wake-lock-label]');
+    let lock: WakeLockSentinel | null = null;
+    let wanted = false;
+
+    const render = () => {
+        const on = lock !== null && !lock.released;
+        wakeButton.setAttribute('aria-pressed', String(on));
+
+        if (label) {
+            label.textContent = on ? 'Screen stays on' : 'Keep screen on';
+        }
+    };
+
+    const acquire = async () => {
+        try {
+            lock = await navigator.wakeLock.request('screen');
+            lock.addEventListener('release', render);
+        } catch {
+            // Refused (for example on low battery); leave the button off.
+            wanted = false;
+            lock = null;
+        }
+
+        render();
+    };
+
+    wakeButton.hidden = false;
+
+    wakeButton.addEventListener('click', async () => {
+        wanted = !(lock !== null && !lock.released);
+
+        if (wanted) {
+            await acquire();
+        } else {
+            await lock?.release();
+            lock = null;
+            render();
+        }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (wanted && document.visibilityState === 'visible') {
+            void acquire();
+        }
+    });
+}

@@ -43,6 +43,17 @@
                     @endif
                     {{ $post->readingMinutes() }} min read
                 </p>
+                {{-- Shown by site.ts where the browser can keep the screen on. --}}
+                <button
+                    type="button"
+                    data-wake-lock
+                    aria-pressed="false"
+                    hidden
+                    class="mt-3 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 font-mono text-xs text-muted transition hover:border-accent hover:text-ink aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-ink"
+                >
+                    <span class="size-2 rounded-full bg-line transition in-aria-pressed:bg-accent" aria-hidden="true"></span>
+                    <span data-wake-lock-label>Keep screen on</span>
+                </button>
             </div>
         </header>
 
