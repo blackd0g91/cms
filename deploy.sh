@@ -115,6 +115,10 @@ fi
 step "Caching configuration, routes and views"
 artisan optimize
 
+# Shown on the dashboard's system status (see app/Cms/SystemStatus.php).
+printf '{"commit":"%s","committed_at":"%s","deployed_at":"%s"}\n' \
+    "$after" "$(git log -1 --format=%cI)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > storage/app/deploy.json
+
 # Files created above by this user (caches, compiled views) must stay writable
 # by the web server. The database folder too, for SQLite's temporary files.
 if [[ "$(id -u)" -eq 0 ]] && id "$WEB_USER" >/dev/null 2>&1; then

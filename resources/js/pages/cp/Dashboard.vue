@@ -7,6 +7,8 @@ import type { Check } from '@/components/cp/ContentCheckup.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PopularPosts from '@/components/cp/PopularPosts.vue';
 import PostList from '@/components/cp/PostList.vue';
+import SystemStatus from '@/components/cp/SystemStatus.vue';
+import type { SystemReport } from '@/components/cp/SystemStatus.vue';
 import UnsavedDrafts from '@/components/cp/UnsavedDrafts.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { index as mediaIndex } from '@/routes/cp/media';
@@ -34,6 +36,7 @@ const props = defineProps<{
     checkup: Check[];
     activity: { month: string; count: number }[];
     popular: { total: number; posts: (PostListItem & { views: number })[] };
+    system: SystemReport;
 }>();
 
 type TemplateRow = (typeof props.templates)[number];
@@ -80,6 +83,17 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
             <dd class="mt-1 text-2xl font-semibold">{{ stats.media }}</dd>
         </Link>
     </dl>
+
+    <a
+        v-if="system.warnings.length"
+        href="#system-status"
+        class="mb-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 hover:underline dark:border-red-900 dark:bg-red-950 dark:text-red-200"
+    >
+        <span class="font-bold" aria-hidden="true">✕</span>
+        {{ system.warnings.length }} system
+        {{ system.warnings.length === 1 ? 'issue needs' : 'issues need' }}
+        attention. See System status below.
+    </a>
 
     <UnsavedDrafts :templates="templates" class="mb-6" />
 
@@ -199,4 +213,6 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
             />
         </section>
     </div>
+
+    <SystemStatus :report="system" class="mt-6" />
 </template>
