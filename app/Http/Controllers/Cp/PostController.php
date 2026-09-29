@@ -89,7 +89,7 @@ class PostController extends Controller
         return Inertia::render('cp/posts/Edit', [
             'template' => $template->only(['id', 'name', 'handle', 'fields']),
             'post' => [
-                ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'thumbnail_id', 'data']),
+                ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'data']),
                 'url' => $post->url(),
             ],
             'media' => $this->selectedMedia($template, $post),
