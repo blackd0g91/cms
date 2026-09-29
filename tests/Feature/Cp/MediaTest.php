@@ -6,6 +6,7 @@ use App\Models\Post;
 use App\Models\Template;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -187,4 +188,61 @@ test('broken svg files are rejected', function () {
     ])->assertSessionHasErrors('file');
 
     expect(Media::count())->toBe(0);
+});
+
+test('image usage is kept up to date as posts change', function () {
+    $photo = Media::factory()->create();
+    $screenshot = Media::factory()->create();
+    $template = imageTemplate();
+
+    $post = Post::factory()->for($template)->create([
+        'data' => ['photo' => $photo->id, 'method' => "![shot]({$screenshot->url})"],
+    ]);
+
+    expect($post->media()->pluck('id')->sort()->values()->all())->toBe([$photo->id, $screenshot->id]);
+
+    $post->update(['data' => ['photo' => null, 'method' => 'No images now']]);
+
+    expect($post->media()->count())->toBe(0);
+});
+
+test('removing an image field from a template updates usage', function () {
+    $photo = Media::factory()->create();
+    $template = imageTemplate();
+    $post = Post::factory()->for($template)->create(['data' => ['photo' => $photo->id]]);
+
+    $this->put(route('cp.templates.update', $template), [
+        'name' => $template->name,
+        'handle' => $template->handle,
+        'fields' => [['original_handle' => 'method', 'handle' => 'method', 'label' => 'Method', 'type' => 'markdown']],
+        'layout' => '{{ method }}',
+    ])->assertSessionHasNoErrors();
+
+    expect($post->media()->count())->toBe(0);
+    $this->delete(route('cp.media.destroy', $photo))->assertSessionHasNoErrors();
+});
+
+test('the migration indexes images used by existing posts', function () {
+    $photo = Media::factory()->create();
+    $post = Post::factory()->for(imageTemplate())->create(['data' => ['photo' => $photo->id]]);
+
+    $migration = require database_path('migrations/2026_09_29_000002_create_media_post_table.php');
+    $migration->down();
+    $migration->up();
+
+    expect($post->media()->pluck('id')->all())->toBe([$photo->id]);
+});
+
+test('the media page does not load every post', function () {
+    $template = imageTemplate();
+    Post::factory()->count(20)->for($template)->create();
+    $used = Media::factory()->create();
+    Post::factory()->for($template)->create(['title' => 'Soup', 'data' => ['photo' => $used->id]]);
+
+    DB::enableQueryLog();
+    $this->get(route('cp.media.index'))->assertOk();
+    $postQueries = collect(DB::getQueryLog())->filter(fn ($query) => str_contains($query['query'], 'from "posts"'));
+
+    expect($postQueries)->toHaveCount(1)
+        ->and($postQueries->first()['query'])->toContain('exists');
 });

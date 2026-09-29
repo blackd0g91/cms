@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -29,6 +30,7 @@ use Illuminate\Support\Str;
  * @property CarbonImmutable|null $updated_at
  * @property-read Template $template
  * @property-read Media|null $thumbnail
+ * @property-read Collection<int, Media> $media
  * @property-read Collection<int, PostRevision> $revisions
  */
 #[Fillable(['title', 'slug', 'status', 'published_at', 'data', 'thumbnail_id'])]
@@ -43,6 +45,8 @@ class Post extends Model
         static::saving(function (Post $post) {
             $post->search_index = self::normalizeForSearch($post->title.' '.$post->plainText());
         });
+
+        static::saved(fn (Post $post) => $post->syncMedia());
     }
 
     /**
@@ -146,6 +150,40 @@ class Post extends Model
     public function thumbnail(): BelongsTo
     {
         return $this->belongsTo(Media::class);
+    }
+
+    /**
+     * Every image the post uses, kept up to date by syncMedia().
+     *
+     * @return BelongsToMany<Media, $this>
+     */
+    public function media(): BelongsToMany
+    {
+        return $this->belongsToMany(Media::class);
+    }
+
+    /**
+     * Record which images the post uses: its thumbnail, image fields, and
+     * images referenced by URL in any text (like markdown).
+     */
+    public function syncMedia(): void
+    {
+        $ids = [$this->thumbnail_id];
+
+        foreach ($this->template->fieldTypes() as $handle => $type) {
+            if ($type === FieldType::Image) {
+                $ids[] = $this->data[$handle] ?? null;
+            }
+        }
+
+        preg_match_all('#media/[A-Za-z0-9]+\.[a-z0-9]+#i', json_encode($this->data, JSON_UNESCAPED_SLASHES) ?: '', $paths);
+
+        $ids = [
+            ...array_filter($ids, is_int(...)),
+            ...Media::query()->whereIn('path', array_unique($paths[0]))->pluck('id')->all(),
+        ];
+
+        $this->media()->sync(Media::query()->whereKey(array_unique($ids))->pluck('id'));
     }
 
     /**

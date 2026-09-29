@@ -6,6 +6,7 @@ use App\Cms\LayoutRenderer;
 use App\Enums\FieldType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cp\TemplateRequest;
+use App\Models\Post;
 use App\Models\Template;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,9 @@ class TemplateController extends Controller
 
             $template->update($attributes);
             $template->renameFieldsInPosts($renames);
+
+            // Image fields may have been added or removed.
+            $template->posts()->each(fn (Post $post) => $post->setRelation('template', $template)->syncMedia());
         });
 
         return redirect()->route('cp.templates.edit', $template);
