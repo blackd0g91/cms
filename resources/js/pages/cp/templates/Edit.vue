@@ -25,6 +25,8 @@ type EditableField = Omit<Field, 'options'> & {
     key: number;
     // The handle as last saved, so the server can move post data on rename.
     originalHandle: string | null;
+    // The type as last saved, to warn that existing values will be converted.
+    originalType: FieldType | null;
     optionsText: string;
     handleTouched: boolean;
 };
@@ -39,6 +41,7 @@ const toEditable = (field: Field): EditableField => ({
     optionsText: field.options.join(', '),
     key: nextKey++,
     originalHandle: field.handle,
+    originalType: field.type,
     handleTouched: true,
 });
 
@@ -75,6 +78,7 @@ const addField = () => {
         optionsText: '',
         key: nextKey++,
         originalHandle: null,
+        originalType: null,
         handleTouched: false,
     });
 };
@@ -118,9 +122,10 @@ const submit = () => {
         // An empty layout is generated on the server, so show the result.
         onSuccess: () => {
             form.layout = props.template?.layout ?? form.layout;
-            form.fields.forEach(
-                (field) => (field.originalHandle = field.handle),
-            );
+            form.fields.forEach((field) => {
+                field.originalHandle = field.handle;
+                field.originalType = field.type;
+            });
             // The page stays mounted after creating, so the handle is now fixed.
             handleTouched.value = true;
             form.defaults();
@@ -145,6 +150,14 @@ const deleteTemplate = () => {
         onError: (errors) => (deleteError.value = errors.template ?? null),
     });
 };
+
+const typeLabel = (type: FieldType) =>
+    props.fieldTypes.find((option) => option.value === type)?.label ?? type;
+
+const conversionNote = (from: FieldType, to: FieldType) =>
+    from === 'image' || to === 'image'
+        ? `Existing values can't become ${typeLabel(to)} and will be cleared when you save.`
+        : `When you save, existing values are converted from ${typeLabel(from)} to ${typeLabel(to)}. Values that don't fit (like text in a number field) are cleared.`;
 
 const usage = (handle: string, type: FieldType) => {
     switch (type) {
@@ -385,6 +398,17 @@ const variables = computed(() => [
                             </select>
                         </div>
                     </div>
+
+                    <p
+                        v-if="
+                            template &&
+                            field.originalType &&
+                            field.type !== field.originalType
+                        "
+                        class="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200"
+                    >
+                        {{ conversionNote(field.originalType, field.type) }}
+                    </p>
 
                     <div
                         v-if="field.type === 'select'"

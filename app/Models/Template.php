@@ -94,6 +94,40 @@ class Template extends Model
     }
 
     /**
+     * Convert post values (and old versions) for fields whose type changed,
+     * given by new handle as in TemplateRequest::changedFieldTypes().
+     *
+     * @param  array<string, array{from: FieldType, to: FieldType, options: list<string>}>  $changes
+     */
+    public function convertFieldTypesInPosts(array $changes): void
+    {
+        if ($changes === []) {
+            return;
+        }
+
+        $convert = function (array $data) use ($changes): array {
+            foreach ($changes as $handle => ['from' => $from, 'to' => $to, 'options' => $options]) {
+                if (array_key_exists($handle, $data)) {
+                    $data[$handle] = $to->convertFrom($from, $data[$handle], $options);
+                }
+            }
+
+            return $data;
+        };
+
+        PostRevision::query()
+            ->whereIn('post_id', $this->posts()->select('id'))
+            ->each(fn (PostRevision $revision) => $revision->update(['data' => $convert($revision->data)]));
+
+        $this->posts()->each(function (Post $post) use ($convert) {
+            // Converting values is not an edit, so leave updated_at alone.
+            $post->timestamps = false;
+            $post->setRelation('template', $this);
+            $post->update(['data' => $convert($post->data)]);
+        });
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      * @param  array<string, string>  $renames
      * @return array<string, mixed>

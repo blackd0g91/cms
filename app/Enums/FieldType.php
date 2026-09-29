@@ -5,7 +5,9 @@ namespace App\Enums;
 use App\Cms\Image;
 use App\Cms\Markdown;
 use App\Models\Media;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 enum FieldType: string
@@ -73,6 +75,62 @@ enum FieldType: string
             self::List => array_values((array) $value),
             default => $value,
         };
+    }
+
+    /**
+     * Turn a value stored for a field of type $from into a value for this
+     * type, after the field's type was changed. Values that have no sensible
+     * equivalent become null (empty).
+     *
+     * @param  list<string>  $options  The allowed options, for select fields
+     */
+    public function convertFrom(self $from, mixed $value, array $options = []): mixed
+    {
+        if ($value === null || $value === '' || $value === []) {
+            return $this === self::Boolean ? false : null;
+        }
+
+        // Images only make sense as images, and nothing else becomes one.
+        if ($from === self::Image || $this === self::Image) {
+            return $from === $this ? $value : null;
+        }
+
+        $items = match (true) {
+            is_array($value) => array_values(array_filter(array_map(strval(...), $value), filled(...))),
+            // One list item per line, without markdown bullets.
+            in_array($from, [self::Textarea, self::Markdown], true) => array_values(array_filter(
+                array_map(fn (string $line) => trim((string) preg_replace('/^\s*(?:[-*+]|\d+\.)\s+/', '', $line)), preg_split('/\R/', (string) $value) ?: []),
+                filled(...),
+            )),
+            is_bool($value) => [],
+            default => [(string) $value],
+        };
+
+        $text = match (true) {
+            is_bool($value) => $value ? 'Yes' : 'No',
+            is_array($value) => implode($this === self::Text ? ', ' : "\n", $items),
+            default => (string) $value,
+        };
+
+        return match ($this) {
+            self::Text => Str::limit(trim((string) preg_replace('/\s+/', ' ', $text)), 255, ''),
+            self::Textarea => $text,
+            self::Markdown => is_array($value) ? implode("\n", array_map(fn (string $item) => "- {$item}", $items)) : $text,
+            self::Number => is_numeric(trim($text)) ? trim($text) + 0 : null,
+            self::Boolean => is_bool($value) ? $value : (filter_var(trim($text), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true),
+            self::Select => collect($options)->first(fn (string $option) => Str::lower($option) === Str::lower(trim($text))),
+            self::Date => self::parseDate($text),
+            self::List => $items,
+        };
+    }
+
+    private static function parseDate(string $text): ?string
+    {
+        try {
+            return CarbonImmutable::parse(trim($text))->format('Y-m-d');
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**

@@ -117,6 +117,43 @@ class TemplateRequest extends FormRequest
     }
 
     /**
+     * Fields whose type changed (or, for select fields, whose options did),
+     * keyed by their new handle, with the type they had before.
+     *
+     * @return array<string, array{from: FieldType, to: FieldType, options: list<string>}>
+     */
+    public function changedFieldTypes(): array
+    {
+        /** @var Template|null $template */
+        $template = $this->route('template');
+
+        if ($template === null) {
+            return [];
+        }
+
+        $before = collect($template->fields)->keyBy('handle');
+        $changes = [];
+
+        foreach ($this->templateAttributes()['fields'] as $index => $field) {
+            $old = $before->get((string) $this->input("fields.{$index}.original_handle"));
+
+            if ($old === null) {
+                continue;
+            }
+
+            $from = FieldType::from($old['type']);
+            $to = FieldType::from($field['type']);
+            $optionsChanged = $to === FieldType::Select && $old['options'] !== $field['options'];
+
+            if ($from !== $to || $optionsChanged) {
+                $changes[$field['handle']] = ['from' => $from, 'to' => $to, 'options' => $field['options']];
+            }
+        }
+
+        return $changes;
+    }
+
+    /**
      * The validated attributes, with fields normalized and an empty layout
      * replaced by one generated from the fields.
      *

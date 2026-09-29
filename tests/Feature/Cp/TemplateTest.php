@@ -206,3 +206,52 @@ test('a template can have an accent color, or go back to automatic', function ()
 
     expect($template->fresh()->color)->toBeNull();
 });
+
+test('changing a field type converts existing values in posts and their history', function () {
+    $template = Template::factory()->create([
+        'fields' => [
+            ['handle' => 'ingredients', 'label' => 'Ingredients', 'type' => 'list', 'required' => false, 'options' => []],
+            ['handle' => 'servings', 'label' => 'Servings', 'type' => 'text', 'required' => false, 'options' => []],
+            ['handle' => 'level', 'label' => 'Level', 'type' => 'select', 'required' => false, 'options' => ['Easy', 'Medium', 'Hard']],
+        ],
+    ]);
+    $post = Post::factory()->for($template)->create([
+        'data' => ['ingredients' => ['Flour', 'Eggs'], 'servings' => '4', 'level' => 'Medium'],
+        'updated_at' => now()->subWeek(),
+    ]);
+    $post->recordRevision();
+
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [
+            // Renamed and changed type in the same save.
+            ['original_handle' => 'ingredients', 'handle' => 'shopping', 'label' => 'Shopping', 'type' => 'markdown'],
+            ['original_handle' => 'servings', 'handle' => 'servings', 'label' => 'Servings', 'type' => 'number'],
+            // "Medium" is no longer an option.
+            ['original_handle' => 'level', 'handle' => 'level', 'label' => 'Level', 'type' => 'select', 'options' => ['Easy', 'Hard']],
+        ],
+        'layout' => $template->layout,
+    ]))->assertSessionHasNoErrors();
+
+    $post->refresh();
+
+    expect($post->data)->toBe(['servings' => 4, 'level' => null, 'shopping' => "- Flour\n- Eggs"])
+        ->and($post->updated_at->isSameDay(now()->subWeek()))->toBeTrue()
+        ->and($post->search_index)->toContain('flour')
+        ->and($post->revisions()->first()->data)->toBe($post->data);
+});
+
+test('unchanged fields are left alone', function () {
+    $template = Template::factory()->create([
+        'fields' => [['handle' => 'notes', 'label' => 'Notes', 'type' => 'text', 'required' => false, 'options' => []]],
+    ]);
+    $post = Post::factory()->for($template)->create(['data' => ['notes' => 'not a number']]);
+
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [['original_handle' => 'notes', 'handle' => 'notes', 'label' => 'Renamed label only', 'type' => 'text']],
+        'layout' => $template->layout,
+    ]))->assertSessionHasNoErrors();
+
+    expect($post->fresh()->data)->toBe(['notes' => 'not a number']);
+});
