@@ -62,6 +62,17 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
         Welcome back, {{ $page.props.auth.user.name }}.
     </p>
 
+    <a
+        v-if="system.warnings.length"
+        href="#system-status"
+        class="mb-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 hover:underline dark:border-red-900 dark:bg-red-950 dark:text-red-200"
+    >
+        <span class="font-bold" aria-hidden="true">✕</span>
+        {{ system.warnings.length }} system
+        {{ system.warnings.length === 1 ? 'issue needs' : 'issues need' }}
+        attention. See System status below.
+    </a>
+
     <dl class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div class="cp-card p-4">
             <dt class="text-sm text-neutral-500">Published</dt>
@@ -83,17 +94,6 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
             <dd class="mt-1 text-2xl font-semibold">{{ stats.media }}</dd>
         </Link>
     </dl>
-
-    <a
-        v-if="system.warnings.length"
-        href="#system-status"
-        class="mb-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 hover:underline dark:border-red-900 dark:bg-red-950 dark:text-red-200"
-    >
-        <span class="font-bold" aria-hidden="true">✕</span>
-        {{ system.warnings.length }} system
-        {{ system.warnings.length === 1 ? 'issue needs' : 'issues need' }}
-        attention. See System status below.
-    </a>
 
     <UnsavedDrafts :templates="templates" class="mb-6" />
 
