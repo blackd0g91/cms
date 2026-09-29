@@ -111,7 +111,7 @@ test('without a logo and icon the defaults are used', function () {
     $this->get(route('home'))
         ->assertSee('/favicon.ico')
         ->assertSee('/apple-touch-icon.png')
-        ->assertSee('rounded-full bg-ink', false);
+        ->assertSee('bg-ink text-paper', false);
 });
 
 test('a deleted logo falls back to the letter badge', function () {
@@ -144,3 +144,52 @@ test('an svg site icon keeps the default apple touch icon and is not used for li
         ->assertSee('src="'.$logo->url.'"', false)
         ->assertDontSee('og:image', false);
 });
+
+test('the logo can have a solid or gradient background', function () {
+    $user = User::factory()->create();
+    $logo = Media::factory()->create();
+
+    $this->actingAs($user)->put(route('cp.settings.update'), [
+        'site_name' => 'Garmr',
+        'logo_id' => $logo->id,
+        'logo_background' => ['type' => 'gradient', 'from' => '#1E3A8A', 'to' => '#c2410c', 'angle' => 90],
+    ])->assertSessionHasNoErrors();
+
+    expect(app(Settings::class)->get('logo_background'))
+        ->toBe(['type' => 'gradient', 'from' => '#1e3a8a', 'to' => '#c2410c', 'angle' => 90]);
+
+    $this->get(route('home'))
+        ->assertSee('style="background: linear-gradient(90deg, #1e3a8a, #c2410c)"', false)
+        ->assertSee('src="'.$logo->url.'"', false);
+
+    $this->actingAs($user)->put(route('cp.settings.update'), [
+        'site_name' => 'Garmr',
+        'logo_id' => null,
+        'logo_background' => ['type' => 'solid', 'from' => '#0f766e', 'to' => '#c2410c', 'angle' => 90],
+    ]);
+
+    // Without a logo, the background colors the letter badge.
+    $this->get(route('home'))->assertSee('style="background: #0f766e"', false)->assertSee('text-white', false);
+});
+
+test('no logo background by default or when set to none', function () {
+    $this->get(route('home'))->assertDontSee('style="background:', false)->assertSee('bg-ink text-paper', false);
+
+    $this->actingAs(User::factory()->create())->put(route('cp.settings.update'), [
+        'site_name' => 'Garmr',
+        'logo_background' => ['type' => 'none', 'from' => '#0f766e', 'to' => '#c2410c', 'angle' => 90],
+    ])->assertSessionHasNoErrors();
+
+    $this->get(route('home'))->assertDontSee('style="background:', false);
+});
+
+test('logo background colors are validated', function (array $background, string $error) {
+    $this->actingAs(User::factory()->create())
+        ->put(route('cp.settings.update'), ['site_name' => 'Garmr', 'logo_background' => $background])
+        ->assertSessionHasErrors($error);
+})->with([
+    'css injection' => [['type' => 'solid', 'from' => 'red; position: fixed'], 'logo_background.from'],
+    'missing gradient end' => [['type' => 'gradient', 'from' => '#000000', 'to' => null], 'logo_background.to'],
+    'unknown type' => [['type' => 'pattern', 'from' => '#000000'], 'logo_background.type'],
+    'angle out of range' => [['type' => 'gradient', 'from' => '#000000', 'to' => '#ffffff', 'angle' => 720], 'logo_background.angle'],
+]);

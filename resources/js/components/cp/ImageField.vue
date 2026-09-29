@@ -10,17 +10,24 @@ const props = defineProps<{
 
 const model = defineModel<number | null>();
 
+const emit = defineEmits<{
+    // The full image, for callers that show it elsewhere (like a preview).
+    change: [media: Media | null];
+}>();
+
 const picker = ref<InstanceType<typeof MediaPicker>>();
 const selected = ref<Media | null>(props.initial ?? null);
 
 const select = (media: Media) => {
     selected.value = media;
     model.value = media.id;
+    emit('change', media);
 };
 
 const clear = () => {
     selected.value = null;
     model.value = null;
+    emit('change', null);
 };
 </script>
 

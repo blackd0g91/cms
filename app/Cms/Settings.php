@@ -23,7 +23,7 @@ class Settings
     /**
      * Every setting with its default value.
      *
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, favicon_id: int|null}
+     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null}
      */
     public function defaults(): array
     {
@@ -33,12 +33,13 @@ class Settings
             'home_intro' => null,
             'footer_text' => null,
             'logo_id' => null,
+            'logo_background' => null,
             'favicon_id' => null,
         ];
     }
 
     /**
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, favicon_id: int|null}
+     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null}
      */
     public function all(): array
     {
@@ -72,6 +73,21 @@ class Settings
     public function logo(): ?Media
     {
         return $this->media('logo_id');
+    }
+
+    /**
+     * The CSS background behind the logo (or the letter badge), or null for
+     * none. The value is built from validated colors only.
+     */
+    public function logoBackground(): ?string
+    {
+        $background = $this->get('logo_background');
+
+        return match (is_array($background) ? $background['type'] ?? null : null) {
+            'solid' => "background: {$background['from']}",
+            'gradient' => "background: linear-gradient({$background['angle']}deg, {$background['from']}, {$background['to']})",
+            default => null,
+        };
     }
 
     /**

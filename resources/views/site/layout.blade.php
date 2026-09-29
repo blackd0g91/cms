@@ -21,14 +21,24 @@
         <header class="border-b border-line">
             <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-5">
                 <a href="{{ route('home') }}" class="group flex min-w-0 flex-1 items-center gap-3 sm:flex-none">
+                    @php($logoBackground = $settings->logoBackground())
                     @if ($logo = $settings->logo())
-                        <img
-                            src="{{ $logo->url }}"
-                            alt=""
-                            class="h-10 w-auto max-w-40 shrink-0 object-contain"
-                        >
+                        @if ($logoBackground)
+                            <span class="grid h-10 min-w-10 shrink-0 place-items-center rounded-xl p-1.5 shadow-sm" style="{{ $logoBackground }}">
+                                <img src="{{ $logo->url }}" alt="" class="h-7 w-auto max-w-36 object-contain">
+                            </span>
+                        @else
+                            <img src="{{ $logo->url }}" alt="" class="h-10 w-auto max-w-40 shrink-0 object-contain">
+                        @endif
                     @else
-                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink font-display text-xl font-semibold text-paper transition group-hover:-rotate-6">
+                        <span
+                            @class([
+                                'grid size-10 shrink-0 place-items-center rounded-full font-display text-xl font-semibold transition group-hover:-rotate-6',
+                                'bg-ink text-paper' => ! $logoBackground,
+                                'text-white shadow-sm' => $logoBackground,
+                            ])
+                            @if ($logoBackground) style="{{ $logoBackground }}" @endif
+                        >
                             {{ Str::upper(Str::substr($siteName, 0, 1)) }}
                         </span>
                     @endif
