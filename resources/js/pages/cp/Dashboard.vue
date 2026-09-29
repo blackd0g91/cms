@@ -4,6 +4,7 @@ import ContentCheckup from '@/components/cp/ContentCheckup.vue';
 import type { Check } from '@/components/cp/ContentCheckup.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PostList from '@/components/cp/PostList.vue';
+import UnsavedDrafts from '@/components/cp/UnsavedDrafts.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { index as mediaIndex } from '@/routes/cp/media';
 import { create as createTemplate } from '@/routes/cp/templates';
@@ -61,6 +62,8 @@ defineProps<{
             <dd class="mt-1 text-2xl font-semibold">{{ stats.media }}</dd>
         </Link>
     </dl>
+
+    <UnsavedDrafts :templates="templates" class="mb-6" />
 
     <ContentCheckup :checks="checkup" class="mb-6" />
 

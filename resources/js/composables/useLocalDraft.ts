@@ -34,6 +34,31 @@ const write = (key: string, draft: LocalDraft<unknown> | null) => {
 };
 
 /**
+ * Every draft stored in this browser whose key starts with the prefix, for
+ * listing unsaved work (see the dashboard).
+ */
+export function listLocalDrafts<T>(
+    prefix: string,
+): { key: string; draft: LocalDraft<T> }[] {
+    try {
+        return Object.keys(localStorage)
+            .filter((key) => key.startsWith(PREFIX + prefix))
+            .map((key) => ({
+                key: key.slice(PREFIX.length),
+                draft: read<T>(key.slice(PREFIX.length)),
+            }))
+            .filter(
+                (entry): entry is { key: string; draft: LocalDraft<T> } =>
+                    entry.draft !== null,
+            );
+    } catch {
+        return [];
+    }
+}
+
+export const removeLocalDraft = (key: string) => write(key, null);
+
+/**
  * Keep a copy of unsaved form data in this browser, so a closed tab or a
  * crash does not lose it. A draft found on load is offered, never applied
  * automatically; see `found`.
