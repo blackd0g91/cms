@@ -7,8 +7,7 @@
                 {{ $intro }}
             </div>
         @else
-            <p class="font-mono text-xs tracking-widest text-muted uppercase">Fresh from the notebook</p>
-            <h1 class="mt-2 font-display text-5xl font-semibold tracking-tight">
+            <h1 class="font-display text-5xl font-semibold tracking-tight">
                 Latest <em class="font-normal text-accent">entries</em>
             </h1>
         @endif
