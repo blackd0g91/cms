@@ -87,3 +87,21 @@ export type MediaUsage = {
     post_id: number | null;
     template_id: number | null;
 };
+
+export type PostRevisionSummary = {
+    id: number;
+    title: string;
+    status: PostStatus;
+    created_at: string;
+    user: string | null;
+};
+
+export type PostRevision = {
+    id: number;
+    title: string;
+    slug: string;
+    status: PostStatus;
+    thumbnail_id: number | null;
+    data: Record<string, FieldValue>;
+    created_at: string;
+};

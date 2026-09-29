@@ -8,9 +8,11 @@ use Carbon\CarbonImmutable;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /**
@@ -27,6 +29,7 @@ use Illuminate\Support\Str;
  * @property CarbonImmutable|null $updated_at
  * @property-read Template $template
  * @property-read Media|null $thumbnail
+ * @property-read Collection<int, PostRevision> $revisions
  */
 #[Fillable(['title', 'slug', 'status', 'published_at', 'data', 'thumbnail_id'])]
 class Post extends Model
@@ -143,6 +146,47 @@ class Post extends Model
     public function thumbnail(): BelongsTo
     {
         return $this->belongsTo(Media::class);
+    }
+
+    /**
+     * Saved versions, newest first.
+     *
+     * @return HasMany<PostRevision, $this>
+     */
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(PostRevision::class)->latest('created_at')->latest('id');
+    }
+
+    /**
+     * How many versions are kept per post. Older ones are deleted.
+     */
+    public const int KEPT_REVISIONS = 50;
+
+    /**
+     * Store the post as it is now in its history, unless nothing changed
+     * since the last version.
+     */
+    public function recordRevision(?User $user = null): void
+    {
+        $snapshot = [
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'status' => $this->status,
+            'thumbnail_id' => $this->thumbnail_id,
+            'data' => $this->data,
+        ];
+
+        $latest = $this->revisions()->first();
+
+        if ($latest && $latest->only(array_keys($snapshot)) == $snapshot) {
+            return;
+        }
+
+        $this->revisions()->create([...$snapshot, 'user_id' => $user?->id, 'created_at' => now()]);
+
+        $this->revisions()->skip(self::KEPT_REVISIONS)->take(PHP_INT_MAX)->pluck('id')
+            ->whenNotEmpty(fn ($ids) => PostRevision::query()->whereKey($ids)->delete());
     }
 
     public function isPublished(): bool

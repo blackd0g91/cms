@@ -41,6 +41,9 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::resource('templates.posts', PostController::class)
             ->only(['create', 'store', 'edit', 'update', 'destroy'])
             ->scoped(['post' => 'id']);
+        Route::get('templates/{template}/posts/{post}/revisions/{revision}', [PostController::class, 'revision'])
+            ->scopeBindings()
+            ->name('templates.posts.revisions.show');
         Route::post('templates/{template}/posts/{post}/duplicate', [PostController::class, 'duplicate'])
             ->scopeBindings()
             ->name('templates.posts.duplicate');

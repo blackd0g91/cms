@@ -8,7 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Cp\PostRequest;
 use App\Models\Media;
 use App\Models\Post;
+use App\Models\PostRevision;
 use App\Models\Template;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -72,6 +74,7 @@ class PostController extends Controller
             'template' => $template->only(['id', 'name', 'handle', 'fields']),
             'post' => null,
             'media' => [],
+            'revisions' => [],
         ]);
     }
 
@@ -80,6 +83,7 @@ class PostController extends Controller
         $post = $template->posts()->make($request->postAttributes());
         $this->touchPublishedAt($post);
         $post->save();
+        $post->recordRevision($request->user());
 
         return redirect()->route('cp.templates.posts.edit', [$template, $post]);
     }
@@ -93,6 +97,16 @@ class PostController extends Controller
                 'url' => $post->url(),
             ],
             'media' => $this->selectedMedia($template, $post),
+            'revisions' => $post->revisions()
+                ->with('user:id,name')
+                ->get(['id', 'post_id', 'user_id', 'title', 'status', 'created_at'])
+                ->map(fn (PostRevision $revision) => [
+                    'id' => $revision->id,
+                    'title' => $revision->title,
+                    'status' => $revision->status,
+                    'created_at' => $revision->created_at,
+                    'user' => $revision->user?->name,
+                ]),
         ]);
     }
 
@@ -101,8 +115,29 @@ class PostController extends Controller
         $post->fill($request->postAttributes());
         $this->touchPublishedAt($post);
         $post->save();
+        $post->recordRevision($request->user());
 
         return redirect()->route('cp.templates.posts.edit', [$template, $post]);
+    }
+
+    /**
+     * One saved version in full, with the images it uses, for the history view.
+     */
+    public function revision(Template $template, Post $post, PostRevision $revision): JsonResponse
+    {
+        abort_unless($revision->post_id === $post->id, 404);
+
+        $imageIds = collect($template->fieldTypes())
+            ->filter(fn (FieldType $type) => $type === FieldType::Image)
+            ->keys()
+            ->map(fn (string $handle) => $revision->data[$handle] ?? null)
+            ->push($revision->thumbnail_id)
+            ->filter();
+
+        return response()->json([
+            'revision' => $revision->only(['id', 'title', 'slug', 'status', 'thumbnail_id', 'data', 'created_at']),
+            'media' => Media::query()->whereKey($imageIds)->get()->keyBy('id'),
+        ]);
     }
 
     /**
@@ -116,6 +151,7 @@ class PostController extends Controller
         $copy->status = PostStatus::Draft;
         $copy->setRelation('template', $template);
         $copy->save();
+        $copy->recordRevision(request()->user());
 
         return redirect()->route('cp.templates.posts.edit', [$template, $copy]);
     }

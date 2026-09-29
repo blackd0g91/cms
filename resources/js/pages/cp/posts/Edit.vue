@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 import FieldInput from '@/components/cp/FieldInput.vue';
 import ImageField from '@/components/cp/ImageField.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import PostHistory from '@/components/cp/PostHistory.vue';
 import { useLocalDraft } from '@/composables/useLocalDraft';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
@@ -17,6 +18,8 @@ import type {
     FieldValue,
     Media,
     Post,
+    PostRevision,
+    PostRevisionSummary,
     PostStatus,
     Template,
 } from '@/types';
@@ -27,6 +30,7 @@ const props = defineProps<{
     template: Pick<Template, 'id' | 'name' | 'handle' | 'fields'>;
     post: Post | null;
     media: Record<number, Media>;
+    revisions: PostRevisionSummary[];
 }>();
 
 const emptyValue = (field: Field): FieldValue => {
@@ -129,20 +133,21 @@ const knownMedia = ref<Record<number, Media>>({ ...props.media });
 // Changing this remounts the fields, so they show the restored values.
 const restoreCount = ref(0);
 
-const restoreDraft = async () => {
-    const found = draft.found.value;
-
-    if (!found) {
-        return;
-    }
-
-    const { data } = found;
+/**
+ * Put saved data (an autosaved draft or an older version) into the form. It
+ * stays unsaved until the Save button is pressed.
+ */
+const applyData = async (
+    data: DraftData,
+    media: Record<number, Media> = {},
+) => {
     form.title = data.title;
     form.slug = data.slug;
     form.status = data.status;
     form.thumbnail_id = data.thumbnail_id;
     form.values = { ...form.values, ...data.values };
     slugTouched.value = true;
+    Object.assign(knownMedia.value, media);
 
     const imageIds = [
         data.thumbnail_id,
@@ -153,18 +158,37 @@ const restoreDraft = async () => {
 
     if (imageIds.some((id) => !knownMedia.value[id])) {
         try {
-            const { media } = await requestJson<{ media: Media[] }>(
-                library().url,
-            );
-            media.forEach((item) => (knownMedia.value[item.id] = item));
+            const result = await requestJson<{ media: Media[] }>(library().url);
+            result.media.forEach((item) => (knownMedia.value[item.id] = item));
         } catch {
             // The ids are restored either way; only the previews are missing.
         }
     }
 
     restoreCount.value++;
-    draft.dismiss();
 };
+
+const restoreDraft = async () => {
+    if (draft.found.value) {
+        await applyData(draft.found.value.data);
+        draft.dismiss();
+    }
+};
+
+const restoreRevision = (
+    revision: PostRevision,
+    media: Record<number, Media>,
+) =>
+    applyData(
+        {
+            title: revision.title,
+            slug: revision.slug,
+            status: revision.status,
+            thumbnail_id: revision.thumbnail_id,
+            values: revision.data,
+        },
+        media,
+    );
 
 const submit = () => {
     form.transform(({ values, ...rest }) => ({ ...rest, data: values })).submit(
@@ -365,6 +389,14 @@ const deletePost = () => {
                     Unsaved changes &middot; Ctrl+S to save
                 </p>
             </section>
+
+            <PostHistory
+                v-if="post"
+                :template="template"
+                :post="post"
+                :revisions="revisions"
+                @restore="restoreRevision"
+            />
 
             <button
                 v-if="post"

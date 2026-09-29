@@ -78,21 +78,37 @@ class Template extends Model
             return;
         }
 
+        // Old versions move too, so restoring one still fills the right fields.
+        PostRevision::query()
+            ->whereIn('post_id', $this->posts()->select('id'))
+            ->each(function (PostRevision $revision) use ($renames) {
+                $revision->update(['data' => self::renameKeys($revision->data, $renames)]);
+            });
+
         $this->posts()->each(function (Post $post) use ($renames) {
-            $original = $post->data;
-            $data = array_diff_key($original, $renames);
-
-            foreach ($renames as $old => $new) {
-                if (array_key_exists($old, $original)) {
-                    $data[$new] = $original[$old];
-                }
-            }
-
             // Moving data around is not an edit, so leave updated_at alone.
             $post->timestamps = false;
             $post->setRelation('template', $this);
-            $post->update(['data' => $data]);
+            $post->update(['data' => self::renameKeys($post->data, $renames)]);
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<string, string>  $renames
+     * @return array<string, mixed>
+     */
+    private static function renameKeys(array $data, array $renames): array
+    {
+        $renamed = array_diff_key($data, $renames);
+
+        foreach ($renames as $old => $new) {
+            if (array_key_exists($old, $data)) {
+                $renamed[$new] = $data[$old];
+            }
+        }
+
+        return $renamed;
     }
 
     /**
