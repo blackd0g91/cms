@@ -11,8 +11,8 @@
 #   WEB_USER   user the web server runs as       (default: www-data)
 #   BRANCH     branch to deploy                  (default: the current one)
 #
-# The site is put in maintenance mode while updating, and brought back up
-# even if a step fails.
+# The site is put in maintenance mode while updating. If a step fails it
+# stays there, so visitors never see a half-updated site.
 
 set -euo pipefail
 
@@ -55,7 +55,24 @@ echo "Branch: $BRANCH"
 
 step "Entering maintenance mode"
 artisan down --retry=15 || true
-trap 'step "Leaving maintenance mode"; artisan up' EXIT
+
+# If a step fails, stay in maintenance mode: the new code may be live without
+# its migrations or frontend, which is worse than a "back soon" page.
+deployed=false
+on_exit() {
+    if [[ "$deployed" == true ]]; then
+        step "Leaving maintenance mode"
+        artisan up
+    else
+        printf '
+[1;31mDeploy failed, so the site stays in maintenance mode.[0m
+' >&2
+        printf 'Fix the error above and run ./deploy.sh again, or bring the site back as it is with:
+  %s artisan up
+' "$PHP_BIN" >&2
+    fi
+}
+trap on_exit EXIT
 
 step "Pulling the latest code"
 before="$(git rev-parse --short HEAD)"
@@ -70,6 +87,11 @@ fi
 
 step "Installing PHP dependencies"
 "$PHP_BIN" "$COMPOSER" install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+# Caches from the last deploy describe the old code. The frontend build reads
+# the route list, so it must not see a stale cached one.
+step "Clearing cached configuration and routes"
+artisan optimize:clear
 
 step "Building the frontend"
 # The build runs `php artisan wayfinder:generate`, so make sure `php` means $PHP_BIN.
@@ -91,7 +113,6 @@ if [[ ! -e public/storage ]]; then
 fi
 
 step "Caching configuration, routes and views"
-artisan optimize:clear
 artisan optimize
 
 # Files created above by this user (caches, compiled views) must stay writable
@@ -102,4 +123,5 @@ if [[ "$(id -u)" -eq 0 ]] && id "$WEB_USER" >/dev/null 2>&1; then
     chmod -R ug+rwX storage bootstrap/cache database
 fi
 
+deployed=true
 printf '\n\033[1;32mDeployed %s.\033[0m\n' "$after"
