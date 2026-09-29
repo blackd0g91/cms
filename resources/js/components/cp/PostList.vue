@@ -42,6 +42,10 @@ const formatDate = (value: string) =>
                             post.status === 'published' ? 'Published' : 'Draft'
                         }}
                     </span>
+                    <template v-if="post.pinned">
+                        &middot;
+                        <span title="Pinned to the top">📌 Pinned</span>
+                    </template>
                     &middot; {{ formatDate(post.updated_at) }}
                 </p>
             </div>

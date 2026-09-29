@@ -24,7 +24,7 @@ class HomeController extends Controller
             'posts' => Post::query()
                 ->with(['template', 'thumbnail'])
                 ->where('status', PostStatus::Published)
-                ->latest('published_at')
+                ->pinnedFirst()
                 ->limit(20)
                 ->get(),
         ]);

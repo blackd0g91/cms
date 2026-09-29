@@ -30,7 +30,7 @@ class TagController extends Controller
             'posts' => $tag->posts()
                 ->with(['template', 'thumbnail'])
                 ->where('status', PostStatus::Published)
-                ->latest('published_at')
+                ->pinnedFirst()
                 ->get(),
         ]);
     }

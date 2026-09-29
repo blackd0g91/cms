@@ -35,13 +35,9 @@ class PostController extends Controller
             ->when($filters['template'] ?? null, fn ($query, $id) => $query->where('template_id', $id))
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest('updated_at')
-            ->paginate(30, ['id', 'template_id', 'title', 'slug', 'status', 'published_at', 'updated_at'])
+            ->paginate(30, ['id', 'template_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
             ->withQueryString()
-            ->through(fn (Post $post) => [
-                ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at']),
-                'template' => $post->template->only(['id', 'name']),
-                'url' => $post->url(),
-            ]);
+            ->through(fn (Post $post) => $post->toListItem());
 
         return Inertia::render('cp/posts/Index', [
             'posts' => $posts,
@@ -84,6 +80,7 @@ class PostController extends Controller
     {
         $post = $template->posts()->make($request->postAttributes());
         $this->touchPublishedAt($post);
+        $post->pinned_at = $request->boolean('pinned') ? ($post->pinned_at ?? now()) : null;
         $post->save();
         $post->syncTags($request->tagNames());
         $post->recordRevision($request->user());
@@ -97,6 +94,7 @@ class PostController extends Controller
             'template' => $template->only(['id', 'name', 'handle', 'fields']),
             'post' => [
                 ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'data']),
+                'pinned' => $post->isPinned(),
                 'tags' => $post->tags->pluck('name'),
                 'url' => $post->url(),
             ],
@@ -119,6 +117,7 @@ class PostController extends Controller
     {
         $post->fill($request->postAttributes());
         $this->touchPublishedAt($post);
+        $post->pinned_at = $request->boolean('pinned') ? ($post->pinned_at ?? now()) : null;
         $post->save();
         $post->syncTags($request->tagNames());
         $post->recordRevision($request->user());
@@ -151,7 +150,7 @@ class PostController extends Controller
      */
     public function duplicate(Template $template, Post $post): RedirectResponse
     {
-        $copy = $post->replicate(['published_at', 'search_index']);
+        $copy = $post->replicate(['published_at', 'pinned_at', 'search_index']);
         $copy->title = "{$post->title} (copy)";
         $copy->slug = $this->uniqueSlug($template, "{$post->slug}-copy");
         $copy->status = PostStatus::Draft;

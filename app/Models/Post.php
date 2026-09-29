@@ -23,6 +23,7 @@ use Illuminate\Support\Str;
  * @property string $slug
  * @property PostStatus $status
  * @property CarbonImmutable|null $published_at
+ * @property CarbonImmutable|null $pinned_at
  * @property array<string, mixed> $data
  * @property string|null $search_index
  * @property int|null $thumbnail_id
@@ -33,7 +34,7 @@ use Illuminate\Support\Str;
  * @property-read Collection<int, Media> $media
  * @property-read Collection<int, PostRevision> $revisions
  */
-#[Fillable(['title', 'slug', 'status', 'published_at', 'data', 'thumbnail_id'])]
+#[Fillable(['title', 'slug', 'status', 'published_at', 'pinned_at', 'data', 'thumbnail_id'])]
 class Post extends Model
 {
     /** @use HasFactory<PostFactory> */
@@ -262,6 +263,38 @@ class Post extends Model
     }
 
     /**
+     * The post as a row in control panel lists.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListItem(): array
+    {
+        return [
+            ...$this->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at']),
+            'pinned' => $this->isPinned(),
+            'template' => $this->template->only(['id', 'name']),
+            'url' => $this->url(),
+        ];
+    }
+
+    public function isPinned(): bool
+    {
+        return $this->pinned_at !== null;
+    }
+
+    /**
+     * Pinned posts first (the most recently pinned on top), then the newest.
+     *
+     * @param  Builder<Post>  $query
+     */
+    public function scopePinnedFirst(Builder $query): void
+    {
+        $query->orderByRaw('pinned_at is null')
+            ->orderByDesc('pinned_at')
+            ->orderByDesc('published_at');
+    }
+
+    /**
      * The public URL of the post.
      */
     public function url(): string
@@ -279,6 +312,7 @@ class Post extends Model
         return [
             'status' => PostStatus::class,
             'published_at' => 'datetime',
+            'pinned_at' => 'datetime',
             'data' => 'array',
         ];
     }

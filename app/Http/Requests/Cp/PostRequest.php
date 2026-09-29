@@ -57,6 +57,7 @@ class PostRequest extends FormRequest
             ],
             'status' => ['required', Rule::enum(PostStatus::class)],
             'thumbnail_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],
+            'pinned' => ['boolean'],
             'tags' => ['array', 'max:30'],
             'tags.*' => ['string', 'max:50'],
             'data' => ['array'],

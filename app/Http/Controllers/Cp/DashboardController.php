@@ -44,12 +44,8 @@ class DashboardController extends Controller
     {
         return $query
             ->with('template:id,name,handle')
-            ->get(['id', 'template_id', 'title', 'slug', 'status', 'updated_at'])
-            ->map(fn (Post $post) => [
-                ...$post->only(['id', 'title', 'status', 'updated_at']),
-                'template' => $post->template->only(['id', 'name']),
-                'url' => $post->url(),
-            ])
+            ->get(['id', 'template_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
+            ->map(fn (Post $post) => $post->toListItem())
             ->all();
     }
 }

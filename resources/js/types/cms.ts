@@ -46,6 +46,7 @@ export type Post = {
     published_at: string | null;
     updated_at: string;
     thumbnail_id: number | null;
+    pinned: boolean;
     tags: string[];
     data: Record<string, FieldValue>;
     url: string;
@@ -69,6 +70,7 @@ export type PostListItem = {
     id: number;
     title: string;
     status: PostStatus;
+    pinned: boolean;
     updated_at: string;
     template: { id: number; name: string };
     url: string;

@@ -19,6 +19,9 @@
             <p class="flex items-center gap-2 font-mono text-[11px] tracking-wider text-muted uppercase">
                 <span class="size-2 rounded-full bg-accent"></span>
                 {{ $post->template->name }}
+                @if ($post->isPinned())
+                    <span class="ml-auto rounded-full bg-accent-soft px-2 py-0.5 text-ink normal-case" title="Pinned">Pinned</span>
+                @endif
             </p>
             <h2 @class([
                 'mt-2 font-display leading-snug font-semibold tracking-tight decoration-accent decoration-2 underline-offset-4 group-hover:underline',

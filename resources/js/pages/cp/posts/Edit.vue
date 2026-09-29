@@ -52,6 +52,7 @@ const form = useForm({
     status: (props.post?.status ?? 'draft') as PostStatus,
     thumbnail_id: props.post?.thumbnail_id ?? null,
     tags: props.post?.tags ?? ([] as string[]),
+    pinned: props.post?.pinned ?? false,
     // "data" is reserved by useForm, so it is renamed when submitting.
     values: Object.fromEntries(
         props.template.fields.map((field) => [
@@ -84,8 +85,9 @@ type DraftData = {
     slug: string;
     status: PostStatus;
     thumbnail_id: number | null;
-    // Missing in versions from post history, which do not track tags.
+    // Missing in versions from post history, which do not track these.
     tags?: string[];
+    pinned?: boolean;
     values: Record<string, FieldValue>;
 };
 
@@ -101,6 +103,7 @@ const draft = useLocalDraft<DraftData>({
         status: form.status,
         thumbnail_id: form.thumbnail_id,
         tags: form.tags,
+        pinned: form.pinned,
         values: form.values,
     }),
     isDirty: () => form.isDirty,
@@ -152,6 +155,7 @@ const applyData = async (
     form.status = data.status;
     form.thumbnail_id = data.thumbnail_id;
     form.tags = data.tags ?? form.tags;
+    form.pinned = data.pinned ?? form.pinned;
     form.values = { ...form.values, ...data.values };
     slugTouched.value = true;
     Object.assign(knownMedia.value, media);
@@ -370,6 +374,15 @@ const deletePost = () => {
                         <option value="published">Published</option>
                     </select>
                 </div>
+
+                <label class="flex items-center gap-2 text-sm">
+                    <input
+                        v-model="form.pinned"
+                        type="checkbox"
+                        class="rounded border-neutral-300 dark:border-neutral-700"
+                    />
+                    Pin to the top of listings
+                </label>
 
                 <div class="space-y-1.5">
                     <label for="slug" class="cp-label">Slug</label>

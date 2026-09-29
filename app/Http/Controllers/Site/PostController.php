@@ -25,7 +25,7 @@ class PostController extends Controller
             'posts' => $template->posts()
                 ->with('thumbnail')
                 ->where('status', PostStatus::Published)
-                ->latest('published_at')
+                ->pinnedFirst()
                 ->get()
                 ->each->setRelation('template', $template),
         ]);
