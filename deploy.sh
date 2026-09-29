@@ -27,6 +27,10 @@ fail() { printf '\n\033[1;31m%s\033[0m\n' "$1" >&2; exit 1; }
 
 artisan() { "$PHP_BIN" artisan "$@"; }
 
+# The server changes file permissions (see the end of this script), which git
+# would otherwise report as local changes and refuse to update over.
+git() { command git -c core.fileMode=false "$@"; }
+
 # --- Checks -----------------------------------------------------------------
 
 step "Checking requirements"
