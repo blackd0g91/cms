@@ -5,6 +5,7 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Models\Template;
 use App\Models\User;
+use Illuminate\Support\Facades\Date;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('the dashboard shows stats, templates, recent posts and drafts', function () {
@@ -83,4 +84,21 @@ test('templates on the dashboard carry their accent color', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->where('templates.0.accent', '#c2410c')
             ->where('templates.1.accent', "oklch(0.58 0.13 {$automatic->hue()})"));
+});
+
+test('the dashboard shows posts published per month for the last year', function () {
+    Date::setTestNow('2026-09-15 12:00:00');
+    $template = Template::factory()->create();
+    Post::factory()->published()->for($template)->count(2)->create(['published_at' => '2026-09-02']);
+    Post::factory()->published()->for($template)->create(['published_at' => '2026-03-20']);
+    Post::factory()->published()->for($template)->create(['published_at' => '2025-09-30']); // 13 months ago
+    Post::factory()->for($template)->create();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('cp.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('activity', 12)
+            ->where('activity.0', ['month' => '2025-10', 'count' => 0])
+            ->where('activity.5', ['month' => '2026-03', 'count' => 1])
+            ->where('activity.11', ['month' => '2026-09', 'count' => 2]));
 });

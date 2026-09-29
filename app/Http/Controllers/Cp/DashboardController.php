@@ -18,6 +18,7 @@ class DashboardController extends Controller
     {
         return Inertia::render('cp/Dashboard', [
             'checkup' => $checkup->run(),
+            'activity' => $this->activity(),
             'stats' => [
                 'published' => Post::query()->where('status', PostStatus::Published)->count(),
                 'drafts' => Post::query()->where('status', PostStatus::Draft)->count(),
@@ -40,6 +41,29 @@ class DashboardController extends Controller
                 Post::query()->where('status', PostStatus::Draft)->latest('updated_at')->limit(8),
             ),
         ]);
+    }
+
+    /**
+     * Published posts per month over the last 12 months, oldest first,
+     * including months with none.
+     *
+     * @return list<array{month: string, count: int}>
+     */
+    private function activity(): array
+    {
+        $start = now()->startOfMonth()->subMonths(11);
+
+        $counts = Post::query()
+            ->where('status', PostStatus::Published)
+            ->where('published_at', '>=', $start)
+            ->pluck('published_at')
+            ->countBy(fn ($date) => $date->format('Y-m'));
+
+        return array_map(function (int $offset) use ($start, $counts) {
+            $month = $start->addMonths($offset)->format('Y-m');
+
+            return ['month' => $month, 'count' => (int) $counts->get($month, 0)];
+        }, range(0, 11));
     }
 
     /**

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import ActivityChart from '@/components/cp/ActivityChart.vue';
 import ContentCheckup from '@/components/cp/ContentCheckup.vue';
 import type { Check } from '@/components/cp/ContentCheckup.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
@@ -30,6 +31,7 @@ const props = defineProps<{
     recentPosts: PostListItem[];
     drafts: PostListItem[];
     checkup: Check[];
+    activity: { month: string; count: number }[];
 }>();
 
 type TemplateRow = (typeof props.templates)[number];
@@ -168,6 +170,8 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
             </li>
         </ul>
     </section>
+
+    <ActivityChart :months="activity" class="mb-6" />
 
     <div class="grid gap-6 lg:grid-cols-2">
         <section class="cp-card">
