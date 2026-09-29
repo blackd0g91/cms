@@ -46,6 +46,7 @@ export type Post = {
     published_at: string | null;
     updated_at: string;
     thumbnail_id: number | null;
+    tags: string[];
     data: Record<string, FieldValue>;
     url: string;
 };

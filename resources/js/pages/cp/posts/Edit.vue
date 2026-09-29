@@ -5,6 +5,7 @@ import FieldInput from '@/components/cp/FieldInput.vue';
 import ImageField from '@/components/cp/ImageField.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PostHistory from '@/components/cp/PostHistory.vue';
+import TagInput from '@/components/cp/TagInput.vue';
 import { useLocalDraft } from '@/composables/useLocalDraft';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
@@ -31,6 +32,7 @@ const props = defineProps<{
     post: Post | null;
     media: Record<number, Media>;
     revisions: PostRevisionSummary[];
+    allTags: string[];
 }>();
 
 const emptyValue = (field: Field): FieldValue => {
@@ -49,6 +51,7 @@ const form = useForm({
     slug: props.post?.slug ?? '',
     status: (props.post?.status ?? 'draft') as PostStatus,
     thumbnail_id: props.post?.thumbnail_id ?? null,
+    tags: props.post?.tags ?? ([] as string[]),
     // "data" is reserved by useForm, so it is renamed when submitting.
     values: Object.fromEntries(
         props.template.fields.map((field) => [
@@ -81,6 +84,8 @@ type DraftData = {
     slug: string;
     status: PostStatus;
     thumbnail_id: number | null;
+    // Missing in versions from post history, which do not track tags.
+    tags?: string[];
     values: Record<string, FieldValue>;
 };
 
@@ -95,6 +100,7 @@ const draft = useLocalDraft<DraftData>({
         slug: form.slug,
         status: form.status,
         thumbnail_id: form.thumbnail_id,
+        tags: form.tags,
         values: form.values,
     }),
     isDirty: () => form.isDirty,
@@ -145,6 +151,7 @@ const applyData = async (
     form.slug = data.slug;
     form.status = data.status;
     form.thumbnail_id = data.thumbnail_id;
+    form.tags = data.tags ?? form.tags;
     form.values = { ...form.values, ...data.values };
     slugTouched.value = true;
     Object.assign(knownMedia.value, media);
@@ -338,6 +345,20 @@ const deletePost = () => {
                 />
                 <p v-if="form.errors.thumbnail_id" class="cp-error">
                     {{ form.errors.thumbnail_id }}
+                </p>
+            </section>
+
+            <section class="cp-card space-y-2 p-4">
+                <label for="tags" class="cp-label">Tags</label>
+                <TagInput
+                    id="tags"
+                    :key="`tags-${restoreCount}`"
+                    v-model="form.tags"
+                    :suggestions="allTags"
+                />
+                <p class="text-xs text-neutral-500">Enter or comma to add.</p>
+                <p v-if="form.errors.tags" class="cp-error">
+                    {{ form.errors.tags }}
                 </p>
             </section>
 

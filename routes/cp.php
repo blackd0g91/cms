@@ -7,6 +7,7 @@ use App\Http\Controllers\Cp\MarkdownPreviewController;
 use App\Http\Controllers\Cp\MediaController;
 use App\Http\Controllers\Cp\PostController;
 use App\Http\Controllers\Cp\SettingsController;
+use App\Http\Controllers\Cp\TagController;
 use App\Http\Controllers\Cp\TemplateController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,10 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::get('account', [AccountController::class, 'edit'])->name('account.edit');
         Route::put('account', [AccountController::class, 'update'])->name('account.update');
         Route::put('account/password', [AccountController::class, 'updatePassword'])->name('account.password');
+
+        Route::get('tags', [TagController::class, 'index'])->name('tags.index');
+        Route::put('tags/{tag:id}', [TagController::class, 'update'])->name('tags.update');
+        Route::delete('tags/{tag:id}', [TagController::class, 'destroy'])->name('tags.destroy');
 
         Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');

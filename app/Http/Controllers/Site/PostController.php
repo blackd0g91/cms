@@ -39,7 +39,7 @@ class PostController extends Controller
     {
         abort_unless($post->isPublished() || $request->user(), 404);
 
-        $post->setRelation('template', $template)->load('thumbnail');
+        $post->setRelation('template', $template)->load(['thumbnail', 'tags']);
 
         ['html' => $html, 'headings' => $headings] = $toc->build($images->apply($renderer->render($post)));
 

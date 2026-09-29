@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Site;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\Tag;
 use App\Models\Template;
 use Illuminate\Http\Response;
 
@@ -18,6 +19,10 @@ class SitemapController extends Controller
         return response()
             ->view('site.xml.sitemap', [
                 'templates' => Template::query()->orderBy('name')->get(),
+                'tags' => Tag::query()
+                    ->whereHas('posts', fn ($query) => $query->where('status', PostStatus::Published))
+                    ->orderBy('name')
+                    ->get(),
                 'posts' => Post::query()
                     ->with('template')
                     ->where('status', PostStatus::Published)

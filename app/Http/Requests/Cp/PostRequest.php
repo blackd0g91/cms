@@ -57,6 +57,8 @@ class PostRequest extends FormRequest
             ],
             'status' => ['required', Rule::enum(PostStatus::class)],
             'thumbnail_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],
+            'tags' => ['array', 'max:30'],
+            'tags.*' => ['string', 'max:50'],
             'data' => ['array'],
         ];
 
@@ -88,6 +90,16 @@ class PostRequest extends FormRequest
         return [
             'slug.regex' => 'The slug may only contain lowercase letters, numbers and dashes.',
         ];
+    }
+
+    /**
+     * The tag names to give the post.
+     *
+     * @return list<string>
+     */
+    public function tagNames(): array
+    {
+        return array_values(array_filter(array_map(strval(...), (array) $this->validated('tags', [])), filled(...)));
     }
 
     /**

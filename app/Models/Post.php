@@ -42,11 +42,40 @@ class Post extends Model
     protected static function booted(): void
     {
         // saving() also runs for saveQuietly(), which the backfill migration relies on.
-        static::saving(function (Post $post) {
-            $post->search_index = self::normalizeForSearch($post->title.' '.$post->plainText());
-        });
+        static::saving(fn (Post $post) => $post->search_index = $post->buildSearchIndex());
 
         static::saved(fn (Post $post) => $post->syncMedia());
+    }
+
+    /**
+     * The searchable text: title, field text and tag names.
+     */
+    public function buildSearchIndex(): string
+    {
+        $tags = $this->exists ? $this->tags()->pluck('name')->implode(' ') : '';
+
+        return self::normalizeForSearch($this->title.' '.$this->plainText().' '.$tags);
+    }
+
+    /**
+     * Set the post's tags by name, creating new ones, and update the search
+     * index to include them.
+     *
+     * @param  array<int, string>  $names
+     */
+    public function syncTags(array $names): void
+    {
+        $this->tags()->sync(Tag::idsFor($names));
+
+        $this->forceFill(['search_index' => $this->buildSearchIndex()])->saveQuietly();
+    }
+
+    /**
+     * @return BelongsToMany<Tag, $this>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class)->orderBy('name');
     }
 
     /**

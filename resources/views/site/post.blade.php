@@ -69,6 +69,16 @@
         <div class="prose max-w-none">
             {{ $content }}
         </div>
+
+        @if ($post->tags->isNotEmpty())
+            <ul class="mt-12 flex flex-wrap gap-2 border-t border-line pt-6">
+                @foreach ($post->tags as $tag)
+                    <li>
+                        <a href="{{ route('site.tag', $tag) }}" class="inline-flex rounded-full border border-line bg-card px-3 py-1 font-mono text-xs text-muted transition hover:border-accent hover:text-ink">#{{ $tag->name }}</a>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
     </article>
 
     @if ($headings !== [])

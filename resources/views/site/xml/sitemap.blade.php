@@ -11,6 +11,11 @@
             <loc>{{ route('site.template', $template) }}</loc>
         </url>
     @endforeach
+    @foreach ($tags as $tag)
+        <url>
+            <loc>{{ route('site.tag', $tag) }}</loc>
+        </url>
+    @endforeach
     @foreach ($posts as $post)
         <url>
             <loc>{{ $post->url() }}</loc>

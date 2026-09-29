@@ -7,6 +7,7 @@ import { edit as accountEdit } from '@/routes/cp/account';
 import { index as mediaIndex } from '@/routes/cp/media';
 import { index as postsIndex } from '@/routes/cp/posts';
 import { edit as settingsEdit } from '@/routes/cp/settings';
+import { index as tagsIndex } from '@/routes/cp/tags';
 import { index as templatesIndex } from '@/routes/cp/templates';
 
 type NavItem = {
@@ -38,6 +39,11 @@ const mainNav: NavItem[] = [
         href: templatesIndex().url,
         active: (path) =>
             path.startsWith(templatesIndex().url) && !isPostsPath(path),
+    },
+    {
+        title: 'Tags',
+        href: tagsIndex().url,
+        active: (path) => path.startsWith(tagsIndex().url),
     },
     {
         title: 'Media',

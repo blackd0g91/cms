@@ -9,6 +9,7 @@ use App\Http\Requests\Cp\PostRequest;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\PostRevision;
+use App\Models\Tag;
 use App\Models\Template;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -75,6 +76,7 @@ class PostController extends Controller
             'post' => null,
             'media' => [],
             'revisions' => [],
+            'allTags' => Tag::query()->orderBy('name')->pluck('name'),
         ]);
     }
 
@@ -83,6 +85,7 @@ class PostController extends Controller
         $post = $template->posts()->make($request->postAttributes());
         $this->touchPublishedAt($post);
         $post->save();
+        $post->syncTags($request->tagNames());
         $post->recordRevision($request->user());
 
         return redirect()->route('cp.templates.posts.edit', [$template, $post]);
@@ -94,9 +97,11 @@ class PostController extends Controller
             'template' => $template->only(['id', 'name', 'handle', 'fields']),
             'post' => [
                 ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'data']),
+                'tags' => $post->tags->pluck('name'),
                 'url' => $post->url(),
             ],
             'media' => $this->selectedMedia($template, $post),
+            'allTags' => Tag::query()->orderBy('name')->pluck('name'),
             'revisions' => $post->revisions()
                 ->with('user:id,name')
                 ->get(['id', 'post_id', 'user_id', 'title', 'status', 'created_at'])
@@ -115,6 +120,7 @@ class PostController extends Controller
         $post->fill($request->postAttributes());
         $this->touchPublishedAt($post);
         $post->save();
+        $post->syncTags($request->tagNames());
         $post->recordRevision($request->user());
 
         return redirect()->route('cp.templates.posts.edit', [$template, $post]);
@@ -151,6 +157,7 @@ class PostController extends Controller
         $copy->status = PostStatus::Draft;
         $copy->setRelation('template', $template);
         $copy->save();
+        $copy->syncTags($post->tags->map(fn (Tag $tag) => $tag->name)->all());
         $copy->recordRevision(request()->user());
 
         return redirect()->route('cp.templates.posts.edit', [$template, $copy]);

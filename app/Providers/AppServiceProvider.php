@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Cms\Settings;
 use App\Enums\PostStatus;
+use App\Models\Tag;
 use App\Models\Template;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -36,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
                     ->orderBy('name')
                     ->get(['id', 'name', 'handle']),
                 'settings' => app(Settings::class),
+                'hasTags' => Tag::query()->whereHas('posts', fn ($query) => $query->where('status', PostStatus::Published))->exists(),
             ]);
         });
     }
