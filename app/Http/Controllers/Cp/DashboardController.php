@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cp;
 
 use App\Cms\ContentCheckup;
+use App\Cms\PostViews;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
@@ -14,9 +15,16 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(ContentCheckup $checkup): Response
+    public function __invoke(ContentCheckup $checkup, PostViews $views): Response
     {
         return Inertia::render('cp/Dashboard', [
+            'popular' => [
+                'total' => $views->total(),
+                'posts' => array_map(fn (array $row) => [
+                    ...$row['post']->toListItem(),
+                    'views' => $row['views'],
+                ], $views->popular()),
+            ],
             'checkup' => $checkup->run(),
             'activity' => $this->activity(),
             'stats' => [

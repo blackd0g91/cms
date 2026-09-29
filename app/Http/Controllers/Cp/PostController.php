@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Cp;
 
+use App\Cms\PostViews;
 use App\Enums\FieldType;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
@@ -95,6 +96,7 @@ class PostController extends Controller
             'post' => [
                 ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'data']),
                 'pinned' => $post->isPinned(),
+                'views' => app(PostViews::class)->forPost($post),
                 'tags' => $post->tags->pluck('name'),
                 'url' => $post->url(),
             ],

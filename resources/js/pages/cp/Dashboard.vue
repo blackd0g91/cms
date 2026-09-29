@@ -5,6 +5,7 @@ import ActivityChart from '@/components/cp/ActivityChart.vue';
 import ContentCheckup from '@/components/cp/ContentCheckup.vue';
 import type { Check } from '@/components/cp/ContentCheckup.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import PopularPosts from '@/components/cp/PopularPosts.vue';
 import PostList from '@/components/cp/PostList.vue';
 import UnsavedDrafts from '@/components/cp/UnsavedDrafts.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
@@ -32,6 +33,7 @@ const props = defineProps<{
     drafts: PostListItem[];
     checkup: Check[];
     activity: { month: string; count: number }[];
+    popular: { total: number; posts: (PostListItem & { views: number })[] };
 }>();
 
 type TemplateRow = (typeof props.templates)[number];
@@ -171,7 +173,10 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
         </ul>
     </section>
 
-    <ActivityChart :months="activity" class="mb-6" />
+    <div class="mb-6 grid gap-6 xl:grid-cols-[3fr_2fr]">
+        <ActivityChart :months="activity" />
+        <PopularPosts :total="popular.total" :posts="popular.posts" />
+    </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
         <section class="cp-card">

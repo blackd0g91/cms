@@ -384,6 +384,17 @@ const deletePost = () => {
                     Pin to the top of listings
                 </label>
 
+                <p
+                    v-if="
+                        post?.views !== undefined && post.status === 'published'
+                    "
+                    class="text-xs text-neutral-500"
+                >
+                    {{ post.views.toLocaleString() }}
+                    {{ post.views === 1 ? 'view' : 'views' }} in the last 30
+                    days
+                </p>
+
                 <div class="space-y-1.5">
                     <label for="slug" class="cp-label">Slug</label>
                     <input

@@ -47,6 +47,8 @@ export type Post = {
     updated_at: string;
     thumbnail_id: number | null;
     pinned: boolean;
+    // Views in the last 30 days.
+    views?: number;
     tags: string[];
     data: Record<string, FieldValue>;
     url: string;

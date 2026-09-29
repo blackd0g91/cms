@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Cms\LayoutRenderer;
+use App\Cms\PostViews;
 use App\Cms\ResponsiveImages;
 use App\Cms\TableOfContents;
 use App\Enums\PostStatus;
@@ -35,11 +36,12 @@ class PostController extends Controller
      * Show a post through its template's layout. Drafts are visible to
      * logged in users so they can be previewed.
      */
-    public function show(Request $request, Template $template, Post $post, LayoutRenderer $renderer, TableOfContents $toc, ResponsiveImages $images): View
+    public function show(Request $request, Template $template, Post $post, LayoutRenderer $renderer, TableOfContents $toc, ResponsiveImages $images, PostViews $views): View
     {
         abort_unless($post->isPublished() || $request->user(), 404);
 
         $post->setRelation('template', $template)->load(['thumbnail', 'tags']);
+        $views->record($request, $post);
 
         ['html' => $html, 'headings' => $headings] = $toc->build($images->apply($renderer->render($post)));
 
