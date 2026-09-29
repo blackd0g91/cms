@@ -132,3 +132,15 @@ test('the logo and icon count as media usage', function () {
         ->delete(route('cp.media.destroy', $logo))
         ->assertSessionHasErrors(['media' => 'This image is still used in: Site logo.']);
 });
+
+test('an svg site icon keeps the default apple touch icon and is not used for link previews', function () {
+    $icon = Media::factory()->create(['mime_type' => 'image/svg+xml', 'path' => 'media/icon.svg']);
+    $logo = Media::factory()->create(['mime_type' => 'image/svg+xml', 'path' => 'media/logo.svg']);
+    app(Settings::class)->update(['favicon_id' => $icon->id, 'logo_id' => $logo->id]);
+
+    $this->get(route('home'))
+        ->assertSee('<link rel="icon" href="'.$icon->url.'" type="image/svg+xml">', false)
+        ->assertSee('<link rel="apple-touch-icon" href="/apple-touch-icon.png">', false)
+        ->assertSee('src="'.$logo->url.'"', false)
+        ->assertDontSee('og:image', false);
+});

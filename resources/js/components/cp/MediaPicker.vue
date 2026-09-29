@@ -86,7 +86,7 @@ defineExpose({ open });
                     {{ uploading ? 'Uploading…' : 'Upload' }}
                     <input
                         type="file"
-                        accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
+                        accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml"
                         class="sr-only"
                         :disabled="uploading"
                         @change="upload"

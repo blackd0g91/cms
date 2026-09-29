@@ -16,9 +16,9 @@ use Inertia\Response;
 class MediaController extends Controller
 {
     /**
-     * Allowed image types. SVG is left out since it can carry scripts.
+     * Allowed image types. SVGs are sanitized on upload (see Media::upload()).
      */
-    private const array RULES = ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp,avif', 'max:10240'];
+    private const array RULES = ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp,avif,svg', 'max:10240'];
 
     public function index(MediaUsage $usage): Response
     {

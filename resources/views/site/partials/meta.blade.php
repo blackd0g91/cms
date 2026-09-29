@@ -7,7 +7,9 @@
     $meta ??= [];
     $pageTitle = isset($title) ? $title.' - '.$siteName : $siteName;
     $description = Str::limit(trim((string) ($meta['description'] ?? $settings->get('tagline') ?? '')), 200);
-    $image = $meta['image'] ?? $settings->logo()?->url;
+    // Link previews (WhatsApp, Slack, ...) do not show SVG images.
+    $image = collect([$meta['image'] ?? null, $settings->logo()?->url])
+        ->first(fn (?string $url) => $url !== null && ! Str::endsWith(Str::lower($url), '.svg'));
     $url = url()->current();
 @endphp
 @if ($description !== '')
@@ -35,7 +37,7 @@
 @isset($meta['modified_time'])
     <meta property="article:modified_time" content="{{ $meta['modified_time'] }}">
 @endisset
-<meta name="twitter:card" content="{{ isset($meta['image']) ? 'summary_large_image' : 'summary' }}">
+<meta name="twitter:card" content="{{ $image !== null && $image === ($meta['image'] ?? null) ? 'summary_large_image' : 'summary' }}">
 <meta name="twitter:title" content="{{ $pageTitle }}">
 
 <link rel="alternate" type="application/rss+xml" title="{{ $siteName }}" href="{{ route('feed') }}">

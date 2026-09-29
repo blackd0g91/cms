@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Cms\Svg;
 use Carbon\CarbonImmutable;
 use Database\Factories\MediaFactory;
 use Illuminate\Database\Eloquent\Attributes\Appends;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * An uploaded image.
@@ -36,10 +39,17 @@ class Media extends Model
     use HasFactory;
 
     /**
-     * Store an uploaded image on the public disk.
+     * Store an uploaded image on the public disk. SVGs are sanitized first,
+     * and only the cleaned version is kept.
+     *
+     * @throws ValidationException when an SVG cannot be read
      */
     public static function upload(UploadedFile $file): self
     {
+        if ($file->getMimeType() === 'image/svg+xml') {
+            return self::uploadSvg($file);
+        }
+
         $path = $file->store('media', 'public');
         $dimensions = @getimagesize($file->getRealPath()) ?: [null, null];
 
@@ -51,6 +61,37 @@ class Media extends Model
             'size' => $file->getSize(),
             'width' => $dimensions[0],
             'height' => $dimensions[1],
+        ]);
+    }
+
+    public function isSvg(): bool
+    {
+        return $this->mime_type === 'image/svg+xml';
+    }
+
+    private static function uploadSvg(UploadedFile $file): self
+    {
+        $svg = app(Svg::class);
+        $clean = $svg->sanitize((string) file_get_contents($file->getRealPath()));
+
+        if ($clean === null) {
+            throw ValidationException::withMessages([
+                'file' => 'This SVG could not be read. Try exporting it again from your editor.',
+            ]);
+        }
+
+        $path = 'media/'.Str::random(40).'.svg';
+        Storage::disk('public')->put($path, $clean);
+        [$width, $height] = $svg->dimensions($clean);
+
+        return self::create([
+            'disk' => 'public',
+            'path' => $path,
+            'filename' => $file->getClientOriginalName(),
+            'mime_type' => 'image/svg+xml',
+            'size' => strlen($clean),
+            'width' => $width,
+            'height' => $height,
         ]);
     }
 

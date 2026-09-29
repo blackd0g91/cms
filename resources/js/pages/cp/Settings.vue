@@ -141,7 +141,9 @@ useUnsavedChanges({
                 />
                 <p class="text-xs text-neutral-500">
                     Used for browser tabs, bookmarks and home screen shortcuts.
-                    Use a square PNG, ideally 180&times;180 or larger.
+                    Use a square SVG, or a PNG of 180&times;180 or larger.
+                    iPhones and iPads can't use SVG for home screen icons, so
+                    they get the default one.
                 </p>
                 <p v-if="form.errors.favicon_id" class="cp-error">
                     {{ form.errors.favicon_id }}

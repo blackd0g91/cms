@@ -68,7 +68,7 @@ test('only images can be uploaded', function (UploadedFile $file) {
     expect(Media::count())->toBe(0);
 })->with([
     'pdf' => fn () => UploadedFile::fake()->create('file.pdf', 10, 'application/pdf'),
-    'svg' => fn () => UploadedFile::fake()->createWithContent('logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'),
+    'text file named svg' => fn () => UploadedFile::fake()->createWithContent('logo.svg', 'just some text'),
     'too large' => fn () => UploadedFile::fake()->create('huge.png', 20 * 1024, 'image/png'),
 ]);
 
@@ -141,4 +141,50 @@ test('a number in another field type does not count as image usage', function ()
     Post::factory()->for($template)->create(['data' => ['servings' => $media->id]]);
 
     $this->delete(route('cp.media.destroy', $media))->assertSessionHasNoErrors();
+});
+
+test('svg images are sanitized on upload', function () {
+    $svg = <<<'SVG'
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 120 60" onload="alert(1)">
+            <script>alert(document.cookie)</script>
+            <a xlink:href="javascript:alert(2)"><rect width="10" height="10" fill="red"/></a>
+            <image href="https://evil.example/track.png" width="1" height="1"/>
+            <foreignObject><iframe src="https://evil.example"></iframe></foreignObject>
+            <circle cx="30" cy="30" r="20" fill="#c2410c"/>
+        </svg>
+        SVG;
+
+    $this->post(route('cp.media.store'), ['file' => UploadedFile::fake()->createWithContent('logo.svg', $svg)])
+        ->assertSessionHasNoErrors();
+
+    $media = Media::sole();
+    $stored = Storage::disk('public')->get($media->path);
+
+    expect($media->mime_type)->toBe('image/svg+xml')
+        ->and($media->path)->toEndWith('.svg')
+        ->and($media->width)->toBe(120)
+        ->and($media->height)->toBe(60)
+        ->and($media->size)->toBe(strlen($stored))
+        ->and($stored)->toContain('<circle')
+        ->not->toContain('<script')
+        ->not->toContain('onload')
+        ->not->toContain('javascript:')
+        ->not->toContain('evil.example')
+        ->not->toContain('foreignObject');
+});
+
+test('svg sizes come from width and height when given', function () {
+    $svg = '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="48px" height="32" viewBox="0 0 10 10"><rect width="10" height="10"/></svg>';
+
+    $this->post(route('cp.media.store'), ['file' => UploadedFile::fake()->createWithContent('icon.svg', $svg)]);
+
+    expect(Media::sole())->width->toBe(48)->height->toBe(32);
+});
+
+test('broken svg files are rejected', function () {
+    $this->post(route('cp.media.store'), [
+        'file' => UploadedFile::fake()->createWithContent('broken.svg', '<svg xmlns="http://www.w3.org/2000/svg"><rect'),
+    ])->assertSessionHasErrors('file');
+
+    expect(Media::count())->toBe(0);
 });

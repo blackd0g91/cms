@@ -84,7 +84,7 @@ const copyUrl = (item: Media) => navigator.clipboard.writeText(item.url);
             <input
                 type="file"
                 multiple
-                accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
+                accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml"
                 class="sr-only"
                 :disabled="form.processing"
                 @change="upload"
