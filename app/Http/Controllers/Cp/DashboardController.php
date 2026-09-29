@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Cp;
 
+use App\Cms\ContentCheckup;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
@@ -13,9 +14,10 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): Response
+    public function __invoke(ContentCheckup $checkup): Response
     {
         return Inertia::render('cp/Dashboard', [
+            'checkup' => $checkup->run(),
             'stats' => [
                 'published' => Post::query()->where('status', PostStatus::Published)->count(),
                 'drafts' => Post::query()->where('status', PostStatus::Draft)->count(),

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import ContentCheckup from '@/components/cp/ContentCheckup.vue';
+import type { Check } from '@/components/cp/ContentCheckup.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PostList from '@/components/cp/PostList.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
@@ -24,6 +26,7 @@ defineProps<{
     })[];
     recentPosts: PostListItem[];
     drafts: PostListItem[];
+    checkup: Check[];
 }>();
 </script>
 
@@ -58,6 +61,8 @@ defineProps<{
             <dd class="mt-1 text-2xl font-semibold">{{ stats.media }}</dd>
         </Link>
     </dl>
+
+    <ContentCheckup :checks="checkup" class="mb-6" />
 
     <section class="cp-card mb-6">
         <h2
