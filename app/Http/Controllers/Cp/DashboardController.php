@@ -30,7 +30,11 @@ class DashboardController extends Controller
                     'posts as drafts_count' => fn ($query) => $query->where('status', PostStatus::Draft),
                 ])
                 ->orderBy('name')
-                ->get(['id', 'name', 'handle']),
+                ->get(['id', 'name', 'handle', 'color'])
+                ->map(fn (Template $template) => [
+                    ...$template->only(['id', 'name', 'handle', 'posts_count', 'drafts_count']),
+                    'accent' => $template->accentColor(),
+                ]),
             'recentPosts' => $this->posts(Post::query()->latest('updated_at')->limit(8)),
             'drafts' => $this->posts(
                 Post::query()->where('status', PostStatus::Draft)->latest('updated_at')->limit(8),

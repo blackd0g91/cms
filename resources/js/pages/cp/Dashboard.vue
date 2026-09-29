@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import ContentCheckup from '@/components/cp/ContentCheckup.vue';
 import type { Check } from '@/components/cp/ContentCheckup.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
@@ -14,7 +15,7 @@ import type { PostListItem, TemplateSummary } from '@/types';
 
 defineOptions({ layout: CpLayout });
 
-defineProps<{
+const props = defineProps<{
     stats: {
         published: number;
         drafts: number;
@@ -24,11 +25,24 @@ defineProps<{
     templates: (TemplateSummary & {
         posts_count: number;
         drafts_count: number;
+        accent: string;
     })[];
     recentPosts: PostListItem[];
     drafts: PostListItem[];
     checkup: Check[];
 }>();
+
+type TemplateRow = (typeof props.templates)[number];
+
+const published = (template: TemplateRow) =>
+    template.posts_count - template.drafts_count;
+
+// Every bar shares one scale: the template with the most posts is full width.
+const largest = computed(() =>
+    Math.max(1, ...props.templates.map((template) => template.posts_count)),
+);
+
+const share = (count: number) => `${(count / largest.value) * 100}%`;
 </script>
 
 <template>
@@ -68,11 +82,25 @@ defineProps<{
     <ContentCheckup :checks="checkup" class="mb-6" />
 
     <section class="cp-card mb-6">
-        <h2
-            class="border-b border-neutral-200 px-4 py-3 font-semibold dark:border-neutral-800"
+        <div
+            class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 px-4 py-3 dark:border-neutral-800"
         >
-            New post
-        </h2>
+            <h2 class="font-semibold">Templates</h2>
+            <p
+                v-if="templates.length"
+                class="flex items-center gap-3 text-xs text-neutral-500"
+                aria-hidden="true"
+            >
+                <span class="flex items-center gap-1.5">
+                    <span class="h-2.5 w-3 rounded-sm bg-neutral-500" />
+                    Published
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="h-2.5 w-3 rounded-sm bg-neutral-500/35" />
+                    Drafts
+                </span>
+            </p>
+        </div>
         <div v-if="templates.length === 0" class="p-4 text-sm text-neutral-500">
             Create a template first to start writing posts.
             <Link :href="createTemplate()" class="ml-1 underline"
@@ -83,18 +111,22 @@ defineProps<{
             <li
                 v-for="template in templates"
                 :key="template.id"
-                class="flex items-center justify-between gap-3 px-4 py-3"
+                class="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-4 px-4 py-3"
             >
                 <div class="min-w-0">
                     <Link
                         :href="postsIndex({ query: { template: template.id } })"
-                        class="text-sm font-medium hover:underline"
+                        class="flex items-center gap-2 text-sm font-medium hover:underline"
                     >
-                        {{ template.name }}
+                        <span
+                            class="size-2.5 shrink-0 rounded-full"
+                            :style="{ backgroundColor: template.accent }"
+                            aria-hidden="true"
+                        />
+                        <span class="truncate">{{ template.name }}</span>
                     </Link>
                     <p class="text-xs text-neutral-500">
-                        {{ template.posts_count }}
-                        {{ template.posts_count === 1 ? 'post' : 'posts' }}
+                        {{ published(template) }} published
                         <template v-if="template.drafts_count">
                             &middot; {{ template.drafts_count }}
                             {{
@@ -103,8 +135,35 @@ defineProps<{
                         </template>
                     </p>
                 </div>
+
+                <!-- Published and drafts, on a scale shared by every template. -->
+                <div
+                    class="flex h-2.5 items-center gap-[2px]"
+                    role="img"
+                    :aria-label="`${template.name}: ${published(template)} published, ${template.drafts_count} ${template.drafts_count === 1 ? 'draft' : 'drafts'}`"
+                >
+                    <span
+                        v-if="published(template)"
+                        class="h-full rounded-[4px]"
+                        :style="{
+                            width: share(published(template)),
+                            backgroundColor: template.accent,
+                        }"
+                        :title="`${published(template)} published`"
+                    />
+                    <span
+                        v-if="template.drafts_count"
+                        class="h-full rounded-[4px]"
+                        :style="{
+                            width: share(template.drafts_count),
+                            backgroundColor: `color-mix(in oklch, ${template.accent} 35%, transparent)`,
+                        }"
+                        :title="`${template.drafts_count} ${template.drafts_count === 1 ? 'draft' : 'drafts'}`"
+                    />
+                </div>
+
                 <Link :href="createPost(template.id)" class="cp-btn shrink-0">
-                    New {{ template.name }} post
+                    New post
                 </Link>
             </li>
         </ul>

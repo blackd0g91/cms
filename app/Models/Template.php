@@ -49,6 +49,16 @@ class Template extends Model
     }
 
     /**
+     * The accent as a CSS color: the chosen one, or the automatic one at the
+     * site's light-mode lightness. For places outside the site's theme, like
+     * the control panel.
+     */
+    public function accentColor(): string
+    {
+        return $this->color ?? "oklch(0.58 0.13 {$this->hue()})";
+    }
+
+    /**
      * CSS variables for the template's accent, for an element with the "hue"
      * class (see resources/css/site.css). The chosen color is reset when
      * there is none, so it is never inherited from an outer template.

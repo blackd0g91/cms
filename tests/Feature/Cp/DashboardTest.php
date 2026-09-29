@@ -73,3 +73,14 @@ test('images inserted into markdown that were deleted count as missing', functio
         ->get(route('cp.dashboard'))
         ->assertInertia(fn (Assert $page) => $page->where('checkup.3.count', 1)->where('checkup.3.items.0.detail', '1 missing'));
 });
+
+test('templates on the dashboard carry their accent color', function () {
+    Template::factory()->create(['name' => 'A', 'color' => '#c2410c']);
+    $automatic = Template::factory()->create(['name' => 'B', 'color' => null]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('cp.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('templates.0.accent', '#c2410c')
+            ->where('templates.1.accent', "oklch(0.58 0.13 {$automatic->hue()})"));
+});
