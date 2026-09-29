@@ -41,8 +41,37 @@
     --hue: 45;
 }
 
+/*
+ * Dark mode: when chosen with the theme toggle (data-theme on <html>, see
+ * site.ts), or when following the system and the system is dark.
+ */
+:root {
+    color-scheme: light dark;
+
+    /* Chosen accent colors are kept readable within this lightness range. */
+    --accent-min-l: 0;
+    --accent-max-l: 0.68;
+}
+
+:root[data-theme='light'] {
+    color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --paper: #16130f;
+    --card: #1e1a15;
+    --ink: #efe7d8;
+    --muted: #9c907d;
+    --line: #332d25;
+    --accent-l: 0.76;
+    --accent-c: 0.11;
+    --accent-min-l: 0.7;
+    --accent-max-l: 1;
+}
+
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme='light']) {
         --paper: #16130f;
         --card: #1e1a15;
         --ink: #efe7d8;
@@ -50,6 +79,8 @@
         --line: #332d25;
         --accent-l: 0.76;
         --accent-c: 0.11;
+        --accent-min-l: 0.7;
+        --accent-max-l: 1;
     }
 }
 
@@ -76,23 +107,14 @@
                     --accent-base,
                     oklch(var(--accent-l) var(--accent-c) var(--hue))
                 )
-                min(l, 0.68) c h
+                clamp(var(--accent-min-l), l, var(--accent-max-l)) c h
         );
     }
+}
 
-    @media (prefers-color-scheme: dark) {
-        :root,
-        .hue {
-            --accent: oklch(
-                from
-                    var(
-                        --accent-base,
-                        oklch(var(--accent-l) var(--accent-c) var(--hue))
-                    )
-                    max(l, 0.7) c h
-            );
-        }
-    }
+.theme-switching,
+.theme-switching * {
+    transition: none !important;
 }
 
 body {

@@ -212,3 +212,14 @@ test('posts have a keep screen on button, hidden until the browser supports it',
         ->assertSee('data-wake-lock', false)
         ->assertSeeInOrder(['data-wake-lock', 'hidden', 'Keep screen on'], false);
 });
+
+test('the site has a theme toggle, with the choice applied before the page draws', function () {
+    $response = $this->get(route('home'))->assertOk();
+
+    $html = $response->getContent();
+
+    expect($html)->toContain('data-theme-toggle')
+        ->toContain("localStorage.getItem('site.theme')")
+        // The theme script must run before the stylesheet is loaded.
+        ->and(strpos($html, "localStorage.getItem('site.theme')"))->toBeLessThan(strpos($html, 'rel="stylesheet"'));
+});

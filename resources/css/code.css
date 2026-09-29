@@ -5,13 +5,23 @@
     tab-size: 4;
 }
 
+/* Dark colors: chosen with the site's theme toggle, or from the system. */
+:root[data-theme='dark'] .phiki {
+    color: var(--phiki-dark-color) !important;
+    background-color: var(--phiki-dark-background-color) !important;
+}
+
+:root[data-theme='dark'] .phiki span {
+    color: var(--phiki-dark-color) !important;
+}
+
 @media (prefers-color-scheme: dark) {
-    .phiki {
+    :root:not([data-theme='light']) .phiki {
         color: var(--phiki-dark-color) !important;
         background-color: var(--phiki-dark-background-color) !important;
     }
 
-    .phiki span {
+    :root:not([data-theme='light']) .phiki span {
         color: var(--phiki-dark-color) !important;
     }
 }

@@ -7,6 +7,13 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        {{-- Apply the chosen theme before anything is drawn, so there is no flash. --}}
+        <script>
+            try {
+                const theme = localStorage.getItem('site.theme');
+                if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+            } catch {}
+        </script>
         <title>{{ isset($title) ? $title.' - '.$siteName : $siteName }}</title>
         @include('site.partials.meta')
 
@@ -62,6 +69,18 @@
                     >
                     <kbd class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-line px-1.5 font-mono text-[10px] text-muted sm:block">/</kbd>
                 </form>
+
+                <button
+                    type="button"
+                    data-theme-toggle
+                    hidden
+                    class="grid size-10 shrink-0 place-items-center rounded-full border border-line bg-card text-muted transition hover:border-accent hover:text-ink"
+                >
+                    {{-- site.ts shows the icon for the current choice. --}}
+                    <svg data-theme-icon="system" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+                    <svg data-theme-icon="light" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                    <svg data-theme-icon="dark" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+                </button>
 
                 {{-- On small screens the sidebar collapses into this menu. --}}
                 <details class="relative shrink-0 md:hidden">
