@@ -20,13 +20,11 @@ class DashboardController extends Controller
     {
         return Inertia::render('cp/Dashboard', [
             'system' => $system->report(),
-            'popular' => [
-                'total' => $views->total(),
-                'posts' => array_map(fn (array $row) => [
-                    ...$row['post']->toListItem(),
-                    'views' => $row['views'],
-                ], $views->popular()),
-            ],
+            'views' => $views->overview(),
+            'popular' => array_map(fn (array $row) => [
+                ...$row['post']->toListItem(),
+                'views' => $row['views'],
+            ], $views->popular()),
             'checkup' => $checkup->run(),
             'activity' => $this->activity(),
             'stats' => [

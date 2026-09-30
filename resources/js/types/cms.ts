@@ -47,8 +47,6 @@ export type Post = {
     updated_at: string;
     thumbnail_id: number | null;
     pinned: boolean;
-    // Views in the last 30 days.
-    views?: number;
     tags: string[];
     data: Record<string, FieldValue>;
     url: string;
@@ -109,4 +107,10 @@ export type PostRevision = {
     thumbnail_id: number | null;
     data: Record<string, FieldValue>;
     created_at: string;
+};
+
+// Views on one day, as "YYYY-MM-DD".
+export type DayViews = {
+    date: string;
+    views: number;
 };

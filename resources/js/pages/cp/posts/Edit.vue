@@ -5,6 +5,8 @@ import FieldInput from '@/components/cp/FieldInput.vue';
 import ImageField from '@/components/cp/ImageField.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PostHistory from '@/components/cp/PostHistory.vue';
+import PostViews from '@/components/cp/PostViews.vue';
+import type { ViewHistory } from '@/components/cp/PostViews.vue';
 import TagInput from '@/components/cp/TagInput.vue';
 import { useLocalDraft } from '@/composables/useLocalDraft';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
@@ -32,6 +34,8 @@ const props = defineProps<{
     post: Post | null;
     media: Record<number, Media>;
     revisions: PostRevisionSummary[];
+    // Null for a new post.
+    views: ViewHistory | null;
     allTags: string[];
 }>();
 
@@ -384,17 +388,6 @@ const deletePost = () => {
                     Pin to the top of listings
                 </label>
 
-                <p
-                    v-if="
-                        post?.views !== undefined && post.status === 'published'
-                    "
-                    class="text-xs text-neutral-500"
-                >
-                    {{ post.views.toLocaleString() }}
-                    {{ post.views === 1 ? 'view' : 'views' }} in the last 30
-                    days
-                </p>
-
                 <div class="space-y-1.5">
                     <label for="slug" class="cp-label">Slug</label>
                     <input
@@ -434,6 +427,16 @@ const deletePost = () => {
                     Unsaved changes &middot; Ctrl+S to save
                 </p>
             </section>
+
+            <!-- Once published, or when it was and has views from then. -->
+            <PostViews
+                v-if="
+                    post &&
+                    views &&
+                    (post.status === 'published' || views.total > 0)
+                "
+                :history="views"
+            />
 
             <PostHistory
                 v-if="post"

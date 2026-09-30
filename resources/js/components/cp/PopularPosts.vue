@@ -5,7 +5,6 @@ import { edit } from '@/routes/cp/templates/posts';
 import type { PostListItem } from '@/types';
 
 const props = defineProps<{
-    total: number;
     posts: (PostListItem & { views: number })[];
 }>();
 
@@ -24,13 +23,12 @@ const views = (count: number) =>
         >
             <h2 class="font-semibold">Popular posts</h2>
             <p class="text-xs text-neutral-500">
-                {{ views(total) }} in the last 30 days
+                Most viewed in the last 30 days
             </p>
         </div>
 
         <p v-if="posts.length === 0" class="p-4 text-sm text-neutral-500">
-            No views yet. Visits to published posts are counted here, one per
-            visitor per day. Yours don't count while you're logged in.
+            No views in the last 30 days.
         </p>
 
         <ol v-else class="space-y-3 p-4">

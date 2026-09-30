@@ -69,6 +69,72 @@ class PostViews
         return $popular;
     }
 
+    /**
+     * Views of every post per day over the last $days days, with their total
+     * and the total of the $days days before, for the dashboard.
+     *
+     * @return array{daily: list<array{date: string, views: int}>, total: int, previous: int}
+     */
+    public function overview(int $days = 30): array
+    {
+        return [
+            'daily' => $this->daily($days),
+            'total' => $this->total($days),
+            'previous' => (int) DB::table('post_views')
+                ->whereBetween('date', [now()->subDays(2 * $days - 1)->toDateString(), now()->subDays($days)->toDateString()])
+                ->sum('views'),
+        ];
+    }
+
+    /**
+     * A post's views per day over the last $days days, in the last 30 days
+     * and of all time, and its best day, for the post editor. Days are
+     * shown from when it was published, if that was more recent (a week at
+     * least), rather than as a line of zeros before it.
+     *
+     * @return array{daily: list<array{date: string, views: int}>, last_30_days: int, total: int, best: array{date: string, views: int}|null}
+     */
+    public function history(Post $post, int $days = 90): array
+    {
+        $views = DB::table('post_views')->where('post_id', $post->id);
+        $best = (clone $views)->orderByDesc('views')->orderByDesc('date')->first(['date', 'views']);
+
+        if ($post->published_at) {
+            $published = (int) $post->published_at->startOfDay()->diffInDays(now()->startOfDay()) + 1;
+            $days = min($days, max(7, $published));
+        }
+
+        return [
+            'daily' => $this->daily($days, $post),
+            'last_30_days' => $this->forPost($post),
+            'total' => (int) $views->sum('views'),
+            'best' => $best ? ['date' => (string) $best->date, 'views' => (int) $best->views] : null,
+        ];
+    }
+
+    /**
+     * Views per day over the last $days days, oldest first and ending today,
+     * including days without any. Of one post, or of all of them.
+     *
+     * @return list<array{date: string, views: int}>
+     */
+    public function daily(int $days = 30, ?Post $post = null): array
+    {
+        $start = now()->subDays($days - 1);
+
+        $counts = DB::table('post_views')
+            ->when($post, fn ($query, Post $post) => $query->where('post_id', $post->id))
+            ->where('date', '>=', $start->toDateString())
+            ->groupBy('date')
+            ->pluck(DB::raw('sum(views)'), 'date');
+
+        return array_map(function (int $offset) use ($start, $counts) {
+            $date = $start->addDays($offset)->toDateString();
+
+            return ['date' => $date, 'views' => (int) $counts->get($date, 0)];
+        }, range(0, $days - 1));
+    }
+
     public function total(int $days = 30): int
     {
         return (int) DB::table('post_views')

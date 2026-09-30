@@ -73,6 +73,7 @@ class PostController extends Controller
             'post' => null,
             'media' => [],
             'revisions' => [],
+            'views' => null,
             'allTags' => Tag::query()->orderBy('name')->pluck('name'),
         ]);
     }
@@ -96,11 +97,11 @@ class PostController extends Controller
             'post' => [
                 ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'data']),
                 'pinned' => $post->isPinned(),
-                'views' => app(PostViews::class)->forPost($post),
                 'tags' => $post->tags->pluck('name'),
                 'url' => $post->url(),
             ],
             'media' => $this->selectedMedia($template, $post),
+            'views' => app(PostViews::class)->history($post),
             'allTags' => Tag::query()->orderBy('name')->pluck('name'),
             'revisions' => $post->revisions()
                 ->with('user:id,name')

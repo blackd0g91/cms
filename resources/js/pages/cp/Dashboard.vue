@@ -7,6 +7,7 @@ import type { Check } from '@/components/cp/ContentCheckup.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PopularPosts from '@/components/cp/PopularPosts.vue';
 import PostList from '@/components/cp/PostList.vue';
+import SiteViews from '@/components/cp/SiteViews.vue';
 import SystemStatus from '@/components/cp/SystemStatus.vue';
 import type { SystemReport } from '@/components/cp/SystemStatus.vue';
 import UnsavedDrafts from '@/components/cp/UnsavedDrafts.vue';
@@ -15,7 +16,7 @@ import { index as mediaIndex } from '@/routes/cp/media';
 import { create as createTemplate } from '@/routes/cp/templates';
 import { index as postsIndex } from '@/routes/cp/posts';
 import { create as createPost } from '@/routes/cp/templates/posts';
-import type { PostListItem, TemplateSummary } from '@/types';
+import type { DayViews, PostListItem, TemplateSummary } from '@/types';
 
 defineOptions({ layout: CpLayout });
 
@@ -35,7 +36,8 @@ const props = defineProps<{
     drafts: PostListItem[];
     checkup: Check[];
     activity: { month: string; count: number }[];
-    popular: { total: number; posts: (PostListItem & { views: number })[] };
+    views: { daily: DayViews[]; total: number; previous: number };
+    popular: (PostListItem & { views: number })[];
     system: SystemReport;
 }>();
 
@@ -187,9 +189,16 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
         </ul>
     </section>
 
+    <SiteViews
+        :daily="views.daily"
+        :total="views.total"
+        :previous="views.previous"
+        class="mb-6"
+    />
+
     <div class="mb-6 grid gap-6 xl:grid-cols-[3fr_2fr]">
         <ActivityChart :months="activity" />
-        <PopularPosts :total="popular.total" :posts="popular.posts" />
+        <PopularPosts :posts="popular" />
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
