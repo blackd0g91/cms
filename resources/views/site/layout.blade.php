@@ -113,7 +113,13 @@
 
         <div class="mx-auto flex w-full max-w-6xl flex-1 gap-12 px-4 py-10">
             <aside class="hidden w-52 shrink-0 md:block">
-                <div class="sticky top-10">
+                {{--
+                    As tall as the screen allows, so the links sit at its bottom,
+                    scrolling inside when everything does not fit. site.ts keeps
+                    it from reaching below the screen while the header shows. The
+                    4px of padding keeps the current item's ring from being cut.
+                --}}
+                <div data-sidebar class="sticky top-9 -m-1 flex h-full max-h-[calc(100dvh-4.5rem)] flex-col overflow-y-auto p-1">
                     @include('site.partials.nav')
                 </div>
             </aside>
