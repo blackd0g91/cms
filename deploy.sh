@@ -54,7 +54,10 @@ echo "Branch: $BRANCH"
 # --- Update -----------------------------------------------------------------
 
 step "Entering maintenance mode"
-artisan down --retry=15 || true
+# Visitors get the "back soon" page (resources/views/errors/503.blade.php),
+# rendered now and served without booting the app, so it keeps working while
+# dependencies and assets are replaced. Browsers reload it every 15 seconds.
+artisan down --retry=15 --refresh=15 --render="errors::503" || true
 
 # If a step fails, stay in maintenance mode: the new code may be live without
 # its migrations or frontend, which is worse than a "back soon" page.

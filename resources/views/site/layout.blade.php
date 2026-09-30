@@ -1,5 +1,7 @@
 @php
+    // On a not found page this can be the handle that matched no template.
     $currentTemplate = request()->route('template');
+    $currentTemplate = $currentTemplate instanceof \App\Models\Template ? $currentTemplate : null;
     $siteName = $settings->siteName();
 @endphp
 <!DOCTYPE html>
