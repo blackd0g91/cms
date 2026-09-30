@@ -1,4 +1,7 @@
-{{-- One entry per template, in its accent color. --}}
+{{--
+    One entry per template, in its accent color. Always shown on a card (the
+    sidebar, or the menu on phones), so highlights use the paper color.
+--}}
 <nav class="flex flex-1 flex-col text-sm">
     <ul class="space-y-0.5">
         @foreach ($navTemplates as $navTemplate)
@@ -6,8 +9,8 @@
                 <a
                     href="{{ route('site.template', $navTemplate) }}"
                     @class([
-                        'flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-card',
-                        'bg-card font-medium shadow-sm ring-1 ring-line' => $currentTemplate?->is($navTemplate),
+                        'flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-paper',
+                        'bg-paper font-medium ring-1 ring-line' => $currentTemplate?->is($navTemplate),
                     ])
                 >
                     <span class="size-2.5 shrink-0 rounded-full bg-accent"></span>
@@ -22,8 +25,8 @@
         <a
             href="{{ route('site.tags') }}"
             @class([
-                'mt-4 flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-card hover:text-ink',
-                'bg-card font-medium text-ink shadow-sm ring-1 ring-line' => request()->routeIs('site.tags', 'site.tag'),
+                'mt-4 flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-paper hover:text-ink',
+                'bg-paper font-medium text-ink ring-1 ring-line' => request()->routeIs('site.tags', 'site.tag'),
                 'text-muted' => ! request()->routeIs('site.tags', 'site.tag'),
             ])
         >
@@ -47,8 +50,8 @@
                             <a
                                 href="{{ $navLink->href() }}"
                                 @class([
-                                    'flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-card hover:text-ink',
-                                    'bg-card font-medium text-ink shadow-sm ring-1 ring-line' => $isCurrent,
+                                    'flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-paper hover:text-ink',
+                                    'bg-paper font-medium text-ink ring-1 ring-line' => $isCurrent,
                                     'text-muted' => ! $isCurrent,
                                 ])
                                 @if ($isCurrent) aria-current="page" @endif

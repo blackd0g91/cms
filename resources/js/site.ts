@@ -40,41 +40,6 @@ document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
     pre.append(button);
 });
 
-// The sidebar is as tall as the screen below its sticky offset, with the
-// links at its bottom. It is shortened while the header is still in view
-// (it starts lower then), and near the end of the page (so it keeps its
-// place and the links rise with the footer, instead of all of it moving up).
-const sidebar = document.querySelector<HTMLElement>('[data-sidebar]');
-const column = sidebar?.parentElement;
-
-if (sidebar && column) {
-    // Its offset from the top of the screen once stuck (top-9), also kept
-    // below it.
-    const gap = 36;
-    let queued = false;
-
-    const fit = () => {
-        queued = false;
-        const top = Math.max(gap, sidebar.getBoundingClientRect().top);
-        const bottom = Math.min(
-            window.innerHeight - gap,
-            column.getBoundingClientRect().bottom,
-        );
-        sidebar.style.maxHeight = `${bottom - top}px`;
-    };
-
-    const queue = () => {
-        if (!queued) {
-            queued = true;
-            requestAnimationFrame(fit);
-        }
-    };
-
-    window.addEventListener('scroll', queue, { passive: true });
-    window.addEventListener('resize', queue);
-    fit();
-}
-
 // Highlight the table of contents entry for the section being read.
 const tocLinks = Array.from(
     document.querySelectorAll<HTMLAnchorElement>('[data-toc] a[href^="#"]'),
