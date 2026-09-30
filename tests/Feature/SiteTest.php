@@ -38,7 +38,7 @@ test('a published post is rendered through its template layout', function () {
 
     $this->get('/recipes/soup')
         ->assertOk()
-        ->assertSee('<h1>Soup</h1>', false)
+        ->assertSee('>Soup</h1>', false)
         ->assertSee('&lt;script&gt;', false)
         ->assertDontSee('<script>alert(1)</script>', false)
         ->assertSee('<strong>Boil</strong>', false)
@@ -193,6 +193,18 @@ test('posts with several headings get a table of contents', function () {
         ->assertSee('<h2 id="setup">Setup</h2>', false)
         ->assertSee('data-toc', false)
         ->assertSeeInOrder(['href="#setup"', 'href="#config"', 'href="#branches"'], false);
+});
+
+test('posts written with # headings in markdown get them in the table of contents', function () {
+    Post::factory()->published()->for($this->template)->create([
+        'slug' => 'guide',
+        'data' => ['method' => "# Setup\n\ntext\n\n## Install\n\ntext\n\n# Usage\n\ntext"],
+    ]);
+
+    $this->get('/recipes/guide')
+        ->assertOk()
+        ->assertSee('<h1 id="setup">Setup</h1>', false)
+        ->assertSeeInOrder(['href="#setup"', 'href="#install"', 'href="#usage"'], false);
 });
 
 test('posts with fewer than two headings have no table of contents', function () {

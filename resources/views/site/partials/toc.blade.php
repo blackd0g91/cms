@@ -8,8 +8,8 @@
                     href="#{{ $heading['id'] }}"
                     @class([
                         '-ml-px block border-l-2 border-transparent py-1 text-muted transition hover:text-ink data-active:border-accent data-active:text-ink',
-                        'pl-4' => $heading['level'] === 2,
-                        'pl-8 text-[13px]' => $heading['level'] === 3,
+                        'pl-4' => $heading['depth'] === 1,
+                        'pl-8 text-[13px]' => $heading['depth'] === 2,
                     ])
                 >
                     {{ $heading['text'] }}
