@@ -12,6 +12,11 @@
         'Noto Color Emoji';
 }
 
+/* Anchors and focused fields scroll into view below the sticky page header. */
+html {
+    scroll-padding-top: 5rem;
+}
+
 @layer components {
     .cp-label {
         @apply block text-sm font-medium text-neutral-700 dark:text-neutral-300;

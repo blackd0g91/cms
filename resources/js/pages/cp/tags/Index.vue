@@ -37,7 +37,7 @@ const remove = (tag: { id: number; name: string; posts_count: number }) => {
     <Head title="Tags" />
     <PageHeader title="Tags" />
 
-    <p class="-mt-3 mb-6 text-sm text-neutral-500">
+    <p class="mb-6 text-sm text-neutral-500">
         Tags are added while editing posts. Rename or delete them here.
     </p>
 

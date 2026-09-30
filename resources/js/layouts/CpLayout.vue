@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, provide, ref } from 'vue';
+import { openSidebarKey } from '@/lib/sidebar';
 import { cn } from '@/lib/utils';
 import { dashboard, logout } from '@/routes/cp';
 import { edit as accountEdit } from '@/routes/cp/account';
@@ -19,6 +20,9 @@ type NavItem = {
 
 const page = usePage();
 const sidebarOpen = ref(false);
+
+// Every page starts with a PageHeader, which has the menu button on small screens.
+provide(openSidebarKey, () => (sidebarOpen.value = true));
 
 const path = computed(() => page.url.split('?')[0]);
 const isPostsPath = (path: string) => /^\/cp\/templates\/\d+\/posts/.test(path);
@@ -142,18 +146,6 @@ const linkClass = (item: NavItem) =>
         </aside>
 
         <div class="flex min-w-0 flex-1 flex-col">
-            <header
-                class="flex h-14 items-center border-b border-neutral-200 bg-white px-4 md:hidden dark:border-neutral-800 dark:bg-neutral-900"
-            >
-                <button
-                    type="button"
-                    class="rounded-md px-2 py-1 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                    @click="sidebarOpen = true"
-                >
-                    Menu
-                </button>
-            </header>
-
             <main class="flex-1 p-6">
                 <slot />
             </main>

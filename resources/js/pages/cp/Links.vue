@@ -123,7 +123,7 @@ useUnsavedChanges({
         <a href="/" target="_blank" class="cp-btn">View site</a>
     </PageHeader>
 
-    <p class="-mt-3 mb-6 text-sm text-neutral-500">
+    <p class="mb-6 text-sm text-neutral-500">
         Shown at the bottom of the site's sidebar, and in the menu on phones.
     </p>
 
