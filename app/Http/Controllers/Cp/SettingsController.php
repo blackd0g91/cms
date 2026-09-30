@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Cp;
 
 use App\Cms\Settings;
+use App\Enums\ProfileSite;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,6 +20,12 @@ class SettingsController extends Controller
     {
         return Inertia::render('cp/Settings', [
             'settings' => $settings->all(),
+            'profileSites' => array_map(fn (ProfileSite $site) => [
+                'key' => $site->value,
+                'label' => $site->label(),
+                'placeholder' => $site->placeholder(),
+                'icon' => $site->icon(),
+            ], ProfileSite::cases()),
             'media' => Media::query()
                 ->whereKey(array_filter([$settings->get('logo_id'), $settings->get('favicon_id')]))
                 ->get()
@@ -28,6 +36,15 @@ class SettingsController extends Controller
     public function update(Request $request, Settings $settings): RedirectResponse
     {
         $hex = 'regex:/^#[0-9a-fA-F]{6}$/';
+
+        // Usernames and short addresses become full ones before checking.
+        if ($request->has('profiles')) {
+            $request->merge(['profiles' => collect(ProfileSite::cases())
+                ->mapWithKeys(fn (ProfileSite $site) => [
+                    $site->value => $site->normalize((string) $request->input("profiles.{$site->value}")) ?: null,
+                ])
+                ->all()]);
+        }
 
         $validated = $request->validate([
             'site_name' => ['required', 'string', 'max:255'],
@@ -41,11 +58,23 @@ class SettingsController extends Controller
             'logo_background.from' => ['required_if:logo_background.type,solid,gradient', 'nullable', $hex],
             'logo_background.to' => ['required_if:logo_background.type,gradient', 'nullable', $hex],
             'logo_background.angle' => ['nullable', 'integer', 'between:0,360'],
+            'profiles' => ['sometimes', 'array'],
+            ...collect(ProfileSite::cases())->mapWithKeys(fn (ProfileSite $site) => [
+                "profiles.{$site->value}" => ['nullable', 'string', 'max:500', function (string $attribute, string $value, Closure $fail) use ($site) {
+                    if (! $site->accepts($value)) {
+                        $fail($site->invalid());
+                    }
+                }],
+            ]),
         ], [
             'logo_background.*.regex' => 'Colors must be hex colors like #c2410c.',
         ]);
 
         $validated['logo_background'] = $this->logoBackground($validated['logo_background'] ?? null);
+
+        if (array_key_exists('profiles', $validated)) {
+            $validated['profiles'] = array_filter((array) $validated['profiles']);
+        }
 
         $settings->update($validated);
 

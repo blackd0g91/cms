@@ -2,6 +2,7 @@
 
 namespace App\Cms;
 
+use App\Enums\ProfileSite;
 use App\Models\Media;
 use App\Models\Setting;
 use Illuminate\Container\Attributes\Singleton;
@@ -23,7 +24,7 @@ class Settings
     /**
      * Every setting with its default value.
      *
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string}
+     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string, profiles: array<string, string>}
      */
     public function defaults(): array
     {
@@ -37,11 +38,13 @@ class Settings
             'favicon_id' => null,
             // Above the sidebar links. Saved as an empty string for none.
             'links_heading' => 'Links',
+            // Addresses by ProfileSite value, only for the ones filled in.
+            'profiles' => [],
         ];
     }
 
     /**
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string}
+     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string, profiles: array<string, string>}
      */
     public function all(): array
     {
@@ -105,6 +108,26 @@ class Settings
         $id = $this->get($key);
 
         return is_int($id) ? Media::query()->find($id) : null;
+    }
+
+    /**
+     * The profiles filled in, in the order they are shown, with where each
+     * links to.
+     *
+     * @return list<array{site: ProfileSite, href: string}>
+     */
+    public function profiles(): array
+    {
+        $values = $this->all()['profiles'];
+        $profiles = [];
+
+        foreach (ProfileSite::cases() as $site) {
+            if (($values[$site->value] ?? '') !== '') {
+                $profiles[] = ['site' => $site, 'href' => $site->href($values[$site->value])];
+            }
+        }
+
+        return $profiles;
     }
 
     /**

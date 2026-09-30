@@ -27,9 +27,27 @@ const props = defineProps<{
         logo_id: number | null;
         logo_background: LogoBackground | null;
         favicon_id: number | null;
+        // By site; an empty list when none are filled in.
+        profiles: Record<string, string> | [];
     };
+    profileSites: {
+        key: string;
+        label: string;
+        placeholder: string;
+        // SVG shapes, from the server.
+        icon: string;
+    }[];
     media: Record<number, Media>;
 }>();
+
+// Every site, filled in or empty.
+const profilesFromProps = () =>
+    Object.fromEntries(
+        props.profileSites.map((site) => [
+            site.key,
+            (props.settings.profiles as Record<string, string>)[site.key] ?? '',
+        ]),
+    );
 
 const form = useForm({
     site_name: props.settings.site_name,
@@ -45,6 +63,7 @@ const form = useForm({
         ...props.settings.logo_background,
     } as LogoBackground,
     favicon_id: props.settings.favicon_id,
+    profiles: profilesFromProps(),
 });
 
 const backgroundCss = computed(() => {
@@ -68,10 +87,18 @@ const logo = ref<Media | null>(
 );
 const logoUrl = computed(() => logo.value?.url ?? null);
 
+// Errors are keyed like "profiles.github", which the form's types don't list.
+const profileError = (key: string) =>
+    (form.errors as Record<string, string | undefined>)[`profiles.${key}`];
+
 const submit = () => {
     form.submit(update(), {
         preserveScroll: true,
-        onSuccess: () => form.defaults(),
+        onSuccess: () => {
+            // Show usernames as the addresses they were saved as.
+            form.profiles = profilesFromProps();
+            form.defaults();
+        },
     });
 };
 
@@ -306,6 +333,53 @@ useUnsavedChanges({
                 <p v-if="form.errors.favicon_id" class="cp-error">
                     {{ form.errors.favicon_id }}
                 </p>
+            </div>
+        </section>
+
+        <section class="cp-card space-y-5 p-6">
+            <div>
+                <h2 class="font-semibold">Profiles</h2>
+                <p class="text-sm text-neutral-500">
+                    Shown as icons in the site's header, and in the menu on
+                    phones. Only the ones filled in appear.
+                </p>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div
+                    v-for="site in profileSites"
+                    :key="site.key"
+                    class="space-y-1.5"
+                >
+                    <label
+                        :for="`profile-${site.key}`"
+                        class="cp-label flex items-center gap-2"
+                    >
+                        <svg
+                            class="size-4 text-neutral-500"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                            v-html="site.icon"
+                        />
+                        {{ site.label }}
+                    </label>
+                    <input
+                        :id="`profile-${site.key}`"
+                        v-model="form.profiles[site.key]"
+                        type="text"
+                        :inputmode="site.key === 'email' ? 'email' : 'url'"
+                        :placeholder="site.placeholder"
+                        class="cp-input"
+                    />
+                    <p v-if="profileError(site.key)" class="cp-error">
+                        {{ profileError(site.key) }}
+                    </p>
+                </div>
             </div>
         </section>
 

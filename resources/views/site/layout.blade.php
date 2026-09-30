@@ -3,6 +3,7 @@
     $currentTemplate = request()->route('template');
     $currentTemplate = $currentTemplate instanceof \App\Models\Template ? $currentTemplate : null;
     $siteName = $settings->siteName();
+    $profiles = $settings->profiles();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -59,7 +60,8 @@
                     </span>
                 </a>
 
-                <form action="{{ route('search') }}" method="get" role="search" class="relative order-last w-full sm:order-none sm:ml-auto sm:max-w-xs">
+                {{-- Beside the name it shrinks before anything else wraps, like when there are profile icons. --}}
+                <form action="{{ route('search') }}" method="get" role="search" class="relative order-last w-full sm:order-none sm:ml-auto sm:w-auto sm:max-w-xs sm:min-w-36 sm:flex-1">
                     <label for="site-search" class="sr-only">Search</label>
                     <input
                         id="site-search"
@@ -71,6 +73,13 @@
                     >
                     <kbd class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-line px-1.5 font-mono text-[10px] text-muted sm:block">/</kbd>
                 </form>
+
+                {{-- On small screens they move into the menu. --}}
+                @if ($profiles)
+                    <div class="hidden md:block">
+                        @include('site.partials.profiles')
+                    </div>
+                @endif
 
                 <button
                     type="button"
@@ -91,6 +100,12 @@
                     </summary>
                     <div class="absolute right-0 z-10 mt-2 w-64 rounded-xl border border-line bg-card p-3 shadow-xl">
                         @include('site.partials.nav')
+
+                        @if ($profiles)
+                            <div class="mt-4 border-t border-line pt-3">
+                                @include('site.partials.profiles')
+                            </div>
+                        @endif
                     </div>
                 </details>
             </div>
