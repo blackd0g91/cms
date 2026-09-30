@@ -23,7 +23,7 @@ class Settings
     /**
      * Every setting with its default value.
      *
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null}
+     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string}
      */
     public function defaults(): array
     {
@@ -35,11 +35,13 @@ class Settings
             'logo_id' => null,
             'logo_background' => null,
             'favicon_id' => null,
+            // Above the sidebar links. Saved as an empty string for none.
+            'links_heading' => 'Links',
         ];
     }
 
     /**
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null}
+     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string}
      */
     public function all(): array
     {

@@ -223,10 +223,12 @@ const at = (i: number, y?: number) => ({
                     caption
                 }}
             </caption>
-            <tr v-for="day in days" :key="day.date">
-                <th scope="row">{{ long(day.date) }}</th>
-                <td>{{ day.views }}</td>
-            </tr>
+            <tbody>
+                <tr v-for="day in days" :key="day.date">
+                    <th scope="row">{{ long(day.date) }}</th>
+                    <td>{{ day.views }}</td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </template>

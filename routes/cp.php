@@ -3,6 +3,7 @@
 use App\Http\Controllers\Cp\AccountController;
 use App\Http\Controllers\Cp\Auth\LoginController;
 use App\Http\Controllers\Cp\DashboardController;
+use App\Http\Controllers\Cp\LinkController;
 use App\Http\Controllers\Cp\MarkdownPreviewController;
 use App\Http\Controllers\Cp\MediaController;
 use App\Http\Controllers\Cp\PostController;
@@ -35,6 +36,9 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::get('tags', [TagController::class, 'index'])->name('tags.index');
         Route::put('tags/{tag:id}', [TagController::class, 'update'])->name('tags.update');
         Route::delete('tags/{tag:id}', [TagController::class, 'destroy'])->name('tags.destroy');
+
+        Route::get('links', [LinkController::class, 'edit'])->name('links.edit');
+        Route::put('links', [LinkController::class, 'update'])->name('links.update');
 
         Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');

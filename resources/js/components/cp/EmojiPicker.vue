@@ -7,6 +7,19 @@ type EmojiData = {
     emoji: { e: string; n: string; g: number; k: string[]; s: string[] }[];
 };
 
+withDefaults(
+    defineProps<{
+        // For the button, which shows its slot (😊 unless given).
+        buttonLabel?: string;
+        buttonClass?: string;
+    }>(),
+    {
+        buttonLabel: 'Insert emoji',
+        buttonClass:
+            'rounded px-2 py-1 text-xs text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100',
+    },
+);
+
 const emit = defineEmits<{
     select: [emoji: string];
 }>();
@@ -147,13 +160,13 @@ defineExpose({ show });
         <button
             type="button"
             title="Emoji"
-            aria-label="Insert emoji"
+            :aria-label="buttonLabel"
             :aria-expanded="open"
-            class="rounded px-2 py-1 text-xs text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+            :class="buttonClass"
             @mousedown.prevent
             @click="open ? close() : show()"
         >
-            😊
+            <slot>😊</slot>
         </button>
 
         <div

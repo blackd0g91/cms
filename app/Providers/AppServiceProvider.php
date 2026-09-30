@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Cms\Settings;
 use App\Enums\PostStatus;
+use App\Models\Link;
 use App\Models\Tag;
 use App\Models\Template;
 use Carbon\CarbonImmutable;
@@ -38,6 +39,13 @@ class AppServiceProvider extends ServiceProvider
                     ->get(['id', 'name', 'handle']),
                 'settings' => app(Settings::class),
                 'hasTags' => Tag::query()->whereHas('posts', fn ($query) => $query->where('status', PostStatus::Published))->exists(),
+                // Links to drafts wait until they are published.
+                'navLinks' => Link::query()
+                    ->with('post.template')
+                    ->orderBy('position')
+                    ->get()
+                    ->filter(fn (Link $link) => $link->href() !== null)
+                    ->values(),
             ]);
         });
     }

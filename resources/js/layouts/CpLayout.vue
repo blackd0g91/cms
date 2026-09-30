@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 import { cn } from '@/lib/utils';
 import { dashboard, logout } from '@/routes/cp';
 import { edit as accountEdit } from '@/routes/cp/account';
+import { edit as linksEdit } from '@/routes/cp/links';
 import { index as mediaIndex } from '@/routes/cp/media';
 import { index as postsIndex } from '@/routes/cp/posts';
 import { edit as settingsEdit } from '@/routes/cp/settings';
@@ -44,6 +45,11 @@ const mainNav: NavItem[] = [
         title: 'Tags',
         href: tagsIndex().url,
         active: (path) => path.startsWith(tagsIndex().url),
+    },
+    {
+        title: 'Links',
+        href: linksEdit().url,
+        active: (path) => path === linksEdit().url,
     },
     {
         title: 'Media',

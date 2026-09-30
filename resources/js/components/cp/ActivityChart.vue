@@ -114,10 +114,12 @@ const labelled = computed(() => {
                 <caption>
                     Posts published per month
                 </caption>
-                <tr v-for="month in months" :key="month.month">
-                    <th scope="row">{{ long(month.month) }}</th>
-                    <td>{{ month.count }}</td>
-                </tr>
+                <tbody>
+                    <tr v-for="month in months" :key="month.month">
+                        <th scope="row">{{ long(month.month) }}</th>
+                        <td>{{ month.count }}</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </section>
