@@ -245,7 +245,13 @@ const deletePost = () => {
     <Head :title="post ? post.title : `New ${template.name} post`" />
     <PageHeader
         :title="post ? post.title : 'New post'"
-        :back="{ label: 'Posts', href: index().url }"
+        :crumbs="[
+            { label: 'Posts', href: index().url },
+            {
+                label: template.name,
+                href: index({ query: { template: template.id } }).url,
+            },
+        ]"
     >
         <template v-if="post">
             <button

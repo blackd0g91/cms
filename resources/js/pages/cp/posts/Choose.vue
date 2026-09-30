@@ -18,7 +18,7 @@ defineProps<{
     <Head title="New post" />
     <PageHeader
         title="New post"
-        :back="{ label: 'Posts', href: index().url }"
+        :crumbs="[{ label: 'Posts', href: index().url }]"
     />
 
     <div

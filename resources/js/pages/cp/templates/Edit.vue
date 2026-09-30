@@ -197,7 +197,7 @@ const variables = computed(() => [
     <Head :title="template ? template.name : 'New template'" />
     <PageHeader
         :title="template ? template.name : 'New template'"
-        :back="{ label: 'Templates', href: index().url }"
+        :crumbs="[{ label: 'Templates', href: index().url }]"
     >
         <template v-if="template">
             <button

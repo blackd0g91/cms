@@ -5,7 +5,8 @@ import { openSidebarKey } from '@/lib/sidebar';
 
 defineProps<{
     title: string;
-    back?: { label: string; href: string };
+    // The pages above this one, outermost first.
+    crumbs?: { label: string; href: string }[];
 }>();
 
 const openSidebar = inject(openSidebarKey, null);
@@ -28,19 +29,27 @@ const openSidebar = inject(openSidebarKey, null);
         </button>
 
         <div class="flex min-w-40 flex-1 items-center gap-2">
-            <template v-if="back">
+            <!-- On small screens only the nearest one, to leave room for the title. -->
+            <span
+                v-for="(crumb, i) in crumbs"
+                :key="crumb.href"
+                :class="[
+                    'min-w-0 shrink items-center gap-2',
+                    i < (crumbs?.length ?? 0) - 1 ? 'hidden sm:flex' : 'flex',
+                ]"
+            >
                 <Link
-                    :href="back.href"
-                    class="shrink-0 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+                    :href="crumb.href"
+                    class="truncate text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
                 >
-                    {{ back.label }}
+                    {{ crumb.label }}
                 </Link>
                 <span
                     class="text-neutral-300 dark:text-neutral-700"
                     aria-hidden="true"
                     >/</span
                 >
-            </template>
+            </span>
             <h1 class="truncate text-lg font-semibold">{{ title }}</h1>
         </div>
 
