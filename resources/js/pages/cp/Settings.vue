@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 import ImageField from '@/components/cp/ImageField.vue';
 import MarkdownEditor from '@/components/cp/MarkdownEditor.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import SaveButton from '@/components/cp/SaveButton.vue';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { update } from '@/routes/cp/settings';
@@ -112,9 +113,19 @@ useUnsavedChanges({
     <Head title="Settings" />
     <PageHeader title="Settings">
         <a href="/" target="_blank" class="cp-btn">View site</a>
+        <SaveButton
+            form="settings-form"
+            :processing="form.processing"
+            :dirty="form.isDirty"
+            :saved="form.recentlySuccessful"
+        />
     </PageHeader>
 
-    <form class="max-w-3xl space-y-6" @submit.prevent="submit">
+    <form
+        id="settings-form"
+        class="max-w-3xl space-y-6"
+        @submit.prevent="submit"
+    >
         <section class="cp-card space-y-5 p-6">
             <div class="space-y-1.5">
                 <label for="site_name" class="cp-label">Site name</label>
@@ -382,27 +393,5 @@ useUnsavedChanges({
                 </div>
             </div>
         </section>
-
-        <div class="flex items-center gap-3">
-            <button
-                type="submit"
-                class="cp-btn-primary"
-                :disabled="form.processing"
-            >
-                Save
-            </button>
-            <span
-                v-if="form.recentlySuccessful"
-                class="text-sm text-neutral-500"
-            >
-                Saved.
-            </span>
-            <span
-                v-else-if="form.isDirty"
-                class="text-sm text-amber-700 dark:text-amber-400"
-            >
-                Unsaved changes &middot; Ctrl+S to save
-            </span>
-        </div>
     </form>
 </template>

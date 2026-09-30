@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import SaveButton from '@/components/cp/SaveButton.vue';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { slugify } from '@/lib/utils';
@@ -18,6 +19,8 @@ defineOptions({ layout: CpLayout });
 
 const props = defineProps<{
     template: Template | null;
+    // Only when editing: a template with posts can not be deleted.
+    postsCount?: number;
     fieldTypes: FieldTypeOption[];
 }>();
 
@@ -147,7 +150,11 @@ const deleteTemplate = () => {
     }
 
     router.delete(destroy(props.template.id).url, {
-        onError: (errors) => (deleteError.value = errors.template ?? null),
+        onError: (errors) => {
+            deleteError.value = errors.template ?? null;
+            // Shown at the top of the page, which may be scrolled away.
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
     });
 };
 
@@ -193,6 +200,19 @@ const variables = computed(() => [
         :back="{ label: 'Templates', href: index().url }"
     >
         <template v-if="template">
+            <button
+                type="button"
+                class="cp-btn-danger"
+                :disabled="(postsCount ?? 0) > 0"
+                :title="
+                    postsCount
+                        ? `Delete its ${postsCount === 1 ? 'post' : `${postsCount} posts`} first`
+                        : 'Delete this template'
+                "
+                @click="deleteTemplate"
+            >
+                Delete
+            </button>
             <Link
                 :href="duplicate(template.id)"
                 method="post"
@@ -212,9 +232,28 @@ const variables = computed(() => [
                 View
             </a>
         </template>
+        <SaveButton
+            form="template-form"
+            :label="template ? 'Save' : 'Create template'"
+            :processing="form.processing"
+            :dirty="form.isDirty"
+            :saved="form.recentlySuccessful"
+        />
     </PageHeader>
 
-    <form class="max-w-4xl space-y-6" @submit.prevent="submit">
+    <p
+        v-if="deleteError"
+        class="mb-6 max-w-4xl rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
+        role="alert"
+    >
+        {{ deleteError }}
+    </p>
+
+    <form
+        id="template-form"
+        class="max-w-4xl space-y-6"
+        @submit.prevent="submit"
+    >
         <section class="cp-card space-y-4 p-6">
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="space-y-1.5">
@@ -524,41 +563,5 @@ const variables = computed(() => [
                 </div>
             </div>
         </section>
-
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button
-                    type="submit"
-                    class="cp-btn-primary"
-                    :disabled="form.processing"
-                >
-                    {{ template ? 'Save' : 'Create template' }}
-                </button>
-                <span
-                    v-if="form.recentlySuccessful"
-                    class="text-sm text-neutral-500"
-                >
-                    Saved.
-                </span>
-                <span
-                    v-else-if="form.isDirty"
-                    class="text-sm text-amber-700 dark:text-amber-400"
-                >
-                    Unsaved changes &middot; Ctrl+S to save
-                </span>
-            </div>
-            <div v-if="template" class="flex items-center gap-3">
-                <span v-if="deleteError" class="cp-error">{{
-                    deleteError
-                }}</span>
-                <button
-                    type="button"
-                    class="cp-btn-danger"
-                    @click="deleteTemplate"
-                >
-                    Delete template
-                </button>
-            </div>
-        </div>
     </form>
 </template>

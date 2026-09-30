@@ -45,6 +45,8 @@ class TemplateController extends Controller
     {
         return Inertia::render('cp/templates/Edit', [
             'template' => $template->only(['id', 'name', 'handle', 'description', 'color', 'fields', 'layout']),
+            // Templates with posts can not be deleted.
+            'postsCount' => $template->posts()->count(),
             'fieldTypes' => $this->fieldTypes(),
         ]);
     }

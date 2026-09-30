@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import EmojiPicker from '@/components/cp/EmojiPicker.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
+import SaveButton from '@/components/cp/SaveButton.vue';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { update } from '@/routes/cp/links';
@@ -121,13 +122,19 @@ useUnsavedChanges({
     <Head title="Links" />
     <PageHeader title="Links">
         <a href="/" target="_blank" class="cp-btn">View site</a>
+        <SaveButton
+            form="links-form"
+            :processing="form.processing"
+            :dirty="form.isDirty"
+            :saved="form.recentlySuccessful"
+        />
     </PageHeader>
 
     <p class="mb-6 text-sm text-neutral-500">
         Shown at the bottom of the site's sidebar, and in the menu on phones.
     </p>
 
-    <form class="max-w-3xl space-y-6" @submit.prevent="submit">
+    <form id="links-form" class="max-w-3xl space-y-6" @submit.prevent="submit">
         <section class="cp-card space-y-1.5 p-6">
             <label for="heading" class="cp-label">Heading</label>
             <input
@@ -367,27 +374,5 @@ useUnsavedChanges({
                 </li>
             </ol>
         </section>
-
-        <div class="flex items-center gap-3">
-            <button
-                type="submit"
-                class="cp-btn-primary"
-                :disabled="form.processing"
-            >
-                Save
-            </button>
-            <span
-                v-if="form.recentlySuccessful"
-                class="text-sm text-neutral-500"
-            >
-                Saved.
-            </span>
-            <span
-                v-else-if="form.isDirty"
-                class="text-sm text-amber-700 dark:text-amber-400"
-            >
-                Unsaved changes &middot; Ctrl+S to save
-            </span>
-        </div>
     </form>
 </template>

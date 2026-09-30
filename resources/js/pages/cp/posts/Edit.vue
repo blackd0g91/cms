@@ -6,6 +6,7 @@ import ImageField from '@/components/cp/ImageField.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PostHistory from '@/components/cp/PostHistory.vue';
 import PostViews from '@/components/cp/PostViews.vue';
+import SaveButton from '@/components/cp/SaveButton.vue';
 import type { ViewHistory } from '@/components/cp/PostViews.vue';
 import TagInput from '@/components/cp/TagInput.vue';
 import { useLocalDraft } from '@/composables/useLocalDraft';
@@ -247,6 +248,14 @@ const deletePost = () => {
         :back="{ label: 'Posts', href: index().url }"
     >
         <template v-if="post">
+            <button
+                type="button"
+                class="cp-btn-danger"
+                title="Delete this post"
+                @click="deletePost"
+            >
+                Delete
+            </button>
             <Link
                 :href="duplicate([template.id, post.id])"
                 method="post"
@@ -264,6 +273,13 @@ const deletePost = () => {
             </Link>
             <a :href="post.url" target="_blank" class="cp-btn">View</a>
         </template>
+        <SaveButton
+            form="post-form"
+            :label="post ? 'Save' : 'Create post'"
+            :processing="form.processing"
+            :dirty="form.isDirty"
+            :saved="form.recentlySuccessful"
+        />
     </PageHeader>
 
     <div
@@ -292,6 +308,7 @@ const deletePost = () => {
     </div>
 
     <form
+        id="post-form"
         class="grid max-w-5xl gap-6 lg:grid-cols-[1fr_16rem]"
         @submit.prevent="submit"
     >
@@ -404,28 +421,6 @@ const deletePost = () => {
                         {{ form.errors.slug }}
                     </p>
                 </div>
-
-                <div class="flex items-center gap-3">
-                    <button
-                        type="submit"
-                        class="cp-btn-primary w-full"
-                        :disabled="form.processing"
-                    >
-                        {{ post ? 'Save' : 'Create post' }}
-                    </button>
-                </div>
-                <p
-                    v-if="form.recentlySuccessful"
-                    class="text-center text-sm text-neutral-500"
-                >
-                    Saved.
-                </p>
-                <p
-                    v-else-if="form.isDirty"
-                    class="text-center text-sm text-amber-700 dark:text-amber-400"
-                >
-                    Unsaved changes &middot; Ctrl+S to save
-                </p>
             </section>
 
             <!-- Once published, or when it was and has views from then. -->
@@ -445,15 +440,6 @@ const deletePost = () => {
                 :revisions="revisions"
                 @restore="restoreRevision"
             />
-
-            <button
-                v-if="post"
-                type="button"
-                class="cp-btn-danger w-full"
-                @click="deletePost"
-            >
-                Delete post
-            </button>
         </aside>
     </form>
 </template>

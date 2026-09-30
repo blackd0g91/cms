@@ -111,6 +111,17 @@ test('a template with posts can not be deleted', function () {
     $this->assertModelExists($post->template);
 });
 
+test('the editor knows how many posts a template has, to explain why it can not be deleted', function () {
+    $template = Template::factory()->create();
+    Post::factory()->count(2)->for($template)->create();
+
+    $this->get(route('cp.templates.edit', $template))
+        ->assertInertia(fn (Assert $page) => $page->where('postsCount', 2));
+
+    $this->get(route('cp.templates.edit', Template::factory()->create()))
+        ->assertInertia(fn (Assert $page) => $page->where('postsCount', 0));
+});
+
 test('renaming a field moves post data and updates the layout', function () {
     $template = Template::factory()->create([
         'fields' => [
