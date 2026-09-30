@@ -112,9 +112,17 @@
         </header>
 
         <div class="mx-auto flex w-full max-w-6xl flex-1 gap-12 px-4 py-10">
-            {{-- A card as long as the page's content, scrolling with it, with the links at its bottom. --}}
-            <aside class="hidden w-56 shrink-0 flex-col rounded-2xl border border-line bg-card p-3 md:flex">
-                @include('site.partials.nav')
+            {{--
+                A card that stays in view while the page scrolls, like "On this
+                page", with the links at its bottom. It is as tall as the screen
+                without the header (81px), the footer (65px) and the space above
+                and below it (2.5rem each), and scrolls inside if that is not
+                enough. On pages shorter than the screen it fills the column.
+            --}}
+            <aside class="hidden w-56 shrink-0 md:block">
+                <div class="sticky top-10 flex h-full max-h-[calc(100vh-81px-65px-5rem)] flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3">
+                    @include('site.partials.nav')
+                </div>
             </aside>
 
             <main class="min-w-0 flex-1">
