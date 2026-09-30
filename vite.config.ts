@@ -3,7 +3,7 @@ import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
+import { local } from 'laravel-vite-plugin/fonts';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
@@ -16,9 +16,24 @@ export default defineConfig({
                 'resources/js/app.ts',
             ],
             refresh: true,
+            // Kept in the repository (the Latin files Bunny Fonts serves), so
+            // building never depends on reaching a font service.
             fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                local('Instrument Sans', {
+                    variants: [
+                        {
+                            src: 'resources/fonts/InstrumentSans-Regular.woff2',
+                            weight: 400,
+                        },
+                        {
+                            src: 'resources/fonts/InstrumentSans-Medium.woff2',
+                            weight: 500,
+                        },
+                        {
+                            src: 'resources/fonts/InstrumentSans-SemiBold.woff2',
+                            weight: 600,
+                        },
+                    ],
                 }),
             ],
         }),
