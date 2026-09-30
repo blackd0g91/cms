@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Cms\ShareImage;
 use App\Enums\FieldType;
 use App\Enums\PostStatus;
 use Carbon\CarbonImmutable;
@@ -46,6 +47,8 @@ class Post extends Model
         static::saving(fn (Post $post) => $post->search_index = $post->buildSearchIndex());
 
         static::saved(fn (Post $post) => $post->syncMedia());
+
+        static::deleted(fn (Post $post) => app(ShareImage::class)->forget($post));
     }
 
     /**

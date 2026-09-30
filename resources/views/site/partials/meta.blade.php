@@ -1,7 +1,8 @@
 {{--
     Description, canonical URL and link preview tags (Open Graph, Twitter).
-    Pages pass $meta with any of: description, image, type, published_time,
-    modified_time, noindex. Everything else falls back to the site settings.
+    Pages pass $meta with any of: description, image (with image_width and
+    image_height when known), type, published_time, modified_time, noindex.
+    Everything else falls back to the site settings.
 --}}
 @php
     $meta ??= [];
@@ -30,6 +31,11 @@
 @endif
 @if ($image)
     <meta property="og:image" content="{{ $image }}">
+    {{-- Lets previews be laid out before the image is fetched. --}}
+    @if ($image === ($meta['image'] ?? null) && isset($meta['image_width'], $meta['image_height']))
+        <meta property="og:image:width" content="{{ $meta['image_width'] }}">
+        <meta property="og:image:height" content="{{ $meta['image_height'] }}">
+    @endif
 @endif
 @isset($meta['published_time'])
     <meta property="article:published_time" content="{{ $meta['published_time'] }}">

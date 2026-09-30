@@ -2,7 +2,9 @@
     'title' => $post->title,
     'meta' => [
         'description' => $post->summary(),
-        'image' => $post->thumbnail?->url,
+        'image' => $preview['url'],
+        'image_width' => $preview['width'],
+        'image_height' => $preview['height'],
         'type' => 'article',
         'published_time' => $post->published_at?->toIso8601String(),
         'modified_time' => $post->updated_at?->toIso8601String(),

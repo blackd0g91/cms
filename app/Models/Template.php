@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Cms\Oklch;
 use App\Enums\FieldType;
 use Carbon\CarbonImmutable;
 use Database\Factories\TemplateFactory;
@@ -40,6 +41,16 @@ class Template extends Model
     public const array RESERVED_FIELD_HANDLES = ['title', 'slug', 'url', 'published_at', 'template'];
 
     /**
+     * Automatic accents in light mode, and the lightest a chosen color is
+     * shown at so it stays readable on paper (see resources/css/site.css).
+     */
+    private const float ACCENT_LIGHTNESS = 0.58;
+
+    private const float ACCENT_CHROMA = 0.13;
+
+    private const float ACCENT_MAX_LIGHTNESS = 0.68;
+
+    /**
      * The hue (0-359) of the automatic accent color, used when no color is
      * set. Stepping by the golden angle keeps consecutive templates far apart.
      */
@@ -55,7 +66,22 @@ class Template extends Model
      */
     public function accentColor(): string
     {
-        return $this->color ?? "oklch(0.58 0.13 {$this->hue()})";
+        return $this->color ?? 'oklch('.self::ACCENT_LIGHTNESS.' '.self::ACCENT_CHROMA." {$this->hue()})";
+    }
+
+    /**
+     * The accent as the site shows it in light mode, in sRGB, for drawing it
+     * (see ShareImage). Chosen colors that are too light are darkened.
+     *
+     * @return array{int, int, int}
+     */
+    public function accentRgb(): array
+    {
+        $color = $this->color === null
+            ? new Oklch(self::ACCENT_LIGHTNESS, self::ACCENT_CHROMA, $this->hue())
+            : Oklch::fromHex($this->color);
+
+        return $color->withLightness(min($color->lightness, self::ACCENT_MAX_LIGHTNESS))->toRgb();
     }
 
     /**
