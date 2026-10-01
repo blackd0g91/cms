@@ -1,0 +1,107 @@
+/*
+ * > [!TIP] callouts (app/Cms/Markdown/Callouts.php), on the site and in the
+ * control panel's previews. Each type has its own hue; dark mode lightens it,
+ * whether chosen with the site's theme toggle or from the system.
+ */
+
+.callout {
+    --callout-l: 0.55;
+    --callout: oklch(var(--callout-l) 0.15 var(--callout-hue, 250));
+
+    margin: 1.5em 0;
+    padding: 0.85rem 1.1rem;
+    border-left: 4px solid var(--callout);
+    border-radius: 0.75rem;
+    background: color-mix(in oklch, var(--callout) 9%, transparent);
+}
+
+:root[data-theme='dark'] .callout {
+    --callout-l: 0.76;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .callout {
+        --callout-l: 0.76;
+    }
+}
+
+.callout-note {
+    --callout-hue: 250;
+}
+.callout-tip {
+    --callout-hue: 150;
+}
+.callout-important {
+    --callout-hue: 300;
+}
+.callout-warning {
+    --callout-hue: 75;
+}
+.callout-caution {
+    --callout-hue: 25;
+}
+
+/* A plain collapsible section: no color, just a frame. */
+.callout-details {
+    --callout: var(--muted, #737373);
+
+    border: 1px solid color-mix(in oklch, var(--callout) 35%, transparent);
+    background: transparent;
+}
+
+.callout-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 !important;
+    font-weight: 600;
+    color: var(--callout);
+}
+
+.callout-icon {
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+}
+
+.callout-body > :first-child {
+    margin-top: 0.5em;
+}
+
+.callout-body > :last-child {
+    margin-bottom: 0;
+}
+
+/* Collapsible ones: the whole title opens and closes it, with a turning arrow. */
+summary.callout-title {
+    cursor: pointer;
+    list-style: none;
+}
+
+summary.callout-title::-webkit-details-marker {
+    display: none;
+}
+
+summary.callout-title::after {
+    content: '›';
+    margin-left: auto;
+    font-size: 1.25em;
+    line-height: 1;
+    transition: rotate 0.15s;
+}
+
+details.callout[open] > summary.callout-title::after {
+    rotate: 90deg;
+}
+
+details.callout-details > summary.callout-title::after {
+    content: none;
+}
+
+details.callout-details[open] > summary .callout-icon {
+    rotate: 90deg;
+}
+
+details.callout:not([open]) > .callout-body {
+    display: none;
+}

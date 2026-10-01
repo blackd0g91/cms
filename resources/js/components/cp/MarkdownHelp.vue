@@ -85,6 +85,27 @@ const sections: { title: string; rows: Row[] }[] = [
         ],
     },
     {
+        title: 'Callouts',
+        rows: [
+            {
+                type: '> [!TIP]\n> Salt the water.',
+                looks: '<div class="callout callout-tip !my-0"><p class="callout-title">Tip</p><div class="callout-body"><p>Salt the water.</p></div></div>',
+            },
+            {
+                type: '> [!WARNING] Hot oil\n> Keep the lid near.',
+                looks: 'Also <code>[!NOTE]</code>, <code>[!IMPORTANT]</code> and <code>[!CAUTION]</code>, with an optional title after the marker',
+            },
+            {
+                type: '> [!NOTE]- Why it works\n> The starch thickens it.',
+                looks: 'Collapsible: <code>-</code> starts closed, <code>+</code> starts open',
+            },
+            {
+                type: '> [!DETAILS] Full list\n> Everything else.',
+                looks: '<details class="callout callout-details !my-0"><summary class="callout-title">Full list</summary><div class="callout-body"><p>Everything else.</p></div></details>',
+            },
+        ],
+    },
+    {
         title: 'Footnotes',
         rows: [
             {

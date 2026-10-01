@@ -2,6 +2,7 @@
 
 namespace App\Cms;
 
+use App\Cms\Markdown\Callouts;
 use App\Cms\Markdown\EmojiShortcodes;
 use App\Cms\Markdown\SubscriptAndSuperscript;
 use Illuminate\Container\Attributes\Singleton;
@@ -19,8 +20,8 @@ use Phiki\Theme\Theme;
 /**
  * GitHub flavored markdown (tables, task lists, strikethrough, autolinks)
  * with syntax highlighted code blocks, plus the extended syntax: footnotes,
- * definition lists, ==highlight==, H~2~O and x^2^, {#heading-ids} and
- * :shortcode: emoji.
+ * definition lists, ==highlight==, H~2~O and x^2^, {#heading-ids},
+ * > [!TIP] callouts and :shortcode: emoji.
  *
  * Code is highlighted with a light theme, with dark theme colors exposed as
  * CSS variables (see resources/css/code.css).
@@ -53,6 +54,7 @@ class Markdown
         $environment->addExtension(new HighlightExtension);
         $environment->addExtension(new AttributesExtension);
         $environment->addExtension(new SubscriptAndSuperscript);
+        $environment->addExtension(new Callouts);
         $environment->addExtension(new PhikiExtension([
             'light' => Theme::GithubLight,
             'dark' => Theme::GithubDark,
