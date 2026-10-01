@@ -12,6 +12,11 @@
         'Noto Color Emoji';
 }
 
+/* Native parts (scrollbars, date pickers) follow the light or dark system theme. */
+:root {
+    color-scheme: light dark;
+}
+
 /* Anchors and focused fields scroll into view below the sticky page header. */
 html {
     scroll-padding-top: 5rem;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import EmojiPicker from '@/components/cp/EmojiPicker.vue';
+import MarkdownHelp from '@/components/cp/MarkdownHelp.vue';
 import MediaPicker from '@/components/cp/MediaPicker.vue';
 import { requestJson } from '@/lib/http';
 import { cn } from '@/lib/utils';
@@ -378,6 +379,7 @@ const modeClass = (name: Mode) =>
             </div>
 
             <EmojiPicker @select="replace($event)" />
+            <MarkdownHelp />
 
             <div class="ml-auto flex items-center gap-1" role="tablist">
                 <button
