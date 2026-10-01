@@ -81,6 +81,17 @@
                 @endforeach
             </ul>
         @endif
+
+        @if ($related->isNotEmpty())
+            <section class="mt-16 border-t border-line pt-8" aria-labelledby="related-heading">
+                <h2 id="related-heading" class="mb-5 font-display text-2xl font-semibold tracking-tight">Keep reading</h2>
+                <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($related as $relatedPost)
+                        @include('site.partials.post-card', ['post' => $relatedPost])
+                    @endforeach
+                </div>
+            </section>
+        @endif
     </article>
 
     @if ($headings !== [])

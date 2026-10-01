@@ -220,6 +220,32 @@ class Post extends Model
     }
 
     /**
+     * Other published posts to read next: those sharing the most tags first
+     * (from any template), then ones from the same template, newest first.
+     * Posts with neither in common are left out.
+     *
+     * @return Collection<int, Post>
+     */
+    public function related(int $limit = 3): Collection
+    {
+        $tagIds = $this->tags->modelKeys();
+
+        return self::query()
+            ->with(['template', 'thumbnail'])
+            ->where('status', PostStatus::Published)
+            ->whereKeyNot($this->id)
+            ->where(fn (Builder $query) => $query
+                ->where('template_id', $this->template_id)
+                ->when($tagIds !== [], fn (Builder $query) => $query->orWhereHas('tags', fn (Builder $tags) => $tags->whereKey($tagIds))))
+            ->withCount(['tags as shared_tags_count' => fn (Builder $tags) => $tags->whereKey($tagIds)])
+            ->orderByDesc('shared_tags_count')
+            ->orderByRaw('template_id = ? desc', [$this->template_id])
+            ->orderByDesc('published_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
      * Saved versions, newest first.
      *
      * @return HasMany<PostRevision, $this>

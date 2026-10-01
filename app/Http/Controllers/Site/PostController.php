@@ -55,6 +55,7 @@ class PostController extends Controller
             'content' => new HtmlString($html),
             // A single heading is not worth a table of contents.
             'headings' => count($headings) >= 2 ? $headings : [],
+            'related' => $post->related(),
             'preview' => $thumbnail
                 ? ['url' => $thumbnail->url, 'width' => $thumbnail->width, 'height' => $thumbnail->height]
                 : ['url' => $shareImage->url($post), 'width' => ShareImage::WIDTH, 'height' => ShareImage::HEIGHT],
