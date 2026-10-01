@@ -508,3 +508,210 @@ document
             );
         });
     });
+
+// {{ youtube }}: nothing is loaded from YouTube until the video is played.
+document
+    .querySelectorAll<HTMLElement>('.widget-youtube[data-youtube]')
+    .forEach((widget) => {
+        widget
+            .querySelector('.widget-youtube-play')
+            ?.addEventListener('click', (event) => {
+                event.preventDefault();
+
+                const start = Number(widget.dataset.start) || 0;
+                const player = document.createElement('iframe');
+
+                player.src = `https://www.youtube-nocookie.com/embed/${widget.dataset.youtube}?autoplay=1${start ? `&start=${start}` : ''}`;
+                player.title =
+                    widget.querySelector('.widget-youtube-title')
+                        ?.textContent ?? 'YouTube video';
+                player.allow =
+                    'autoplay; encrypted-media; picture-in-picture; fullscreen';
+                player.allowFullscreen = true;
+                player.className = 'widget-youtube-player';
+
+                widget.replaceChildren(player);
+                widget.dataset.playing = '';
+            });
+    });
+
+// {{ countdown }}: kept up to date, in the reader's own time zone. The
+// wording matches CountdownWidget::describe().
+const countdowns = document.querySelectorAll<HTMLElement>(
+    '.widget-countdown[data-countdown]',
+);
+
+if (countdowns.length) {
+    const describe = (target: Date, dateOnly: boolean) => {
+        const now = new Date();
+
+        if (dateOnly) {
+            const day = (d: Date) =>
+                Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+            const days = Math.round((day(target) - day(now)) / 86_400_000);
+
+            if (days === 0) return 'Today!';
+            if (days === 1) return 'Tomorrow';
+            if (days === -1) return 'Yesterday';
+
+            return days > 1 ? `${days} days to go` : `${-days} days ago`;
+        }
+
+        const signed = Math.floor((target.getTime() - now.getTime()) / 60_000);
+        const minutes = Math.abs(signed);
+        const days = Math.floor(minutes / 1440);
+        const hours = Math.floor((minutes % 1440) / 60);
+        const rest = minutes % 60;
+        const span =
+            days >= 2
+                ? `${days} days`
+                : days === 1
+                  ? `1 day ${hours} h`
+                  : hours > 0
+                    ? `${hours} h ${rest} min`
+                    : minutes > 0
+                      ? `${minutes} min`
+                      : null;
+
+        return span === null
+            ? 'Now!'
+            : signed >= 0
+              ? `${span} to go`
+              : `${span} ago`;
+    };
+
+    const update = () =>
+        countdowns.forEach((widget) => {
+            const [date, time = '00:00'] = (
+                widget.dataset.countdown ?? ''
+            ).split('T');
+            const [year, month, day] = date.split('-').map(Number);
+            const [hour, minute] = time.split(':').map(Number);
+            const value = widget.querySelector('.widget-countdown-value');
+
+            if (value) {
+                value.textContent = describe(
+                    new Date(year, month - 1, day, hour, minute),
+                    widget.hasAttribute('data-date-only'),
+                );
+            }
+        });
+
+    update();
+    window.setInterval(update, 30_000);
+}
+
+// {{ spoiler }}: tap to show, tap again to hide.
+document
+    .querySelectorAll<HTMLButtonElement>('.widget-spoiler')
+    .forEach((spoiler) =>
+        spoiler.addEventListener('click', () => {
+            const shown = spoiler.getAttribute('aria-expanded') !== 'true';
+
+            spoiler.setAttribute('aria-expanded', String(shown));
+            spoiler.title = shown ? 'Hide' : 'Show';
+        }),
+    );
+
+// {{ stopwatch }}: start and pause, laps and reset.
+document
+    .querySelectorAll<HTMLElement>('.widget-stopwatch')
+    .forEach((widget) => {
+        const main = widget.querySelector<HTMLButtonElement>(
+            '.widget-stopwatch-main',
+        )!;
+        const lap = widget.querySelector<HTMLButtonElement>(
+            '.widget-stopwatch-lap',
+        )!;
+        const reset = widget.querySelector<HTMLButtonElement>(
+            '.widget-stopwatch-reset',
+        )!;
+        const time = widget.querySelector<HTMLElement>(
+            '.widget-stopwatch-time',
+        )!;
+        const laps = widget.querySelector<HTMLElement>(
+            '.widget-stopwatch-laps',
+        )!;
+        const name =
+            widget.querySelector('.widget-stopwatch-label')?.textContent ??
+            'stopwatch';
+
+        // Time counted before the last start, and when that start was.
+        let banked = 0;
+        let startedAt: number | null = null;
+        let lastLap = 0;
+        let frame = 0;
+
+        const elapsed = () =>
+            banked + (startedAt === null ? 0 : performance.now() - startedAt);
+
+        const format = (ms: number) => {
+            const tenths = Math.floor(ms / 100);
+            const hours = Math.floor(tenths / 36_000);
+            const minutes = Math.floor((tenths % 36_000) / 600);
+            const seconds = String(Math.floor((tenths % 600) / 10)).padStart(
+                2,
+                '0',
+            );
+            const shown = `${seconds}.${tenths % 10}`;
+
+            return hours
+                ? `${hours}:${String(minutes).padStart(2, '0')}:${shown}`
+                : `${minutes}:${shown}`;
+        };
+
+        const draw = () => {
+            time.textContent = format(elapsed());
+
+            if (startedAt !== null) {
+                frame = requestAnimationFrame(draw);
+            }
+        };
+
+        const show = (state: 'idle' | 'running' | 'paused') => {
+            widget.dataset.state = state;
+            lap.hidden = state !== 'running';
+            reset.hidden = state === 'idle';
+            main.setAttribute(
+                'aria-label',
+                `${state === 'running' ? 'Pause' : state === 'paused' ? 'Resume' : 'Start'} ${name}`,
+            );
+        };
+
+        main.addEventListener('click', () => {
+            if (startedAt === null) {
+                startedAt = performance.now();
+                show('running');
+                draw();
+            } else {
+                banked = elapsed();
+                startedAt = null;
+                cancelAnimationFrame(frame);
+                draw();
+                show('paused');
+            }
+        });
+
+        lap.addEventListener('click', () => {
+            const now = elapsed();
+            const row = document.createElement('span');
+
+            row.setAttribute('role', 'listitem');
+            row.className = 'widget-stopwatch-lap-row';
+            row.textContent = `Lap ${laps.children.length + 1}: ${format(now - lastLap)} (${format(now)})`;
+            laps.prepend(row);
+            laps.hidden = false;
+            lastLap = now;
+        });
+
+        reset.addEventListener('click', () => {
+            banked = 0;
+            startedAt = null;
+            lastLap = 0;
+            cancelAnimationFrame(frame);
+            laps.replaceChildren();
+            laps.hidden = true;
+            draw();
+            show('idle');
+        });
+    });

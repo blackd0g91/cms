@@ -122,6 +122,22 @@ const sections: { title: string; rows: Row[] }[] = [
         title: 'Widgets',
         rows: [
             {
+                type: '{{ youtube:https://youtu.be/dQw4w9WgXcQ }}',
+                looks: 'A video, loaded from YouTube only when played. A full link, a youtu.be link or the id, with <code>?t=90</code> to start later and a caption after <code>|</code>',
+            },
+            {
+                type: '{{ countdown:2026-12-25 | Christmas }}',
+                looks: 'Christmas: <strong>84 days to go</strong>, kept up to date. A time works too: <code>2026-12-25 18:00</code>',
+            },
+            {
+                type: 'The answer is {{ spoiler:42 }}.',
+                looks: 'The answer is <span style="filter: blur(4px)">42</span>, shown when tapped',
+            },
+            {
+                type: '{{ stopwatch }}\n{{ stopwatch:Rest timer }}',
+                looks: 'A stopwatch with laps, and an optional label',
+            },
+            {
                 type: 'Bake at {{ temp:180c }}',
                 looks: 'Bake at <strong>180 °C</strong> / 355 °F, or <code>{{ temp:350f }}</code>. Readers can tap it to see their unit first',
             },
