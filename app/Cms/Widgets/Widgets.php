@@ -17,7 +17,7 @@ class Widgets
 
     public function __construct()
     {
-        foreach ([new QrWidget] as $widget) {
+        foreach ([new QrWidget, new TimerWidget] as $widget) {
             $this->widgets[$widget->name()] = $widget;
         }
     }

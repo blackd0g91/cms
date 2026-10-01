@@ -122,6 +122,10 @@ const sections: { title: string; rows: Row[] }[] = [
         title: 'Widgets',
         rows: [
             {
+                type: '{{ timer:30 }}\n{{ timer:1h30 | Rest the dough }}',
+                looks: 'A timer to tap: 30 minutes, or <code>1h30</code>, <code>90s</code>, <code>2m30s</code>. It rings until stopped, with an optional label after <code>|</code>',
+            },
+            {
                 type: '{{ qr:https://example.com }}',
                 looks: 'A QR code to scan with a phone. Any text works, like a Wi-Fi password: <code>{{ qr:WIFI:S:Home;T:WPA;P:secret;; | Home Wi-Fi }}</code>, with a caption after <code>|</code>',
             },

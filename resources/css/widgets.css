@@ -33,3 +33,85 @@
     line-height: 1.3;
     text-align: center;
 }
+
+/* {{ timer }}: a pill that starts, pauses and rings (see resources/js/site.ts). */
+.widget-timer {
+    --timer: var(--accent, #2563eb);
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    vertical-align: middle;
+}
+
+.widget-timer-main,
+.widget-timer-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2em 0.75em;
+    border: 1px solid color-mix(in oklch, currentColor 22%, transparent);
+    border-radius: 999px;
+    background: color-mix(in oklch, currentColor 4%, transparent);
+    font: inherit;
+    font-size: 0.9em;
+    line-height: 1.5;
+    color: inherit;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        background-color 0.15s;
+}
+
+.widget-timer-main:hover,
+.widget-timer-reset:hover {
+    border-color: var(--timer);
+}
+
+.widget-timer-icon {
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+}
+
+.widget-timer-time {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.widget-timer-label {
+    opacity: 0.75;
+}
+
+.widget-timer-reset {
+    padding: 0.2em 0.6em;
+}
+
+.widget-timer[data-state='running'] .widget-timer-main {
+    border-color: var(--timer);
+    background: color-mix(in oklch, var(--timer) 12%, transparent);
+}
+
+.widget-timer[data-state='paused'] .widget-timer-time {
+    opacity: 0.6;
+}
+
+.widget-timer[data-state='ringing'] .widget-timer-main {
+    border-color: #dc2626;
+    background: #dc2626;
+    color: #fff;
+    animation: widget-timer-ring 1s ease-in-out infinite;
+}
+
+@keyframes widget-timer-ring {
+    50% {
+        box-shadow: 0 0 0 0.4rem color-mix(in oklch, #dc2626 25%, transparent);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .widget-timer[data-state='ringing'] .widget-timer-main {
+        animation: none;
+    }
+}
