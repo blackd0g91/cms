@@ -47,3 +47,22 @@ html {
         @apply rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900;
     }
 }
+
+/*
+ * Markdown previews: code looks as on the site (see resources/css/site.css),
+ * in the control panel's neutral colors. Without this the typography plugin
+ * shows inline code in bold between literal backticks, and code blocks have
+ * no edge on the white card.
+ */
+.prose :where(code):not(:where(pre code)) {
+    @apply rounded-[0.3rem] bg-neutral-100 px-[0.35em] py-[0.1em] font-medium dark:bg-neutral-800;
+}
+
+.prose :where(code):not(:where(pre code))::before,
+.prose :where(code):not(:where(pre code))::after {
+    content: none;
+}
+
+.prose :where(pre) {
+    @apply rounded-xl border border-neutral-200 text-[0.85em] dark:border-neutral-800;
+}
