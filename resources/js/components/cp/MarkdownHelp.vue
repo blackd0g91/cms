@@ -33,6 +33,19 @@ const sections: { title: string; rows: Row[] }[] = [
         ],
     },
     {
+        title: 'Keys',
+        rows: [
+            {
+                type: 'Press [[Ctrl]]+[[C]]',
+                looks: 'Press <kbd>Ctrl</kbd>+<kbd>C</kbd>',
+            },
+            {
+                type: '[[Ctrl+Shift+P]]',
+                looks: '<span class="keys"><kbd>Ctrl</kbd><span class="keys-plus">+</span><kbd>Shift</kbd><span class="keys-plus">+</span><kbd>P</kbd></span>',
+            },
+        ],
+    },
+    {
         title: 'Headings',
         rows: [
             {

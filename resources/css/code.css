@@ -25,3 +25,30 @@
         color: var(--phiki-dark-color) !important;
     }
 }
+
+/*
+ * [[Ctrl]] keys (app/Cms/Markdown/KeyboardKeys.php). Colored from the text
+ * around them, so they suit the site's and the control panel's themes alike.
+ */
+.prose :where(kbd) {
+    padding: 0.1em 0.45em;
+    border: 1px solid color-mix(in oklch, currentColor 25%, transparent);
+    border-bottom-width: 2px;
+    border-radius: 0.35rem;
+    background: color-mix(in oklch, currentColor 5%, transparent);
+    box-shadow: none;
+    color: inherit;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.prose :where(.keys) {
+    white-space: nowrap;
+}
+
+.prose :where(.keys-plus) {
+    margin: 0 0.2em;
+    opacity: 0.6;
+}
