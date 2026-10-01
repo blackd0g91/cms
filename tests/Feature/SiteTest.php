@@ -235,3 +235,9 @@ test('the site has a theme toggle, with the choice applied before the page draws
         // The theme script must run before the stylesheet is loaded.
         ->and(strpos($html, "localStorage.getItem('site.theme')"))->toBeLessThan(strpos($html, 'rel="stylesheet"'));
 });
+
+test('emoji shortcodes show as emoji on posts', function () {
+    Post::factory()->published()->for($this->template)->create(['slug' => 'party', 'data' => ['method' => 'Party time :tada:']]);
+
+    $this->get('/recipes/party')->assertSee('Party time 🎉');
+});

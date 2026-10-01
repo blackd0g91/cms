@@ -2,6 +2,7 @@
 
 namespace App\Cms;
 
+use App\Cms\Markdown\EmojiShortcodes;
 use Illuminate\Container\Attributes\Singleton;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
@@ -11,7 +12,8 @@ use Phiki\Adapters\CommonMark\PhikiExtension;
 use Phiki\Theme\Theme;
 
 /**
- * GitHub flavored markdown with syntax highlighted code blocks.
+ * GitHub flavored markdown with syntax highlighted code blocks and
+ * :shortcode: emoji.
  *
  * Code is highlighted with a light theme, with dark theme colors exposed as
  * CSS variables (see resources/css/code.css).
@@ -29,6 +31,7 @@ class Markdown
 
         $environment->addExtension(new CommonMarkCoreExtension);
         $environment->addExtension(new GithubFlavoredMarkdownExtension);
+        $environment->addExtension(new EmojiShortcodes);
         $environment->addExtension(new PhikiExtension([
             'light' => Theme::GithubLight,
             'dark' => Theme::GithubDark,
