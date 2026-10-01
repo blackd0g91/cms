@@ -189,6 +189,24 @@ body {
     font-size: 0.85em;
 }
 
+/* ==Highlighted== text, in the template's accent. */
+.prose :where(mark) {
+    background: var(--accent-soft);
+    color: inherit;
+    border-radius: 0.2rem;
+    padding: 0 0.15em;
+}
+
+/* Footnotes: small print below the post. */
+.prose :where(.footnotes) {
+    font-size: 0.875em;
+    color: var(--muted);
+}
+
+.prose :where(a.footnote-ref, a.footnote-backref) {
+    text-decoration: none;
+}
+
 .prose :where(img) {
     border-radius: 0.75rem;
 }

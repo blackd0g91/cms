@@ -66,3 +66,15 @@ html {
 .prose :where(pre) {
     @apply rounded-xl border border-neutral-200 text-[0.85em] dark:border-neutral-800;
 }
+
+.prose :where(mark) {
+    @apply rounded-[0.2rem] bg-amber-100 px-[0.15em] text-inherit dark:bg-amber-900/60;
+}
+
+.prose :where(.footnotes) {
+    @apply text-[0.875em] text-neutral-500;
+}
+
+.prose :where(a.footnote-ref, a.footnote-backref) {
+    @apply no-underline;
+}
