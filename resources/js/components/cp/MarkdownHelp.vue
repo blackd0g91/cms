@@ -122,6 +122,14 @@ const sections: { title: string; rows: Row[] }[] = [
         title: 'Widgets',
         rows: [
             {
+                type: 'Bake at {{ temp:180c }}',
+                looks: 'Bake at <strong>180 °C</strong> / 355 °F, or <code>{{ temp:350f }}</code>. Readers can tap it to see their unit first',
+            },
+            {
+                type: '{{ copy:npm run dev }}\n{{ copy:hunter2 | Wi-Fi password }}',
+                looks: 'The text with a copy button. With a label after <code>|</code>, the label shows instead of the text',
+            },
+            {
                 type: '{{ timer:30 }}\n{{ timer:1h30 | Rest the dough }}',
                 looks: 'A timer to tap: 30 minutes, or <code>1h30</code>, <code>90s</code>, <code>2m30s</code>. It rings until stopped, with an optional label after <code>|</code>',
             },

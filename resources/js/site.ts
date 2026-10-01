@@ -439,3 +439,72 @@ if (timerWidgets.length) {
         reset.addEventListener('click', () => stop('idle'));
     });
 }
+
+// {{ temp }} widgets show °C and °F. Clicking one swaps which comes first,
+// everywhere on the site, and that choice is remembered.
+const temperatures =
+    document.querySelectorAll<HTMLButtonElement>('.widget-temp');
+
+if (temperatures.length) {
+    try {
+        const saved = localStorage.getItem('site.temperature');
+
+        if (saved === 'c' || saved === 'f') {
+            document.documentElement.dataset.temperature = saved;
+        }
+    } catch {
+        // Not remembered (private windows): the written unit comes first.
+    }
+
+    temperatures.forEach((button) =>
+        button.addEventListener('click', () => {
+            const current =
+                document.documentElement.dataset.temperature ??
+                button.dataset.first;
+            const next = current === 'f' ? 'c' : 'f';
+
+            document.documentElement.dataset.temperature = next;
+
+            try {
+                localStorage.setItem('site.temperature', next);
+            } catch {
+                // Still swapped, just not remembered.
+            }
+        }),
+    );
+}
+
+// {{ copy }} widgets: the button copies the text.
+document
+    .querySelectorAll<HTMLElement>('.widget-copy[data-copy]')
+    .forEach((widget) => {
+        const button = widget.querySelector<HTMLButtonElement>(
+            '.widget-copy-button',
+        );
+        let timeout: number | undefined;
+
+        button?.addEventListener('click', async () => {
+            const text = widget.dataset.copy ?? '';
+
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch {
+                // Without clipboard access (like over plain http), the old way.
+                const field = Object.assign(
+                    document.createElement('textarea'),
+                    { value: text },
+                );
+                document.body.append(field);
+                field.select();
+                document.execCommand('copy');
+                field.remove();
+            }
+
+            widget.dataset.copied = '';
+            window.clearTimeout(timeout);
+            timeout = window.setTimeout(
+                () => delete widget.dataset.copied,
+                1500,
+            );
+        });
+    });

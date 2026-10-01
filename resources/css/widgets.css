@@ -115,3 +115,107 @@
         animation: none;
     }
 }
+
+/*
+ * {{ temp }}: both units, the one first in bold. Which is first is what was
+ * written, until a visitor picks one (html[data-temperature], site.ts).
+ */
+.widget-temp {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3em;
+    padding: 0 0.35em;
+    border: 0;
+    border-radius: 0.35rem;
+    background: color-mix(in oklch, currentColor 6%, transparent);
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.widget-temp:hover {
+    background: color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.widget-temp > span {
+    order: 2;
+    opacity: 0.6;
+}
+
+.widget-temp-sep {
+    order: 1 !important;
+}
+
+.widget-temp[data-first='c'] .widget-temp-c,
+.widget-temp[data-first='f'] .widget-temp-f,
+:root[data-temperature='c'] .widget-temp .widget-temp-c,
+:root[data-temperature='f'] .widget-temp .widget-temp-f {
+    order: 0;
+    opacity: 1;
+    font-weight: 600;
+}
+
+/* A visitor's choice wins over the written unit. */
+:root[data-temperature='c'] .widget-temp .widget-temp-f,
+:root[data-temperature='f'] .widget-temp .widget-temp-c {
+    order: 2;
+    opacity: 0.6;
+    font-weight: inherit;
+}
+
+/* {{ copy }}: the text (or its label) with a copy button. */
+.widget-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 100%;
+    padding: 0.05em 0.1em 0.05em 0.5em;
+    border: 1px solid color-mix(in oklch, currentColor 20%, transparent);
+    border-radius: 0.45rem;
+    background: color-mix(in oklch, currentColor 4%, transparent);
+    vertical-align: middle;
+}
+
+.prose .widget-copy-text {
+    padding: 0;
+    overflow-wrap: anywhere;
+    background: none;
+    font-size: 0.9em;
+}
+
+.widget-copy-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    padding: 0.25em 0.4em;
+    border: 0;
+    border-radius: 0.35rem;
+    background: none;
+    font-size: 0.75em;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.widget-copy-button:hover {
+    opacity: 1;
+    background: color-mix(in oklch, currentColor 10%, transparent);
+}
+
+.widget-copy-button svg {
+    width: 1.3em;
+    height: 1.3em;
+}
+
+.widget-copy-done {
+    display: none;
+}
+
+.widget-copy[data-copied] .widget-copy-done {
+    display: inline;
+}
+
+.widget-copy[data-copied] .widget-copy-button svg {
+    display: none;
+}
