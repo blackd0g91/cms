@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import './code.css';
 @import './callouts.css';
+@import './widgets.css';
 @plugin '@tailwindcss/typography';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';

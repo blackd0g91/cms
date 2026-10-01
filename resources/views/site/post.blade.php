@@ -51,11 +51,23 @@
                     data-wake-lock
                     aria-pressed="false"
                     hidden
-                    class="mt-3 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 font-mono text-xs text-muted transition hover:border-accent hover:text-ink aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-ink"
+                    class="mt-3 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 align-top font-mono text-xs text-muted transition hover:border-accent hover:text-ink aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-ink"
                 >
                     <span class="size-2 rounded-full bg-line transition in-aria-pressed:bg-accent" aria-hidden="true"></span>
                     <span data-wake-lock-label>Keep screen on</span>
                 </button>
+
+                {{-- For moving to a phone, so not shown on phones. No script needed. --}}
+                <details data-popover class="relative mt-3 ml-1 hidden align-top sm:inline-block">
+                    <summary class="inline-flex cursor-pointer list-none items-center gap-2 rounded-full border border-line bg-card px-3 py-1 font-mono text-xs text-muted transition hover:border-accent hover:text-ink">
+                        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-14z"/><path d="M11 4h2"/><path d="M12 17v.01"/></svg>
+                        Open on phone
+                    </summary>
+                    <div class="absolute top-full left-0 z-20 mt-2 w-56 rounded-2xl border border-line bg-card p-4 text-center shadow-xl">
+                        <span class="widget widget-qr !m-0 !shadow-none">{!! \App\Cms\QrCode::svg($post->url()) !!}</span>
+                        <p class="mt-2 text-xs text-muted">Point your phone's camera at it.</p>
+                    </div>
+                </details>
             </div>
         </header>
 

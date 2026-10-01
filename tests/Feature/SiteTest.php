@@ -241,3 +241,17 @@ test('emoji shortcodes show as emoji on posts', function () {
 
     $this->get('/recipes/party')->assertSee('Party time 🎉');
 });
+
+test('posts have an open on phone qr code, and widgets are kept out of search text', function () {
+    $post = Post::factory()->published()->for($this->template)->create([
+        'slug' => 'wifi',
+        'data' => ['method' => "Join {{ qr:WIFI:S:Home;; | Home Wi-Fi }} and press [[Ctrl]].\n\n> [!TIP]\n> Easy."],
+    ]);
+
+    $this->get('/recipes/wifi')
+        ->assertSee('Open on phone')
+        ->assertSee('Home Wi-Fi')
+        ->assertSee('<svg aria-hidden="true"', false);
+
+    expect($post->plainText())->not->toContain('{{')->not->toContain('[!TIP]')->toContain('Ctrl');
+});

@@ -1,0 +1,35 @@
+/*
+ * {{ widgets }} in posts (app/Cms/Widgets), on the site and in the control
+ * panel's previews.
+ */
+
+.widget-qr {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: 12rem;
+    margin: 0.25em 0;
+    padding: 0.6rem;
+    border-radius: 0.9rem;
+    /* Always dark on white: phones read that best, in either theme. */
+    background: #fff;
+    color: #1a1a1a;
+    vertical-align: middle;
+    box-shadow: 0 0 0 1px color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.widget-qr svg {
+    display: block;
+    width: 100%;
+    max-width: 10rem;
+    height: auto;
+}
+
+.widget-qr-caption {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    text-align: center;
+}

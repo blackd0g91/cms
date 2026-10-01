@@ -119,6 +119,15 @@ const sections: { title: string; rows: Row[] }[] = [
         ],
     },
     {
+        title: 'Widgets',
+        rows: [
+            {
+                type: '{{ qr:https://example.com }}',
+                looks: 'A QR code to scan with a phone. Any text works, like a Wi-Fi password: <code>{{ qr:WIFI:S:Home;T:WPA;P:secret;; | Home Wi-Fi }}</code>, with a caption after <code>|</code>',
+            },
+        ],
+    },
+    {
         title: 'Footnotes',
         rows: [
             {

@@ -187,3 +187,25 @@ if (themeButton) {
         apply(order[(order.indexOf(current()) + 1) % order.length]);
     });
 }
+
+// Popovers made with <details data-popover> (like "Open on phone") close on
+// a click elsewhere or Escape, like menus do.
+const popovers = document.querySelectorAll<HTMLDetailsElement>(
+    'details[data-popover]',
+);
+
+if (popovers.length) {
+    document.addEventListener('click', (event) => {
+        popovers.forEach((popover) => {
+            if (popover.open && !popover.contains(event.target as Node)) {
+                popover.open = false;
+            }
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            popovers.forEach((popover) => (popover.open = false));
+        }
+    });
+}
