@@ -17,9 +17,7 @@
 
 @section('content')
     <div class="hue flex gap-12" style="{{ $post->template->accentStyle() }}">
-    <div @class(['min-w-0 flex-1', 'max-w-3xl' => $headings === []])>
-    {{-- A card like the sidebar beside it, with related posts below. --}}
-    <article class="rounded-2xl border border-line bg-card p-5 sm:p-8">
+    <article @class(['min-w-0 flex-1', 'max-w-3xl' => $headings === []])>
         @unless ($post->isPublished())
             <p class="mb-6 rounded-xl border border-dashed border-accent bg-accent-soft px-4 py-2 font-mono text-xs">
                 Draft preview. Only people who can log in see this.
@@ -78,7 +76,7 @@
         </header>
 
         @if ($headings !== [])
-            <details class="mb-8 rounded-xl border border-line bg-paper px-4 py-3 xl:hidden">
+            <details class="mb-8 rounded-2xl border border-line bg-card px-5 py-3 xl:hidden">
                 <summary class="cursor-pointer font-mono text-xs tracking-widest text-muted uppercase">On this page</summary>
                 <div class="mt-3 [&_[data-toc]>p]:hidden">
                     @include('site.partials.toc', ['headings' => $headings])
@@ -91,7 +89,7 @@
         </div>
 
         @if ($post->tags->isNotEmpty())
-            <ul class="mt-10 flex flex-wrap gap-2 border-t border-line pt-6">
+            <ul class="mt-12 flex flex-wrap gap-2 border-t border-line pt-6">
                 @foreach ($post->tags as $tag)
                     <li>
                         <a href="{{ route('site.tag', $tag) }}" class="inline-flex rounded-full border border-line bg-card px-3 py-1 font-mono text-xs text-muted transition hover:border-accent hover:text-ink">#{{ $tag->name }}</a>
@@ -99,19 +97,18 @@
                 @endforeach
             </ul>
         @endif
-    </article>
 
-    @if ($related->isNotEmpty())
-        <section class="mt-12" aria-labelledby="related-heading">
-            <h2 id="related-heading" class="mb-5 font-display text-2xl font-semibold tracking-tight">Keep reading</h2>
-            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach ($related as $relatedPost)
-                    @include('site.partials.post-card', ['post' => $relatedPost])
-                @endforeach
-            </div>
-        </section>
-    @endif
-    </div>
+        @if ($related->isNotEmpty())
+            <section class="mt-16 border-t border-line pt-8" aria-labelledby="related-heading">
+                <h2 id="related-heading" class="mb-5 font-display text-2xl font-semibold tracking-tight">Keep reading</h2>
+                <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($related as $relatedPost)
+                        @include('site.partials.post-card', ['post' => $relatedPost])
+                    @endforeach
+                </div>
+            </section>
+        @endif
+    </article>
 
     @if ($headings !== [])
         <aside class="hidden w-52 shrink-0 xl:block">
