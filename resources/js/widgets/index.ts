@@ -1,5 +1,6 @@
 import { startCopyButtons } from './copy';
 import { startCountdowns } from './countdown';
+import { startRecipes } from './recipe';
 import { startSpoilers } from './spoiler';
 import { startStopwatches } from './stopwatch';
 import { startTemperatures } from './temperature';
@@ -24,6 +25,7 @@ export function startWidgets(root: ParentNode = document): () => void {
         startCountdowns,
         startSpoilers,
         startStopwatches,
+        startRecipes,
     ].map((start) => start(root));
 
     return () => stops.forEach((stop) => stop());

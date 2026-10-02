@@ -161,11 +161,12 @@ class Post extends Model
                 '/\[([^\]]*)\]\([^)]*\)/',   // links, keeping their text
                 '/^\s{0,3}(#{1,6}|>|[-*+]|\d+\.)\s+/m', // headings, quotes, list markers
                 '/[*~`|]+/',                  // emphasis, code and table characters
-                '/\{\{[^{}\n]*\}\}/',            // {{ widgets }}
+                '/\{\{\s*recipe-amount\s*:\s*([^{}\n]*?)\s*\}\}/', // recipe amounts, keeping the amount
+                '/\{\{[^{}\n]*\}\}/',            // other {{ widgets }}
                 '/^\s*\[!\w+\][+-]?/m',         // callout markers
                 '/\[\[([^\[\]\n]+)\]\]/',       // [[keys]], keeping the key
             ],
-            ['', '$1', '$1', '', '', '', '', '$1'],
+            ['', '$1', '$1', '', '', '$1', '', '', '$1'],
             $markdown,
         );
     }

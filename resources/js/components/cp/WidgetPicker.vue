@@ -173,6 +173,41 @@ const widgets: Definition[] = [
             ),
     },
     {
+        name: 'recipe-servings',
+        title: 'Recipe servings',
+        description: 'What a recipe makes, with − and + to change it.',
+        fields: [
+            {
+                key: 'count',
+                label: 'Servings',
+                type: 'number',
+                placeholder: '4',
+                beforeLabel: true,
+            },
+            {
+                key: 'unit',
+                label: 'Of what',
+                placeholder: 'cookies',
+                hint: 'Shows “Makes 12 cookies”. Without it, “Serves 4”.',
+                optional: true,
+            },
+        ],
+        syntax: (v) => withLabel(`recipe-servings:${v.count}`, v.unit),
+    },
+    {
+        name: 'recipe-amount',
+        title: 'Recipe amount',
+        description: 'Changes with the recipe servings above it.',
+        fields: [
+            {
+                key: 'amount',
+                label: 'Amount',
+                placeholder: '200 g, 1 1/2 cups, ½ tsp, 2-3',
+            },
+        ],
+        syntax: (v) => `recipe-amount:${v.amount}`,
+    },
+    {
         name: 'spoiler',
         title: 'Spoiler',
         description: 'Hidden until tapped, for answers or endings.',

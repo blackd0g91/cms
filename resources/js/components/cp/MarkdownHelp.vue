@@ -138,6 +138,10 @@ const sections: { title: string; rows: Row[] }[] = [
                 looks: 'A stopwatch with laps, and an optional label',
             },
             {
+                type: '{{ recipe-servings:4 }}\n- {{ recipe-amount:200 g }} flour\n- {{ recipe-amount:1 1/2 cups }} milk',
+                looks: 'Serves <strong>4</strong>, with − and + to change it. Every amount after it changes along: <code>1,5 kg</code>, <code>½ tsp</code> and <code>2-3</code> work too, and <code>{{ recipe-servings:12 | cookies }}</code> shows “Makes 12 cookies”',
+            },
+            {
                 type: 'Bake at {{ temp:180c }}',
                 looks: 'Bake at <strong>180 °C</strong> / 355 °F, or <code>{{ temp:350f }}</code>. Readers can tap it to see their unit first',
             },

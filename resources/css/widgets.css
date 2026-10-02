@@ -408,3 +408,69 @@
 .widget-stopwatch-laps[hidden] {
     display: none;
 }
+
+/*
+ * {{ recipe-servings }}: "Serves − 4 +". The buttons show once the script
+ * starts it (resources/js/widgets/recipe.ts); without it, just the text.
+ */
+.widget-servings {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.15em 0.6em;
+    border: 1px solid color-mix(in oklch, currentColor 22%, transparent);
+    border-radius: 999px;
+    background: color-mix(in oklch, currentColor 4%, transparent);
+    font-size: 0.9em;
+    line-height: 1.5;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.widget-servings-count {
+    min-width: 1.5ch;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.widget-servings button {
+    display: inline-grid;
+    place-items: center;
+    width: 1.6em;
+    height: 1.6em;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in oklch, currentColor 8%, transparent);
+    font: inherit;
+    font-weight: 600;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+}
+
+.widget-servings button:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--accent, #2563eb) 20%, transparent);
+}
+
+.widget-servings button:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.widget-servings button[hidden] {
+    display: none;
+}
+
+/* {{ recipe-amount }}: highlighted while changed for other servings. */
+.widget-amount {
+    border-radius: 0.3rem;
+    transition: background-color 0.2s;
+}
+
+.widget-amount[data-scaled] {
+    padding: 0 0.15em;
+    background: color-mix(in oklch, var(--accent, #2563eb) 16%, transparent);
+    font-weight: 600;
+}
