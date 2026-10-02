@@ -3,6 +3,7 @@ import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import EmojiPicker from '@/components/cp/EmojiPicker.vue';
 import MarkdownHelp from '@/components/cp/MarkdownHelp.vue';
 import MediaPicker from '@/components/cp/MediaPicker.vue';
+import WidgetPicker from '@/components/cp/WidgetPicker.vue';
 import { requestJson } from '@/lib/http';
 import { IMAGE_TYPES, uploadImage } from '@/lib/media';
 import { cn } from '@/lib/utils';
@@ -43,6 +44,7 @@ const error = ref<string | null>(null);
 const textareaRef = ref<HTMLTextAreaElement>();
 const previewRef = ref<HTMLDivElement>();
 const picker = ref<InstanceType<typeof MediaPicker>>();
+const widgetPicker = ref<InstanceType<typeof WidgetPicker>>();
 
 const showsPreview = computed(() => mode.value !== 'write');
 
@@ -381,6 +383,12 @@ const tools: Tool[][] = [
             title: 'Insert image (or paste or drop one into the text)',
             run: () => picker.value?.open(),
         },
+        {
+            label: 'Widget',
+            title: 'Insert a widget: timer, QR code, video…',
+            // Selected text becomes the widget's value.
+            run: () => widgetPicker.value?.open(selection()),
+        },
     ],
 ];
 
@@ -512,6 +520,7 @@ const modeClass = (name: Mode) =>
             </div>
         </div>
         <MediaPicker ref="picker" @select="insertImage" />
+        <WidgetPicker ref="widgetPicker" @insert="replace($event)" />
 
         <p
             v-if="uploadError"
