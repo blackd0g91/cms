@@ -42,6 +42,27 @@ document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
     pre.append(button);
 });
 
+// Headings link to themselves (see app/Cms/TableOfContents.php). Following
+// one puts its section in the address as usual, and also copies the link.
+document
+    .querySelectorAll<HTMLAnchorElement>('.prose a.heading-link')
+    .forEach((link) => {
+        let timeout: number | undefined;
+
+        link.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(link.href);
+            } catch {
+                // Not allowed (like over plain http): the address bar has it.
+                return;
+            }
+
+            link.dataset.copied = '';
+            window.clearTimeout(timeout);
+            timeout = window.setTimeout(() => delete link.dataset.copied, 1500);
+        });
+    });
+
 // Highlight the table of contents entry for the section being read.
 const tocLinks = Array.from(
     document.querySelectorAll<HTMLAnchorElement>('[data-toc] a[href^="#"]'),

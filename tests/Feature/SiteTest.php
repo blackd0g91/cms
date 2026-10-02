@@ -190,7 +190,7 @@ test('posts with several headings get a table of contents', function () {
 
     $this->get('/recipes/git')
         ->assertOk()
-        ->assertSee('<h2 id="setup">Setup</h2>', false)
+        ->assertSee('<h2 id="setup"><a class="heading-link" href="#setup">Setup</a></h2>', false)
         ->assertSee('data-toc', false)
         ->assertSeeInOrder(['href="#setup"', 'href="#config"', 'href="#branches"'], false);
 });
@@ -203,7 +203,7 @@ test('posts written with # headings in markdown get them in the table of content
 
     $this->get('/recipes/guide')
         ->assertOk()
-        ->assertSee('<h1 id="setup">Setup</h1>', false)
+        ->assertSee('<h1 id="setup"><a class="heading-link" href="#setup">Setup</a></h1>', false)
         ->assertSeeInOrder(['href="#setup"', 'href="#install"', 'href="#usage"'], false);
 });
 

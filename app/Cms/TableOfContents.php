@@ -5,11 +5,14 @@ namespace App\Cms;
 use Illuminate\Support\Str;
 
 /**
- * Builds a table of contents from a rendered post's headings, giving each
- * listed heading an id so it can be linked to. It lists two levels, starting
- * from the post's sections: sections written with # and ## in markdown work
- * as well as ones written with ## and ###, and a single title at the top of
- * a markdown file (# Title, then ## sections) is left out.
+ * Builds a table of contents from a rendered post's headings. Every heading
+ * gets an id and becomes a link to itself, so any section can be linked to
+ * (.heading-link, in resources/css/site.css and resources/js/site.ts).
+ *
+ * The table lists two levels, starting from the post's sections: sections
+ * written with # and ## in markdown work as well as ones written with ## and
+ * ###, and a single title at the top of a markdown file (# Title, then ##
+ * sections) is left out.
  */
 class TableOfContents
 {
@@ -28,7 +31,7 @@ class TableOfContents
         $used = [];
 
         $html = (string) preg_replace_callback(
-            '/<h(['.$top.min(6, $top + 1).'])(\s[^>]*)?>(.*?)<\/h\1>/si',
+            '/<h([1-6])(\s[^>]*)?>(.*?)<\/h\1>/si',
             function (array $match) use ($top, &$headings, &$used) {
                 [$tag, $level, $attributes, $inner] = [$match[0], (int) $match[1], $match[2], $match[3]];
                 $text = self::text($inner);
@@ -45,8 +48,16 @@ class TableOfContents
                 }
 
                 $used[$id] = true;
-                // 1 for the top level, 2 for the one below it.
-                $headings[] = ['id' => $id, 'text' => $text, 'level' => $level, 'depth' => $level - $top + 1];
+
+                if ($level === $top || $level === $top + 1) {
+                    // 1 for the top level, 2 for the one below it.
+                    $headings[] = ['id' => $id, 'text' => $text, 'level' => $level, 'depth' => $level - $top + 1];
+                }
+
+                // Links can't be nested, so one holding a link stays as it is.
+                if (! preg_match('/<a[\s>]/i', $inner)) {
+                    $inner = '<a class="heading-link" href="#'.e($id).'">'.$inner.'</a>';
+                }
 
                 return "<h{$level}{$attributes}>{$inner}</h{$level}>";
             },

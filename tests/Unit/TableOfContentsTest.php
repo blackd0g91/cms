@@ -2,7 +2,7 @@
 
 use App\Cms\TableOfContents;
 
-test('h2 and h3 headings get ids and are listed in order', function () {
+test('headings get ids and link to themselves, and h2 and h3 are listed in order', function () {
     $result = (new TableOfContents)->build('<h2>Getting started</h2><p>x</p><h3>Install <code>git</code></h3><h4>Deep</h4><h2>Getting started</h2>');
 
     expect($result['headings'])->toBe([
@@ -10,10 +10,11 @@ test('h2 and h3 headings get ids and are listed in order', function () {
         ['id' => 'install-git', 'text' => 'Install git', 'level' => 3, 'depth' => 2],
         ['id' => 'getting-started-2', 'text' => 'Getting started', 'level' => 2, 'depth' => 1],
     ])->and($result['html'])
-        ->toContain('<h2 id="getting-started">Getting started</h2>')
-        ->toContain('<h3 id="install-git">Install <code>git</code></h3>')
+        ->toContain('<h2 id="getting-started"><a class="heading-link" href="#getting-started">Getting started</a></h2>')
+        ->toContain('<h3 id="install-git"><a class="heading-link" href="#install-git">Install <code>git</code></a></h3>')
         ->toContain('<h2 id="getting-started-2">')
-        ->toContain('<h4>Deep</h4>');
+        // Not listed, but still linkable.
+        ->toContain('<h4 id="deep"><a class="heading-link" href="#deep">Deep</a></h4>');
 });
 
 test('posts whose sections start at h1, like # in markdown, list h1 and h2', function () {
@@ -24,15 +25,15 @@ test('posts whose sections start at h1, like # in markdown, list h1 and h2', fun
         ['id' => 'install', 'text' => 'Install', 'level' => 2, 'depth' => 2],
         ['id' => 'usage', 'text' => 'Usage', 'level' => 1, 'depth' => 1],
     ])->and($result['html'])
-        ->toContain('<h1 id="setup">Setup</h1>')
-        ->toContain('<h3>Deep</h3>');
+        ->toContain('<h1 id="setup"><a class="heading-link" href="#setup">Setup</a></h1>')
+        ->toContain('<h3 id="deep">');
 });
 
 test('a single title above the sections, like # Title in markdown, is left out', function () {
     $result = (new TableOfContents)->build('<h1>My notes</h1><h2>Setup</h2><h3>Install</h3><h2>Usage</h2>');
 
     expect(array_column($result['headings'], 'depth', 'text'))->toBe(['Setup' => 1, 'Install' => 2, 'Usage' => 1])
-        ->and($result['html'])->toContain('<h1>My notes</h1>');
+        ->and($result['html'])->toContain('<h1 id="my-notes"><a class="heading-link" href="#my-notes">My notes</a></h1>');
 });
 
 test('a title and one section list only the section, while a section and a subsection list both', function () {
@@ -56,8 +57,16 @@ test('existing ids and attributes are kept', function () {
     $result = (new TableOfContents)->build('<h2 class="big" id="custom">Custom</h2><h2 class="x">Other</h2>');
 
     expect($result['headings'][0]['id'])->toBe('custom')
-        ->and($result['html'])->toContain('<h2 class="big" id="custom">Custom</h2>')
-        ->and($result['html'])->toContain('<h2 class="x" id="other">Other</h2>');
+        ->and($result['html'])->toContain('<h2 class="big" id="custom"><a class="heading-link" href="#custom">Custom</a></h2>')
+        ->and($result['html'])->toContain('<h2 class="x" id="other"><a class="heading-link" href="#other">Other</a></h2>');
+});
+
+test('headings that hold a link are not made links themselves', function () {
+    $result = (new TableOfContents)->build('<h2><a href="https://example.com">Docs</a> and more</h2><h2>Plain</h2>');
+
+    expect($result['html'])->toContain('<h2 id="docs-and-more"><a href="https://example.com">Docs</a> and more</h2>')
+        ->toContain('<h2 id="plain"><a class="heading-link" href="#plain">Plain</a></h2>')
+        ->and(array_column($result['headings'], 'text'))->toBe(['Docs and more', 'Plain']);
 });
 
 test('empty headings and headings without letters are handled', function () {

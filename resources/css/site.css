@@ -158,6 +158,44 @@ body {
     --tw-prose-td-borders: var(--line);
 }
 
+/*
+ * Headings link to themselves (app/Cms/TableOfContents.php): a # shows on
+ * hover, and clicking one copies the link (resources/js/site.ts). On phones,
+ * pressing and holding gives the usual "Copy link".
+ */
+.prose :where(h1, h2, h3, h4, h5, h6) > a.heading-link {
+    color: inherit;
+    font-weight: inherit;
+    text-decoration: none;
+}
+
+.prose a.heading-link::after {
+    /* The second form keeps the # out of what screen readers say. */
+    content: '#';
+    content: '#' / '';
+    margin-left: 0.35em;
+    color: var(--accent);
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.prose a.heading-link:hover::after,
+.prose a.heading-link:focus-visible::after {
+    opacity: 1;
+}
+
+.prose a.heading-link[data-copied]::after {
+    content: 'Link copied';
+    content: 'Link copied' / '';
+    margin-left: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: max(0.45em, 0.75rem);
+    letter-spacing: 0.02em;
+    vertical-align: middle;
+    opacity: 1;
+}
+
 .prose :where(h1, h2, h3, h4) {
     font-family: var(--font-display);
     font-weight: 600;
