@@ -5,6 +5,7 @@ namespace App\Cms;
 use App\Cms\Markdown\Callouts;
 use App\Cms\Markdown\EmojiShortcodes;
 use App\Cms\Markdown\Figures;
+use App\Cms\Markdown\HtmlBlocksAsText;
 use App\Cms\Markdown\KeyboardKeys;
 use App\Cms\Markdown\SubscriptAndSuperscript;
 use App\Cms\Markdown\Widgets;
@@ -28,6 +29,9 @@ use Phiki\Theme\Theme;
  * > [!TIP] callouts, [[Ctrl]]+[[C]] keys, :shortcode: emoji, image
  * captions from ![alt](url "Caption") and {{ widgets }}.
  *
+ * HTML is not part of it: tags are shown as typed, as text, so a post only
+ * ever looks like what the syntax above makes (and can never add scripts).
+ *
  * Code is highlighted with a light theme, with dark theme colors exposed as
  * CSS variables (see resources/css/code.css).
  */
@@ -39,6 +43,7 @@ class Markdown
     public function __construct()
     {
         $environment = new Environment([
+            'html_input' => 'escape',
             'allow_unsafe_links' => false,
             // {#id .class} after headings, links and other blocks. Only plain
             // attributes: nothing that could run code or restyle the page.
@@ -52,6 +57,7 @@ class Markdown
         ]);
 
         $environment->addExtension(new CommonMarkCoreExtension);
+        $environment->addExtension(new HtmlBlocksAsText);
         $environment->addExtension(new GithubFlavoredMarkdownExtension);
         $environment->addExtension(new EmojiShortcodes);
         $environment->addExtension(new FootnoteExtension);

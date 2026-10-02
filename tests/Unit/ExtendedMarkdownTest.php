@@ -52,3 +52,25 @@ test('the table of contents uses custom heading ids', function () {
 
     expect(array_column($result['headings'], 'id'))->toBe(['install', 'use']);
 });
+
+test('html is shown as typed, as text', function (string $markdown, string $html) {
+    expect(trim(render($markdown)))->toBe($html);
+})->with([
+    'inline tags' => ['Some <b>bold</b> words', '<p>Some &lt;b&gt;bold&lt;/b&gt; words</p>'],
+    'a line break' => ['One<br>two', '<p>One&lt;br&gt;two</p>'],
+    'event handlers' => ['A <img src="x.png" onerror="alert(1)"> here', '<p>A &lt;img src="x.png" onerror="alert(1)"&gt; here</p>'],
+    'blocks, as paragraphs with their lines' => ["<script>\nalert(1)\n</script>", "<p>&lt;script&gt;<br>\nalert(1)<br>\n&lt;/script&gt;</p>"],
+    'comments' => ["<!-- a note -->\n\nText", "<p>&lt;!-- a note --&gt;</p>\n<p>Text</p>"],
+    'entities as typed' => ["<div>\n&amp; &copy;\n</div>", "<p>&lt;div&gt;<br>\n&amp;amp; &amp;copy;<br>\n&lt;/div&gt;</p>"],
+]);
+
+test('links in angle brackets and widgets still work without html', function () {
+    expect(render('<https://example.com> and <me@example.com>'))
+        ->toContain('<a href="https://example.com">https://example.com</a>')
+        ->toContain('<a href="mailto:me@example.com">me@example.com</a>');
+
+    expect(render('Copy {{ copy:<b>it</b> }} <b>now</b>'))
+        ->toContain('class="widget widget-copy"')
+        ->toContain('&lt;b&gt;now&lt;/b&gt;')
+        ->not->toContain('<b>');
+});

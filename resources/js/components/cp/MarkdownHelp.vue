@@ -277,7 +277,7 @@ const close = () => dialog.value?.close();
                 </ul>
                 <p class="mt-3 text-xs text-neutral-500">
                     The 😊 button finds emoji by name, and hovering one shows
-                    its :shortcode:. Raw HTML works too.
+                    its :shortcode:. HTML is shown as typed, not used.
                 </p>
             </section>
         </div>
