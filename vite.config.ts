@@ -35,6 +35,44 @@ export default defineConfig({
                         },
                     ],
                 }),
+                // The public site's titles and small print. Only the faces on
+                // nearly every page are preloaded: the header's site name and
+                // tagline. The others load when a page uses them.
+                local('Fraunces', {
+                    variants: [
+                        {
+                            src: 'resources/fonts/Fraunces-Regular.woff2',
+                            weight: 400,
+                        },
+                        {
+                            src: 'resources/fonts/Fraunces-Italic.woff2',
+                            weight: 400,
+                            style: 'italic',
+                        },
+                        {
+                            src: 'resources/fonts/Fraunces-SemiBold.woff2',
+                            weight: 600,
+                        },
+                        {
+                            src: 'resources/fonts/Fraunces-Bold.woff2',
+                            weight: 700,
+                        },
+                    ],
+                    preload: [{ weight: 600 }],
+                }),
+                local('JetBrains Mono', {
+                    variants: [
+                        {
+                            src: 'resources/fonts/JetBrainsMono-Regular.woff2',
+                            weight: 400,
+                        },
+                        {
+                            src: 'resources/fonts/JetBrainsMono-Medium.woff2',
+                            weight: 500,
+                        },
+                    ],
+                    preload: [{ weight: 400 }],
+                }),
             ],
         }),
         inertia(),

@@ -13,6 +13,11 @@
     // The database may be what failed, so anything read from it is optional.
     $siteName = rescue(fn () => app(\App\Cms\Settings::class)->siteName(), config('app.name'), report: false);
     $icons = rescue(fn () => view('partials.icons')->render(), '<link rel="icon" href="/favicon.ico" sizes="any">', report: false);
+
+    // The fonts are part of the build, which deploy.sh replaces while this page
+    // is up. Without them (or while their files are being rebuilt) the page is
+    // set in the fallback fonts instead.
+    $fonts = rescue(fn () => app(\Illuminate\Foundation\Vite::class)->fonts(['fraunces', 'instrument-sans']), '', report: false);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -28,9 +33,8 @@
         </script>
         <title>{{ $title }} - {{ $siteName }}</title>
         {!! $icons !!}
+        {!! $fonts !!}
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link rel="stylesheet" href="https://fonts.bunny.net/css?family=fraunces:600|instrument-sans:400,500&display=swap">
         <style>
             /* The site's colors and type, from resources/css/site.css. */
             :root {

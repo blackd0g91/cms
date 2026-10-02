@@ -7,7 +7,8 @@
 
         @include('partials.icons')
 
-        @fonts
+        {{-- Fraunces and JetBrains Mono are only used on the public site. --}}
+        @fonts('instrument-sans')
 
         @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         <x-inertia::head>

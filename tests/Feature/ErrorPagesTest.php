@@ -2,8 +2,11 @@
 
 use App\Cms\Settings;
 use App\Models\Template;
+use Illuminate\Foundation\Vite;
+use Illuminate\Foundation\ViteException;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\HtmlString;
 
 test('an unknown address shows the site not found page, with its words in a search box', function () {
     // In the navigation, which the unmatched handle must not trip up.
@@ -62,7 +65,26 @@ test('server errors show a page that needs neither the database nor built assets
         ->assertDontSee('secret details')
         // Neither the development server's scripts nor the built ones.
         ->assertDontSee('site.ts', false)
-        ->assertDontSee('/build/', false);
+        ->assertDontSee('type="module"', false)
+        ->assertDontSee('rel="stylesheet"', false);
+});
+
+test('server errors use the built fonts when there are some, and the fallback fonts when not', function () {
+    config(['app.debug' => false]);
+    Route::get('_test/errors/crash', fn () => throw new RuntimeException('crash'));
+
+    $vite = Mockery::mock(Vite::class)->makePartial();
+    $vite->shouldReceive('fonts')->once()->with(['fraunces', 'instrument-sans'])->andReturn(new HtmlString('<style>/* The fonts */</style>'));
+    $this->app->instance(Vite::class, $vite);
+
+    $this->get('/_test/errors/crash')->assertStatus(500)->assertSee('<style>/* The fonts */</style>', false);
+
+    // As when the build is missing, or older than the fonts.
+    $vite = Mockery::mock(Vite::class)->makePartial();
+    $vite->shouldReceive('fonts')->once()->andThrow(new ViteException('Font family [fraunces] not found.'));
+    $this->app->instance(Vite::class, $vite);
+
+    $this->get('/_test/errors/crash')->assertStatus(500)->assertSee('Something went wrong')->assertDontSee('/* The fonts */', false);
 });
 
 test('the maintenance page is rendered when the site goes down, the way deploy.sh does it', function () {

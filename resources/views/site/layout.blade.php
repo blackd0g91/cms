@@ -23,8 +23,6 @@
         @include('partials.icons')
 
         @fonts
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link rel="stylesheet" href="https://fonts.bunny.net/css?family=fraunces:400,400i,600,700|jetbrains-mono:400,500&display=swap">
         @vite(['resources/css/site.css', 'resources/js/site.ts'])
     </head>
     <body class="flex min-h-screen flex-col bg-paper font-sans text-ink antialiased">
