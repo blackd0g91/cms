@@ -118,7 +118,7 @@
                 enough. On pages shorter than the screen it fills the column.
             --}}
             <aside class="hidden w-56 shrink-0 md:block">
-                <div class="sticky top-10 flex h-full max-h-[calc(100vh-81px-65px-5rem)] flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3">
+                <div class="panel-scrollbar sticky top-10 flex h-full max-h-[calc(100vh-81px-65px-5rem)] flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3">
                     @include('site.partials.nav')
                 </div>
             </aside>

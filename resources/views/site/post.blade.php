@@ -112,7 +112,7 @@
 
     @if ($headings !== [])
         <aside class="hidden w-52 shrink-0 xl:block">
-            <div class="sticky top-10 max-h-[calc(100vh-5rem)] overflow-y-auto rounded-2xl border border-line bg-card p-4">
+            <div class="panel-scrollbar sticky top-10 max-h-[calc(100vh-5rem)] overflow-y-auto rounded-2xl border border-line bg-card p-4">
                 @include('site.partials.toc', ['headings' => $headings])
             </div>
         </aside>

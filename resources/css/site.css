@@ -87,6 +87,60 @@
 }
 
 /*
+ * Scrollbars in the site's colors. scrollbar-color is inherited, so this
+ * covers the page and everything in it.
+ */
+:root {
+    --scrollbar-thumb: color-mix(in oklab, var(--muted) 45%, transparent);
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/*
+ * Thin scrollbars for panels that scroll on their own, darker while pointed
+ * at. Not Tailwind's scrollbar-thin, which only sets the standard
+ * properties: Chrome draws those with arrow buttons on Linux and Windows.
+ */
+@utility panel-scrollbar {
+    @supports not selector(::-webkit-scrollbar) {
+        scrollbar-width: thin;
+
+        &:hover {
+            scrollbar-color: var(--muted) transparent;
+        }
+    }
+
+    /* Chrome and Safari, whose own styling only applies while the standard
+       properties are left at auto (the color is inherited from :root). */
+    @supports selector(::-webkit-scrollbar) {
+        scrollbar-color: auto;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        /* Clear of the rounded corners. */
+        &::-webkit-scrollbar-track {
+            margin: 0.75rem;
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            border-radius: 999px;
+            background: var(--scrollbar-thumb);
+        }
+
+        &:hover::-webkit-scrollbar-thumb {
+            background: var(--muted);
+        }
+
+        &::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+    }
+}
+
+/*
  * Recomputed on every .hue element, so nested templates get their own color:
  * the template's chosen --accent-base, or an automatic one from --hue.
  */
@@ -221,6 +275,7 @@ body {
 }
 
 .prose :where(pre) {
+    @apply panel-scrollbar;
     position: relative;
     border: 1px solid var(--line);
     border-radius: 0.75rem;
