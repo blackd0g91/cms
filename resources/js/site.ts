@@ -63,6 +63,75 @@ document
         });
     });
 
+// Images in posts open larger when clicked, with their caption. Linked
+// images follow their link, and small ones within a line of text stay put.
+const zoomable = [
+    ...document.querySelectorAll<HTMLImageElement>('.prose img'),
+].filter((image) => {
+    const parent = image.parentElement;
+    const inText =
+        parent?.tagName === 'P' && (parent.textContent ?? '').trim() !== '';
+
+    return !image.closest('a, button') && !inText;
+});
+
+if (zoomable.length) {
+    const viewer = document.createElement('dialog');
+    const large = document.createElement('img');
+    const caption = document.createElement('p');
+    const close = document.createElement('button');
+
+    viewer.className = 'lightbox';
+    caption.className = 'lightbox-caption';
+    close.type = 'button';
+    close.className = 'lightbox-close';
+    close.textContent = 'Close';
+    viewer.append(close, large, caption);
+    document.body.append(viewer);
+
+    // The image it was opened from, to go back to.
+    let opener: HTMLButtonElement | null = null;
+
+    // A click anywhere closes it, as does Esc.
+    viewer.addEventListener('click', () => viewer.close());
+    viewer.addEventListener('close', () => {
+        large.removeAttribute('srcset');
+        large.removeAttribute('src');
+        // Browsers only do it themselves when the button had focus, which
+        // a click does not give it in Safari.
+        opener?.focus({ preventScroll: true });
+    });
+
+    zoomable.forEach((image) => {
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.className = 'image-zoom';
+        button.setAttribute(
+            'aria-label',
+            image.alt ? `Enlarge: ${image.alt}` : 'Enlarge image',
+        );
+        image.replaceWith(button);
+        button.append(image);
+
+        button.addEventListener('click', () => {
+            const text =
+                image.closest('figure')?.querySelector('figcaption')
+                    ?.textContent ?? '';
+
+            // The original, or the resized copy that fits the screen.
+            large.srcset = image.srcset;
+            large.sizes = '100vw';
+            large.src = image.getAttribute('src') ?? image.currentSrc;
+            large.alt = image.alt;
+            caption.textContent = text;
+            caption.hidden = text === '';
+            opener = button;
+            viewer.showModal();
+        });
+    });
+}
+
 // Highlight the table of contents entry for the section being read.
 const tocLinks = Array.from(
     document.querySelectorAll<HTMLAnchorElement>('[data-toc] a[href^="#"]'),

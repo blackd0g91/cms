@@ -251,6 +251,98 @@ body {
     border-radius: 0.75rem;
 }
 
+/*
+ * Images open larger when clicked (resources/js/site.ts). The button around
+ * each one adds nothing to the layout.
+ */
+.prose .image-zoom {
+    all: unset;
+    cursor: zoom-in;
+}
+
+.prose figure > .image-zoom > img {
+    margin-block: 0;
+}
+
+.prose .image-zoom:focus-visible img {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.lightbox {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    /* Room at the top for the close button. */
+    padding: 4rem 1rem 1.5rem;
+    border: 0;
+    background: transparent;
+    cursor: zoom-out;
+}
+
+.lightbox[open] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.lightbox::backdrop {
+    background: rgb(10 8 6 / 0.88);
+}
+
+.lightbox img {
+    max-width: 100%;
+    max-height: calc(100dvh - 9rem);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 60px rgb(0 0 0 / 0.5);
+}
+
+.lightbox-caption {
+    max-width: 60ch;
+    margin: 0;
+    color: #efe7d8;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.lightbox-close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.35rem 0.85rem;
+    border: 1px solid rgb(255 255 255 / 0.3);
+    border-radius: 999px;
+    background: rgb(0 0 0 / 0.4);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.lightbox-close:hover {
+    border-color: #fff;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .lightbox[open] img {
+        animation: lightbox-in 0.18s ease-out;
+    }
+}
+
+@keyframes lightbox-in {
+    from {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+}
+
 .prose :where(li)::marker {
     color: var(--accent);
 }

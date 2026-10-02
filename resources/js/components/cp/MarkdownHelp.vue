@@ -98,6 +98,19 @@ const sections: { title: string; rows: Row[] }[] = [
         ],
     },
     {
+        title: 'Images',
+        rows: [
+            {
+                type: '![A loaf of bread](/storage/media/bread.jpg)',
+                looks: 'An image, with what it shows for screen readers. Paste or drop one into the text, or use the Image button',
+            },
+            {
+                type: '![A loaf of bread](/storage/media/bread.jpg "Fresh from the oven")',
+                looks: 'The same, with a caption below it. On the site, clicking an image shows it larger',
+            },
+        ],
+    },
+    {
         title: 'Callouts',
         rows: [
             {
