@@ -221,6 +221,8 @@ const widgets: Definition[] = [
 const dialog = ref<HTMLDialogElement>();
 const formRef = ref<HTMLFormElement>();
 const chosen = ref<Definition | null>(null);
+// Always text. The inputs set them on input rather than with v-model, which
+// would turn what is typed into a number field into a number.
 const values = ref<Record<string, string>>({});
 // Text selected in the editor when it was opened, to start the first field with.
 let selected = '';
@@ -424,11 +426,16 @@ defineExpose({ open });
                     <input
                         v-else
                         :id="`widget-${field.key}`"
-                        v-model="values[field.key]"
+                        :value="values[field.key]"
                         :type="field.type ?? 'text'"
                         :step="field.type === 'number' ? 'any' : undefined"
                         :placeholder="field.placeholder"
                         class="cp-input"
+                        @input="
+                            values[field.key] = (
+                                $event.target as HTMLInputElement
+                            ).value
+                        "
                     />
                     <p v-if="fieldError(field)" class="cp-error">
                         {{ fieldError(field) }}
