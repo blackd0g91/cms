@@ -46,6 +46,9 @@ const formatDate = (value: string) =>
                         &middot;
                         <span title="Pinned to the top">📌 Pinned</span>
                     </template>
+                    <template v-if="post.author">
+                        &middot; {{ post.author }}
+                    </template>
                     &middot; {{ formatDate(post.updated_at) }}
                 </p>
             </div>

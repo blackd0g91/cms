@@ -7,9 +7,11 @@ use App\Enums\PostStatus;
 use App\Models\Link;
 use App\Models\Tag;
 use App\Models\Template;
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -30,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // Templates, links, settings and users (see routes/cp.php).
+        Gate::define('admin', fn (User $user) => $user->isAdmin());
 
         View::composer('site.layout', function ($view) {
             $view->with([

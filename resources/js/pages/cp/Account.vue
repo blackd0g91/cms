@@ -56,6 +56,9 @@ const savePassword = () => {
                     autocomplete="name"
                     class="cp-input"
                 />
+                <p class="text-xs text-neutral-500">
+                    Shown on the posts you write.
+                </p>
                 <p v-if="profile.errors.name" class="cp-error">
                     {{ profile.errors.name }}
                 </p>

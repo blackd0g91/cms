@@ -1,7 +1,8 @@
 {{--
     Description, canonical URL and link preview tags (Open Graph, Twitter).
     Pages pass $meta with any of: description, image (with image_width and
-    image_height when known), type, published_time, modified_time, noindex.
+    image_height when known), type, published_time, modified_time, author,
+    noindex.
     Everything else falls back to the site settings.
 --}}
 @php
@@ -17,6 +18,9 @@
 @endphp
 @if ($description !== '')
     <meta name="description" content="{{ $description }}">
+@endif
+@if ($meta['author'] ?? null)
+    <meta name="author" content="{{ $meta['author'] }}">
 @endif
 @if ($meta['noindex'] ?? false)
     <meta name="robots" content="noindex">

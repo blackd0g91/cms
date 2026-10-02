@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import FieldInput from '@/components/cp/FieldInput.vue';
 import ImageField from '@/components/cp/ImageField.vue';
@@ -18,6 +18,7 @@ import { library } from '@/routes/cp/media';
 import { index } from '@/routes/cp/posts';
 import { destroy, duplicate, store, update } from '@/routes/cp/templates/posts';
 import type {
+    Author,
     Field,
     FieldValue,
     Media,
@@ -38,7 +39,10 @@ const props = defineProps<{
     // Null for a new post.
     views: ViewHistory | null;
     allTags: string[];
+    authors: Author[];
 }>();
+
+const page = usePage();
 
 const emptyValue = (field: Field): FieldValue => {
     switch (field.type) {
@@ -56,6 +60,8 @@ const form = useForm({
     slug: props.post?.slug ?? '',
     status: (props.post?.status ?? 'draft') as PostStatus,
     thumbnail_id: props.post?.thumbnail_id ?? null,
+    // A new post is by whoever writes it.
+    author_id: props.post ? props.post.author_id : page.props.auth.user.id,
     tags: props.post?.tags ?? ([] as string[]),
     pinned: props.post?.pinned ?? false,
     // "data" is reserved by useForm, so it is renamed when submitting.
@@ -91,6 +97,7 @@ type DraftData = {
     status: PostStatus;
     thumbnail_id: number | null;
     // Missing in versions from post history, which do not track these.
+    author_id?: number | null;
     tags?: string[];
     pinned?: boolean;
     values: Record<string, FieldValue>;
@@ -107,6 +114,7 @@ const draft = useLocalDraft<DraftData>({
         slug: form.slug,
         status: form.status,
         thumbnail_id: form.thumbnail_id,
+        author_id: form.author_id,
         tags: form.tags,
         pinned: form.pinned,
         values: form.values,
@@ -159,6 +167,8 @@ const applyData = async (
     form.slug = data.slug;
     form.status = data.status;
     form.thumbnail_id = data.thumbnail_id;
+    form.author_id =
+        data.author_id === undefined ? form.author_id : data.author_id;
     form.tags = data.tags ?? form.tags;
     form.pinned = data.pinned ?? form.pinned;
     form.values = { ...form.values, ...data.values };
@@ -394,6 +404,28 @@ const deletePost = () => {
             </section>
 
             <section class="cp-card space-y-4 p-4">
+                <div class="space-y-1.5">
+                    <label for="author" class="cp-label">Author</label>
+                    <select
+                        id="author"
+                        v-model="form.author_id"
+                        class="cp-input"
+                    >
+                        <option
+                            v-for="author in authors"
+                            :key="author.id"
+                            :value="author.id"
+                        >
+                            {{ author.name }}
+                        </option>
+                        <option :value="null">No author</option>
+                    </select>
+                    <p class="text-xs text-neutral-500">Shown on the post.</p>
+                    <p v-if="form.errors.author_id" class="cp-error">
+                        {{ form.errors.author_id }}
+                    </p>
+                </div>
+
                 <div class="space-y-1.5">
                     <label for="status" class="cp-label">Status</label>
                     <select id="status" v-model="form.status" class="cp-input">

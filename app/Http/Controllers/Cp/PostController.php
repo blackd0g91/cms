@@ -12,6 +12,7 @@ use App\Models\Post;
 use App\Models\PostRevision;
 use App\Models\Tag;
 use App\Models\Template;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,11 +33,11 @@ class PostController extends Controller
         ]);
 
         $posts = Post::query()
-            ->with('template:id,name,handle')
+            ->with(['template:id,name,handle', 'author:id,name'])
             ->when($filters['template'] ?? null, fn ($query, $id) => $query->where('template_id', $id))
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest('updated_at')
-            ->paginate(30, ['id', 'template_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
+            ->paginate(30, ['id', 'template_id', 'author_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
             ->withQueryString()
             ->through(fn (Post $post) => $post->toListItem());
 
@@ -75,12 +76,13 @@ class PostController extends Controller
             'revisions' => [],
             'views' => null,
             'allTags' => Tag::query()->orderBy('name')->pluck('name'),
+            'authors' => $this->authors(),
         ]);
     }
 
     public function store(PostRequest $request, Template $template): RedirectResponse
     {
-        $post = $template->posts()->make($request->postAttributes());
+        $post = $template->posts()->make(['author_id' => $request->user()?->id, ...$request->postAttributes()]);
         $this->touchPublishedAt($post);
         $post->pinned_at = $request->boolean('pinned') ? ($post->pinned_at ?? now()) : null;
         $post->save();
@@ -95,7 +97,7 @@ class PostController extends Controller
         return Inertia::render('cp/posts/Edit', [
             'template' => $template->only(['id', 'name', 'handle', 'fields']),
             'post' => [
-                ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'data']),
+                ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'author_id', 'data']),
                 'pinned' => $post->isPinned(),
                 'tags' => $post->tags->pluck('name'),
                 'url' => $post->url(),
@@ -103,6 +105,7 @@ class PostController extends Controller
             'media' => $this->selectedMedia($template, $post),
             'views' => app(PostViews::class)->history($post),
             'allTags' => Tag::query()->orderBy('name')->pluck('name'),
+            'authors' => $this->authors(),
             'revisions' => $post->revisions()
                 ->with('user:id,name')
                 ->get(['id', 'post_id', 'user_id', 'title', 'status', 'created_at'])
@@ -157,6 +160,8 @@ class PostController extends Controller
         $copy->title = "{$post->title} (copy)";
         $copy->slug = $this->uniqueSlug($template, "{$post->slug}-copy");
         $copy->status = PostStatus::Draft;
+        // A new post, by whoever made it.
+        $copy->author_id = request()->user()?->id;
         $copy->setRelation('template', $template);
         $copy->save();
         $copy->syncTags($post->tags->map(fn (Tag $tag) => $tag->name)->all());
@@ -170,6 +175,18 @@ class PostController extends Controller
         $post->delete();
 
         return redirect()->route('cp.posts.index');
+    }
+
+    /**
+     * Everyone a post can be credited to.
+     *
+     * @return list<array{id: int, name: string}>
+     */
+    private function authors(): array
+    {
+        return array_values(User::query()->orderBy('name')->get(['id', 'name'])
+            ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name])
+            ->all());
     }
 
     /**

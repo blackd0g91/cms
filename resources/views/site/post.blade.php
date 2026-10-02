@@ -8,7 +8,8 @@
         'type' => 'article',
         'published_time' => $post->published_at?->toIso8601String(),
         'modified_time' => $post->updated_at?->toIso8601String(),
-        // Drafts are only visible to you, so keep them out of search engines.
+        'author' => $post->author?->name,
+        // Drafts are only visible when logged in, so keep them out of search engines.
         'noindex' => ! $post->isPublished(),
         'feed' => ['title' => $post->template->name, 'url' => route('site.template.feed', $post->template)],
     ],
@@ -19,7 +20,7 @@
     <article @class(['min-w-0 flex-1', 'max-w-3xl' => $headings === []])>
         @unless ($post->isPublished())
             <p class="mb-6 rounded-xl border border-dashed border-accent bg-accent-soft px-4 py-2 font-mono text-xs">
-                Draft preview. Only you can see this.
+                Draft preview. Only people who can log in see this.
             </p>
         @endunless
 
@@ -40,6 +41,9 @@
             <div class="min-w-0">
                 <h1 class="font-display text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">{{ $post->title }}</h1>
                 <p class="mt-3 font-mono text-xs text-muted">
+                    @if ($post->author)
+                        By {{ $post->author->name }} &middot;
+                    @endif
                     @if ($post->published_at)
                         {{ $post->published_at->format('F j, Y') }} &middot;
                     @endif

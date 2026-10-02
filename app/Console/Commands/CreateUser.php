@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -11,7 +12,7 @@ use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
 
 #[Signature('app:create-user')]
-#[Description('Create a user that can log in to the control panel')]
+#[Description('Create an admin that can log in to the control panel (others can then be invited from the users page)')]
 class CreateUser extends Command
 {
     /**
@@ -37,9 +38,10 @@ class CreateUser extends Command
             'name' => $name,
             'email' => $email,
             'password' => $password,
+            'role' => UserRole::Admin,
         ]);
 
-        $this->components->info("User [{$email}] created.");
+        $this->components->info("Admin [{$email}] created.");
 
         return self::SUCCESS;
     }

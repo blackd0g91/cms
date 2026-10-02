@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 /**
  * @property int $id
  * @property int $template_id
+ * @property int|null $author_id
  * @property string $title
  * @property string $slug
  * @property PostStatus $status
@@ -31,11 +32,12 @@ use Illuminate\Support\Str;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read Template $template
+ * @property-read User|null $author
  * @property-read Media|null $thumbnail
  * @property-read Collection<int, Media> $media
  * @property-read Collection<int, PostRevision> $revisions
  */
-#[Fillable(['title', 'slug', 'status', 'published_at', 'pinned_at', 'data', 'thumbnail_id'])]
+#[Fillable(['title', 'slug', 'status', 'published_at', 'pinned_at', 'data', 'thumbnail_id', 'author_id'])]
 class Post extends Model
 {
     /** @use HasFactory<PostFactory> */
@@ -180,6 +182,16 @@ class Post extends Model
     }
 
     /**
+     * Who wrote it, shown on the site. Posts can have none.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
      * The main image, shown in listings and next to the title.
      *
      * @return BelongsTo<Media, $this>
@@ -296,7 +308,7 @@ class Post extends Model
     }
 
     /**
-     * The post as a row in control panel lists.
+     * The post as a row in control panel lists. Load its template and author.
      *
      * @return array<string, mixed>
      */
@@ -306,6 +318,7 @@ class Post extends Model
             ...$this->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at']),
             'pinned' => $this->isPinned(),
             'template' => $this->template->only(['id', 'name']),
+            'author' => $this->author?->name,
             'url' => $this->url(),
         ];
     }

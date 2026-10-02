@@ -46,6 +46,7 @@ export type Post = {
     published_at: string | null;
     updated_at: string;
     thumbnail_id: number | null;
+    author_id: number | null;
     pinned: boolean;
     tags: string[];
     data: Record<string, FieldValue>;
@@ -73,6 +74,7 @@ export type PostListItem = {
     pinned: boolean;
     updated_at: string;
     template: { id: number; name: string };
+    author: string | null;
     url: string;
 };
 
@@ -113,4 +115,18 @@ export type PostRevision = {
 export type DayViews = {
     date: string;
     views: number;
+};
+
+export type Author = {
+    id: number;
+    name: string;
+};
+
+/** A link for choosing a password, made on the users page. */
+export type PasswordLink = {
+    url: string;
+    expires_at: string;
+    name: string;
+    // Inviting them, rather than a new password for someone who has one.
+    invited: boolean;
 };

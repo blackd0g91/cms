@@ -26,9 +26,14 @@ defineProps<{
         class="cp-card p-6 text-sm text-neutral-500"
     >
         Posts are written with a template, and there are none yet.
-        <Link :href="createTemplate()" class="ml-1 underline">
+        <Link
+            v-if="$page.props.auth.user.role === 'admin'"
+            :href="createTemplate()"
+            class="ml-1 underline"
+        >
             Create a template
         </Link>
+        <template v-else>Ask an admin to create one.</template>
     </div>
 
     <template v-else>

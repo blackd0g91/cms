@@ -38,7 +38,8 @@ const props = defineProps<{
     activity: { month: string; count: number }[];
     views: { daily: DayViews[]; total: number; previous: number };
     popular: (PostListItem & { views: number })[];
-    system: SystemReport;
+    // Only for admins.
+    system: SystemReport | null;
 }>();
 
 type TemplateRow = (typeof props.templates)[number];
@@ -65,7 +66,7 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
     </p>
 
     <a
-        v-if="system.warnings.length"
+        v-if="system?.warnings.length"
         href="#system-status"
         class="mb-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 hover:underline dark:border-red-900 dark:bg-red-950 dark:text-red-200"
     >
@@ -121,11 +122,22 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
                 </span>
             </p>
         </div>
-        <div v-if="templates.length === 0" class="p-4 text-sm text-neutral-500">
+        <div
+            v-if="
+                templates.length === 0 && $page.props.auth.user.role === 'admin'
+            "
+            class="p-4 text-sm text-neutral-500"
+        >
             Create a template first to start writing posts.
             <Link :href="createTemplate()" class="ml-1 underline"
                 >New template</Link
             >
+        </div>
+        <div
+            v-else-if="templates.length === 0"
+            class="p-4 text-sm text-neutral-500"
+        >
+            Posts are written with a template. Ask an admin to create one.
         </div>
         <ul v-else class="divide-y divide-neutral-200 dark:divide-neutral-800">
             <li
@@ -223,5 +235,5 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
         </section>
     </div>
 
-    <SystemStatus :report="system" class="mt-6" />
+    <SystemStatus v-if="system" :report="system" class="mt-6" />
 </template>

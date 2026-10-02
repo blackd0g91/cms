@@ -7,6 +7,7 @@ use App\Enums\PostStatus;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -57,6 +58,7 @@ class PostRequest extends FormRequest
             ],
             'status' => ['required', Rule::enum(PostStatus::class)],
             'thumbnail_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],
+            'author_id' => ['nullable', 'integer', Rule::exists(User::class, 'id')],
             'pinned' => ['boolean'],
             'tags' => ['array', 'max:30'],
             'tags.*' => ['string', 'max:50'],
@@ -105,8 +107,9 @@ class PostRequest extends FormRequest
 
     /**
      * The validated attributes, keeping only data for the template's fields.
+     * The author only when one (or none, as null) was sent.
      *
-     * @return array{title: string, slug: string, status: PostStatus, thumbnail_id: int|null, data: array<string, mixed>}
+     * @return array{title: string, slug: string, status: PostStatus, thumbnail_id: int|null, author_id?: int|null, data: array<string, mixed>}
      */
     public function postAttributes(): array
     {
@@ -119,6 +122,7 @@ class PostRequest extends FormRequest
             'slug' => $this->validated('slug'),
             'status' => PostStatus::from($this->validated('status')),
             'thumbnail_id' => $this->filled('thumbnail_id') ? $this->integer('thumbnail_id') : null,
+            ...($this->has('author_id') ? ['author_id' => $this->filled('author_id') ? $this->integer('author_id') : null] : []),
             'data' => $data,
         ];
     }

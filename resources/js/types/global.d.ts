@@ -1,5 +1,6 @@
 import type { Directive } from 'vue';
 import type { Auth } from '@/types/auth';
+import type { PasswordLink } from '@/types/cms';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -16,6 +17,10 @@ declare module 'vite/client' {
 
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
+        flashDataType: {
+            // Shown once on the users page, to copy and send.
+            link?: PasswordLink;
+        };
         sharedPageProps: {
             name: string;
             auth: Auth;

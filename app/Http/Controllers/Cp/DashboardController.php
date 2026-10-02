@@ -11,15 +11,17 @@ use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(ContentCheckup $checkup, PostViews $views, SystemStatus $system): Response
+    public function __invoke(Request $request, ContentCheckup $checkup, PostViews $views, SystemStatus $system): Response
     {
         return Inertia::render('cp/Dashboard', [
-            'system' => $system->report(),
+            // Only admins can do something about it.
+            'system' => $request->user()?->isAdmin() ? $system->report() : null,
             'views' => $views->overview(),
             'popular' => array_map(fn (array $row) => [
                 ...$row['post']->toListItem(),
@@ -81,8 +83,8 @@ class DashboardController extends Controller
     private function posts(Builder $query): array
     {
         return $query
-            ->with('template:id,name,handle')
-            ->get(['id', 'template_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
+            ->with(['template:id,name,handle', 'author:id,name'])
+            ->get(['id', 'template_id', 'author_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
             ->map(fn (Post $post) => $post->toListItem())
             ->all();
     }

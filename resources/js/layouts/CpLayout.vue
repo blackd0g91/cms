@@ -11,11 +11,14 @@ import { index as postsIndex } from '@/routes/cp/posts';
 import { edit as settingsEdit } from '@/routes/cp/settings';
 import { index as tagsIndex } from '@/routes/cp/tags';
 import { index as templatesIndex } from '@/routes/cp/templates';
+import { index as usersIndex } from '@/routes/cp/users';
 
 type NavItem = {
     title: string;
     href: string;
     active: (path: string) => boolean;
+    // Editors can not open these (see routes/cp.php).
+    adminOnly?: boolean;
 };
 
 const page = usePage();
@@ -44,6 +47,7 @@ const mainNav: NavItem[] = [
         href: templatesIndex().url,
         active: (path) =>
             path.startsWith(templatesIndex().url) && !isPostsPath(path),
+        adminOnly: true,
     },
     {
         title: 'Tags',
@@ -54,6 +58,7 @@ const mainNav: NavItem[] = [
         title: 'Links',
         href: linksEdit().url,
         active: (path) => path === linksEdit().url,
+        adminOnly: true,
     },
     {
         title: 'Media',
@@ -61,11 +66,24 @@ const mainNav: NavItem[] = [
         active: (path) => path.startsWith(mediaIndex().url),
     },
     {
+        title: 'Users',
+        href: usersIndex().url,
+        active: (path) => path.startsWith(usersIndex().url),
+        adminOnly: true,
+    },
+    {
         title: 'Settings',
         href: settingsEdit().url,
         active: (path) => path === settingsEdit().url,
+        adminOnly: true,
     },
 ];
+
+const nav = computed(() =>
+    page.props.auth.user.role === 'admin'
+        ? mainNav
+        : mainNav.filter((item) => !item.adminOnly),
+);
 
 const linkClass = (item: NavItem) =>
     cn(
@@ -101,7 +119,7 @@ const linkClass = (item: NavItem) =>
 
             <nav class="flex-1 space-y-6 overflow-y-auto p-3 text-sm">
                 <ul class="space-y-1">
-                    <li v-for="item in mainNav" :key="item.title">
+                    <li v-for="item in nav" :key="item.title">
                         <Link
                             :href="item.href"
                             :class="linkClass(item)"

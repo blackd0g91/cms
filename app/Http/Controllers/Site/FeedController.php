@@ -49,7 +49,7 @@ class FeedController extends Controller
     private function feed(Builder $query, string $title, mixed $description, string $link, string $self): Response
     {
         $posts = $query
-            ->with(['template', 'thumbnail'])
+            ->with(['template', 'thumbnail', 'author'])
             ->where('status', PostStatus::Published)
             ->latest('published_at')
             ->limit(30)
