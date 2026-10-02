@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
+import { useWidgets } from '@/composables/useWidgets';
 import { requestJson } from '@/lib/http';
 import { preview as previewRoute } from '@/routes/cp/markdown';
 
@@ -253,6 +254,9 @@ const markdown = computed(() => {
 // --- Preview, from the same code that renders the site ------------------------
 
 const previewHtml = ref('');
+const previewRef = ref<HTMLDivElement>();
+// Try it before inserting: the timer counts down, the spoiler opens.
+useWidgets(previewRef, previewHtml);
 // null while checking or not filled in yet.
 const valid = ref<boolean | null>(null);
 let latest = 0;
@@ -307,6 +311,7 @@ defineExpose({ open });
         aria-labelledby="widget-picker-title"
         class="m-auto max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 text-neutral-900 backdrop:bg-black/40 open:flex dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
         @click.self="close"
+        @close="chosen = null"
     >
         <div
             class="flex items-center justify-between gap-3 border-b border-neutral-200 p-4 dark:border-neutral-800"
@@ -418,6 +423,7 @@ defineExpose({ open });
                     <!-- Rendered by the server's widget code, not user HTML. -->
                     <div
                         v-else
+                        ref="previewRef"
                         class="prose prose-sm max-w-none prose-neutral dark:prose-invert [&>*]:my-0"
                         v-html="previewHtml"
                     />

@@ -4,6 +4,7 @@ import EmojiPicker from '@/components/cp/EmojiPicker.vue';
 import MarkdownHelp from '@/components/cp/MarkdownHelp.vue';
 import MediaPicker from '@/components/cp/MediaPicker.vue';
 import WidgetPicker from '@/components/cp/WidgetPicker.vue';
+import { useWidgets } from '@/composables/useWidgets';
 import { requestJson } from '@/lib/http';
 import { IMAGE_TYPES, uploadImage } from '@/lib/media';
 import { cn } from '@/lib/utils';
@@ -43,10 +44,14 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const textareaRef = ref<HTMLTextAreaElement>();
 const previewRef = ref<HTMLDivElement>();
+const previewContentRef = ref<HTMLDivElement>();
 const picker = ref<InstanceType<typeof MediaPicker>>();
 const widgetPicker = ref<InstanceType<typeof WidgetPicker>>();
 
 const showsPreview = computed(() => mode.value !== 'write');
+
+// Timers, spoilers and the other widgets work in the preview too.
+useWidgets(previewContentRef, html);
 
 // --- Preview ------------------------------------------------------------
 
@@ -593,6 +598,7 @@ const modeClass = (name: Mode) =>
                 </p>
                 <div
                     v-else
+                    ref="previewContentRef"
                     class="prose max-w-none prose-neutral dark:prose-invert"
                     v-html="html"
                 />
