@@ -22,7 +22,7 @@ const openSidebar = inject(openSidebarKey, null);
         <button
             v-if="openSidebar"
             type="button"
-            class="-ml-2 rounded-md px-2 py-1 text-sm hover:bg-neutral-100 md:hidden dark:hover:bg-neutral-800"
+            class="-ml-2 rounded-lg px-2 py-1 text-sm hover:bg-neutral-100 md:hidden dark:hover:bg-neutral-800"
             @click="openSidebar"
         >
             Menu
@@ -50,7 +50,9 @@ const openSidebar = inject(openSidebarKey, null);
                     >/</span
                 >
             </span>
-            <h1 class="truncate text-lg font-semibold">{{ title }}</h1>
+            <h1 class="truncate text-lg font-semibold tracking-tight">
+                {{ title }}
+            </h1>
         </div>
 
         <div v-if="$slots.default" class="flex shrink-0 items-center gap-2">

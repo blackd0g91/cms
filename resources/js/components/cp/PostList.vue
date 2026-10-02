@@ -20,7 +20,7 @@ const formatDate = (value: string) =>
         <li
             v-for="post in posts"
             :key="post.id"
-            class="flex items-center justify-between gap-3 px-4 py-3"
+            class="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
         >
             <div class="min-w-0">
                 <Link
@@ -29,27 +29,34 @@ const formatDate = (value: string) =>
                 >
                     {{ post.title }}
                 </Link>
-                <p class="text-xs text-neutral-500">
-                    {{ post.template.name }} &middot;
+                <p
+                    class="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-neutral-500"
+                >
                     <span
-                        :class="
+                        :class="[
+                            'cp-badge',
                             post.status === 'published'
-                                ? 'text-green-700 dark:text-green-400'
-                                : 'text-amber-700 dark:text-amber-400'
-                        "
+                                ? 'cp-badge-published'
+                                : 'cp-badge-draft',
+                        ]"
                     >
                         {{
                             post.status === 'published' ? 'Published' : 'Draft'
                         }}
                     </span>
-                    <template v-if="post.pinned">
-                        &middot;
-                        <span title="Pinned to the top">📌 Pinned</span>
-                    </template>
+                    <span
+                        v-if="post.pinned"
+                        class="cp-badge bg-neutral-50 text-neutral-600 ring-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:ring-neutral-700"
+                        title="Pinned to the top"
+                        >📌 Pinned</span
+                    >
+                    <span>{{ post.template.name }}</span>
                     <template v-if="post.author">
-                        &middot; {{ post.author }}
+                        <span aria-hidden="true">&middot;</span>
+                        <span>{{ post.author }}</span>
                     </template>
-                    &middot; {{ formatDate(post.updated_at) }}
+                    <span aria-hidden="true">&middot;</span>
+                    <span>{{ formatDate(post.updated_at) }}</span>
                 </p>
             </div>
             <a

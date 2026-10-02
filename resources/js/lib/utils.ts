@@ -14,3 +14,17 @@ export function slugify(value: string, separator = '-') {
         .replace(/[^a-z0-9]+/g, separator)
         .replace(new RegExp(`^\\${separator}+|\\${separator}+$`, 'g'), '');
 }
+
+/**
+ * Up to two capital letters for a name, for a small badge: "Ana Souza" → "AS".
+ */
+export function initials(name: string) {
+    return (
+        name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((word) => word[0]?.toUpperCase())
+            .join('') || '?'
+    );
+}

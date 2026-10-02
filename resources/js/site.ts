@@ -1,3 +1,5 @@
+import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
+import type { Theme } from './lib/theme';
 import { startWidgets } from './widgets';
 
 /**
@@ -216,48 +218,14 @@ if (wakeButton && 'wakeLock' in navigator) {
     });
 }
 
-// Light / dark / system theme. The choice is applied in <head> before the
-// page draws (see site/layout.blade.php); this only handles the button.
+// Light / dark / system theme (see lib/theme.ts); this only handles the button.
 const themeButton = document.querySelector<HTMLButtonElement>(
     '[data-theme-toggle]',
 );
 
 if (themeButton) {
-    type Theme = 'system' | 'light' | 'dark';
-
-    const order: Theme[] = ['system', 'light', 'dark'];
-    const labels: Record<Theme, string> = {
-        system: 'Theme: follows your system',
-        light: 'Theme: light',
-        dark: 'Theme: dark',
-    };
-
-    const current = (): Theme => {
-        const theme = document.documentElement.dataset.theme;
-
-        return theme === 'light' || theme === 'dark' ? theme : 'system';
-    };
-
     const apply = (theme: Theme) => {
-        // Switch every color at once, instead of some elements fading over.
-        document.documentElement.classList.add('theme-switching');
-        requestAnimationFrame(() =>
-            requestAnimationFrame(() =>
-                document.documentElement.classList.remove('theme-switching'),
-            ),
-        );
-
-        if (theme === 'system') {
-            delete document.documentElement.dataset.theme;
-        } else {
-            document.documentElement.dataset.theme = theme;
-        }
-
-        try {
-            localStorage.setItem('site.theme', theme);
-        } catch {
-            // Not remembering the choice is fine.
-        }
+        applyTheme(theme);
 
         themeButton
             .querySelectorAll<SVGElement>('[data-theme-icon]')
@@ -268,15 +236,14 @@ if (themeButton) {
                 );
             });
 
-        const next = order[(order.indexOf(theme) + 1) % order.length];
-        themeButton.title = `${labels[theme]}. Click for ${next}.`;
+        themeButton.title = themeTitle(theme);
         themeButton.setAttribute('aria-label', themeButton.title);
     };
 
     themeButton.hidden = false;
-    apply(current());
+    apply(currentTheme());
     themeButton.addEventListener('click', () => {
-        apply(order[(order.indexOf(current()) + 1) % order.length]);
+        apply(nextTheme(currentTheme()));
     });
 }
 

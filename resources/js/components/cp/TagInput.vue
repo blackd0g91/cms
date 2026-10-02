@@ -60,7 +60,7 @@ const onKeydown = (event: KeyboardEvent) => {
 
 <template>
     <div
-        class="cp-input flex min-h-10 flex-wrap items-center gap-1.5 py-1.5"
+        class="cp-input flex min-h-10 flex-wrap items-center gap-1.5 py-1.5 focus-within:border-brand focus-within:ring-3 focus-within:ring-brand/15 dark:focus-within:ring-brand/25"
         @click="input?.focus()"
     >
         <span

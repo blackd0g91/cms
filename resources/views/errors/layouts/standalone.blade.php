@@ -25,12 +25,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex">
-        <script>
-            try {
-                const theme = localStorage.getItem('site.theme');
-                if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-            } catch {}
-        </script>
+        @include('partials.theme')
         <title>{{ $title }} - {{ $siteName }}</title>
         {!! $icons !!}
         {!! $fonts !!}

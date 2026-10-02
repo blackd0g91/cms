@@ -10,13 +10,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        {{-- Apply the chosen theme before anything is drawn, so there is no flash. --}}
-        <script>
-            try {
-                const theme = localStorage.getItem('site.theme');
-                if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-            } catch {}
-        </script>
+        @include('partials.theme')
         <title>{{ isset($title) ? $title.' - '.$siteName : $siteName }}</title>
         @include('site.partials.meta')
 

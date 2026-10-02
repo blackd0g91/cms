@@ -78,23 +78,55 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
 
     <dl class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div class="cp-card p-4">
-            <dt class="text-sm text-neutral-500">Published</dt>
-            <dd class="mt-1 text-2xl font-semibold">{{ stats.published }}</dd>
+            <dt
+                class="text-xs font-medium tracking-wide text-neutral-500 uppercase"
+            >
+                Published
+            </dt>
+            <dd
+                class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums"
+            >
+                {{ stats.published }}
+            </dd>
         </div>
         <div class="cp-card p-4">
-            <dt class="text-sm text-neutral-500">Drafts</dt>
-            <dd class="mt-1 text-2xl font-semibold">{{ stats.drafts }}</dd>
+            <dt
+                class="text-xs font-medium tracking-wide text-neutral-500 uppercase"
+            >
+                Drafts
+            </dt>
+            <dd
+                class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums"
+            >
+                {{ stats.drafts }}
+            </dd>
         </div>
         <div class="cp-card p-4">
-            <dt class="text-sm text-neutral-500">Templates</dt>
-            <dd class="mt-1 text-2xl font-semibold">{{ stats.templates }}</dd>
+            <dt
+                class="text-xs font-medium tracking-wide text-neutral-500 uppercase"
+            >
+                Templates
+            </dt>
+            <dd
+                class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums"
+            >
+                {{ stats.templates }}
+            </dd>
         </div>
         <Link
             :href="mediaIndex()"
-            class="cp-card block p-4 hover:border-neutral-400"
+            class="cp-card block p-4 transition-colors hover:border-neutral-400 dark:hover:border-neutral-600"
         >
-            <dt class="text-sm text-neutral-500">Images</dt>
-            <dd class="mt-1 text-2xl font-semibold">{{ stats.media }}</dd>
+            <dt
+                class="text-xs font-medium tracking-wide text-neutral-500 uppercase"
+            >
+                Images
+            </dt>
+            <dd
+                class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums"
+            >
+                {{ stats.media }}
+            </dd>
         </Link>
     </dl>
 

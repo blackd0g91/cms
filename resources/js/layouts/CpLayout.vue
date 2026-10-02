@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref } from 'vue';
+import CpIcon from '@/components/cp/CpIcon.vue';
+import type { IconName } from '@/components/cp/CpIcon.vue';
+import ThemeButton from '@/components/cp/ThemeButton.vue';
 import { openSidebarKey } from '@/lib/sidebar';
-import { cn } from '@/lib/utils';
+import { cn, initials } from '@/lib/utils';
+import { home } from '@/routes';
 import { dashboard, logout } from '@/routes/cp';
 import { edit as accountEdit } from '@/routes/cp/account';
 import { edit as linksEdit } from '@/routes/cp/links';
@@ -16,9 +20,15 @@ import { index as usersIndex } from '@/routes/cp/users';
 type NavItem = {
     title: string;
     href: string;
+    icon: IconName;
     active: (path: string) => boolean;
     // Editors can not open these (see routes/cp.php).
     adminOnly?: boolean;
+};
+
+type NavGroup = {
+    title?: string;
+    items: NavItem[];
 };
 
 const page = usePage();
@@ -30,66 +40,102 @@ provide(openSidebarKey, () => (sidebarOpen.value = true));
 const path = computed(() => page.url.split('?')[0]);
 const isPostsPath = (path: string) => /^\/cp\/templates\/\d+\/posts/.test(path);
 
-const mainNav: NavItem[] = [
+const groups: NavGroup[] = [
     {
-        title: 'Dashboard',
-        href: dashboard().url,
-        active: (path) => path === dashboard().url,
+        items: [
+            {
+                title: 'Dashboard',
+                href: dashboard().url,
+                icon: 'dashboard',
+                active: (path) => path === dashboard().url,
+            },
+        ],
     },
     {
-        title: 'Posts',
-        href: postsIndex().url,
-        active: (path) =>
-            path.startsWith(postsIndex().url) || isPostsPath(path),
+        title: 'Content',
+        items: [
+            {
+                title: 'Posts',
+                href: postsIndex().url,
+                icon: 'posts',
+                active: (path) =>
+                    path.startsWith(postsIndex().url) || isPostsPath(path),
+            },
+            {
+                title: 'Tags',
+                href: tagsIndex().url,
+                icon: 'tags',
+                active: (path) => path.startsWith(tagsIndex().url),
+            },
+            {
+                title: 'Media',
+                href: mediaIndex().url,
+                icon: 'media',
+                active: (path) => path.startsWith(mediaIndex().url),
+            },
+        ],
     },
     {
-        title: 'Templates',
-        href: templatesIndex().url,
-        active: (path) =>
-            path.startsWith(templatesIndex().url) && !isPostsPath(path),
-        adminOnly: true,
-    },
-    {
-        title: 'Tags',
-        href: tagsIndex().url,
-        active: (path) => path.startsWith(tagsIndex().url),
-    },
-    {
-        title: 'Links',
-        href: linksEdit().url,
-        active: (path) => path === linksEdit().url,
-        adminOnly: true,
-    },
-    {
-        title: 'Media',
-        href: mediaIndex().url,
-        active: (path) => path.startsWith(mediaIndex().url),
-    },
-    {
-        title: 'Users',
-        href: usersIndex().url,
-        active: (path) => path.startsWith(usersIndex().url),
-        adminOnly: true,
-    },
-    {
-        title: 'Settings',
-        href: settingsEdit().url,
-        active: (path) => path === settingsEdit().url,
-        adminOnly: true,
+        title: 'Site',
+        items: [
+            {
+                title: 'Templates',
+                href: templatesIndex().url,
+                icon: 'templates',
+                active: (path) =>
+                    path.startsWith(templatesIndex().url) && !isPostsPath(path),
+                adminOnly: true,
+            },
+            {
+                title: 'Links',
+                href: linksEdit().url,
+                icon: 'links',
+                active: (path) => path === linksEdit().url,
+                adminOnly: true,
+            },
+            {
+                title: 'Users',
+                href: usersIndex().url,
+                icon: 'users',
+                active: (path) => path.startsWith(usersIndex().url),
+                adminOnly: true,
+            },
+            {
+                title: 'Settings',
+                href: settingsEdit().url,
+                icon: 'settings',
+                active: (path) => path === settingsEdit().url,
+                adminOnly: true,
+            },
+        ],
     },
 ];
 
-const nav = computed(() =>
-    page.props.auth.user.role === 'admin'
-        ? mainNav
-        : mainNav.filter((item) => !item.adminOnly),
-);
+const nav = computed(() => {
+    const isAdmin = page.props.auth.user.role === 'admin';
 
-const linkClass = (item: NavItem) =>
+    return groups
+        .map((group) => ({
+            ...group,
+            items: group.items.filter((item) => isAdmin || !item.adminOnly),
+        }))
+        .filter((group) => group.items.length > 0);
+});
+
+const rowClass = (active: boolean) =>
     cn(
-        'block truncate rounded-md px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800',
-        item.active(path.value) &&
-            'bg-neutral-100 font-medium dark:bg-neutral-800',
+        'group flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors',
+        active
+            ? 'bg-white font-medium text-neutral-900 shadow-xs ring-1 ring-neutral-200 dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700'
+            : 'text-neutral-600 hover:bg-neutral-200/60 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800/60 dark:hover:text-neutral-100',
+    );
+
+const iconClass = (active: boolean) =>
+    cn(
+        'size-4 shrink-0 transition-colors',
+        active
+            ? 'text-brand'
+            : 'text-neutral-400 group-hover:text-neutral-600 dark:text-neutral-500 dark:group-hover:text-neutral-300',
     );
 </script>
 
@@ -106,58 +152,99 @@ const linkClass = (item: NavItem) =>
         <aside
             :class="
                 cn(
-                    'fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white transition-transform md:sticky md:top-0 md:h-screen md:translate-x-0 dark:border-neutral-800 dark:bg-neutral-900',
+                    'fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-neutral-100 transition-transform md:sticky md:top-0 md:h-screen md:translate-x-0 dark:border-neutral-800 dark:bg-neutral-900',
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full',
                 )
             "
         >
             <div
-                class="flex h-14 items-center border-b border-neutral-200 px-5 font-semibold dark:border-neutral-800"
+                class="flex h-14 shrink-0 items-center border-b border-neutral-200 px-4 dark:border-neutral-800"
             >
-                <Link :href="dashboard()">{{ page.props.name }}</Link>
+                <Link
+                    :href="dashboard()"
+                    class="flex min-w-0 items-center gap-2.5 font-semibold"
+                >
+                    <span
+                        class="grid size-7 shrink-0 place-items-center rounded-lg bg-brand text-xs font-semibold text-brand-fg"
+                        aria-hidden="true"
+                    >
+                        {{ initials(page.props.name) }}
+                    </span>
+                    <span class="truncate">{{ page.props.name }}</span>
+                </Link>
             </div>
 
-            <nav class="flex-1 space-y-6 overflow-y-auto p-3 text-sm">
-                <ul class="space-y-1">
-                    <li v-for="item in nav" :key="item.title">
-                        <Link
-                            :href="item.href"
-                            :class="linkClass(item)"
-                            @click="sidebarOpen = false"
-                        >
-                            {{ item.title }}
-                        </Link>
-                    </li>
-                </ul>
+            <nav class="flex-1 space-y-5 overflow-y-auto p-3 text-sm">
+                <div v-for="(group, i) in nav" :key="group.title ?? i">
+                    <p
+                        v-if="group.title"
+                        class="mb-1 px-3 text-[11px] font-semibold tracking-wider text-neutral-500 uppercase"
+                    >
+                        {{ group.title }}
+                    </p>
+                    <ul class="space-y-0.5">
+                        <li v-for="item in group.items" :key="item.title">
+                            <Link
+                                :href="item.href"
+                                :class="rowClass(item.active(path))"
+                                :aria-current="
+                                    item.active(path) ? 'page' : undefined
+                                "
+                                @click="sidebarOpen = false"
+                            >
+                                <CpIcon
+                                    :name="item.icon"
+                                    :class="iconClass(item.active(path))"
+                                />
+                                <span class="truncate">{{ item.title }}</span>
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
             </nav>
 
             <div
-                class="border-t border-neutral-200 p-3 text-sm dark:border-neutral-800"
+                class="space-y-0.5 border-t border-neutral-200 p-3 text-sm dark:border-neutral-800"
             >
+                <!-- Small buttons for the whole panel. -->
+                <div class="flex items-center justify-end gap-1">
+                    <ThemeButton />
+                </div>
                 <Link
                     :href="accountEdit()"
                     title="Account"
-                    :class="
-                        cn(
-                            'block rounded-md px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800',
-                            path === accountEdit().url &&
-                                'bg-neutral-100 dark:bg-neutral-800',
-                        )
-                    "
+                    :class="rowClass(path === accountEdit().url)"
                     @click="sidebarOpen = false"
                 >
-                    <span class="block truncate font-medium">
-                        {{ page.props.auth.user.name }}
+                    <span
+                        class="grid size-7 shrink-0 place-items-center rounded-full bg-neutral-200 text-[11px] font-semibold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200"
+                        aria-hidden="true"
+                    >
+                        {{ initials(page.props.auth.user.name) }}
                     </span>
-                    <span class="block truncate text-xs text-neutral-500">
-                        {{ page.props.auth.user.email }}
+                    <span class="min-w-0">
+                        <span
+                            class="block truncate font-medium text-neutral-900 dark:text-neutral-100"
+                        >
+                            {{ page.props.auth.user.name }}
+                        </span>
+                        <span
+                            class="block truncate text-xs font-normal text-neutral-500"
+                        >
+                            {{ page.props.auth.user.email }}
+                        </span>
                     </span>
                 </Link>
+                <a :href="home().url" target="_blank" :class="rowClass(false)">
+                    <CpIcon name="external" :class="iconClass(false)" />
+                    View site
+                </a>
                 <Link
                     :href="logout()"
                     as="button"
-                    class="mt-1 w-full rounded-md px-3 py-2 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    :class="cn(rowClass(false), 'w-full text-left')"
                 >
+                    <CpIcon name="logout" :class="iconClass(false)" />
                     Log out
                 </Link>
             </div>

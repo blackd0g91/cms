@@ -14,6 +14,8 @@ defineProps<{
         'id' | 'name' | 'handle' | 'description' | 'color'
     > & {
         posts_count: number;
+        // The chosen color, or the automatic one.
+        accent: string;
     })[];
 }>();
 </script>
@@ -39,21 +41,12 @@ defineProps<{
         <li
             v-for="template in templates"
             :key="template.id"
-            class="flex flex-wrap items-center justify-between gap-3 p-4"
+            class="flex flex-wrap items-center justify-between gap-3 p-4 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
         >
             <div class="min-w-0">
                 <span
-                    class="mr-2 inline-block size-2.5 rounded-full border"
-                    :class="
-                        template.color
-                            ? 'border-transparent'
-                            : 'border-neutral-400 dark:border-neutral-600'
-                    "
-                    :style="
-                        template.color
-                            ? { backgroundColor: template.color }
-                            : undefined
-                    "
+                    class="mr-2 inline-block size-2.5 rounded-full"
+                    :style="{ backgroundColor: template.accent }"
                     :title="template.color ?? 'Automatic color'"
                 />
                 <Link

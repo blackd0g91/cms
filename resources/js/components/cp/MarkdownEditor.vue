@@ -454,9 +454,9 @@ onUnmounted(() => {
 
 const modeClass = (name: Mode) =>
     cn(
-        'rounded-md px-2.5 py-1 text-sm',
+        'rounded-md px-2.5 py-1 text-sm transition-colors',
         mode.value === name
-            ? 'bg-neutral-100 font-medium dark:bg-neutral-800'
+            ? 'bg-white font-medium text-neutral-900 shadow-xs ring-1 ring-neutral-200 dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700'
             : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200',
     );
 </script>
@@ -471,7 +471,7 @@ const modeClass = (name: Mode) =>
         "
     >
         <div
-            class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
+            class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
         >
             <div
                 v-for="(group, i) in tools"
@@ -486,7 +486,7 @@ const modeClass = (name: Mode) =>
                     :aria-label="tool.title"
                     :class="
                         cn(
-                            'rounded px-2 py-1 text-xs text-neutral-600 hover:bg-white hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100',
+                            'rounded-md px-2 py-1 text-xs text-neutral-600 transition-colors hover:bg-white hover:text-neutral-900 hover:shadow-xs dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100',
                             tool.class,
                         )
                     "
@@ -566,8 +566,7 @@ const modeClass = (name: Mode) =>
                         'cp-input font-mono',
                         (mode === 'split' || fullscreen) &&
                             'h-full resize-none',
-                        dragging &&
-                            'border-blue-500 ring-2 ring-blue-500/30 dark:border-blue-400',
+                        dragging && 'border-brand ring-3 ring-brand/20',
                     )
                 "
                 @input="model = ($event.target as HTMLTextAreaElement).value"
@@ -584,7 +583,7 @@ const modeClass = (name: Mode) =>
                 ref="previewRef"
                 :class="
                     cn(
-                        'overflow-y-auto rounded-md border border-neutral-200 p-4 dark:border-neutral-800',
+                        'overflow-y-auto rounded-lg border border-neutral-200 p-4 dark:border-neutral-800',
                         mode === 'split' || fullscreen ? 'h-full' : 'min-h-40',
                     )
                 "

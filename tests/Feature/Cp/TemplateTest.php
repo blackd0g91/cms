@@ -31,14 +31,17 @@ test('guests can not manage templates', function () {
     $this->get(route('cp.templates.index'))->assertRedirect(route('cp.login'));
 });
 
-test('templates are listed with their post counts', function () {
-    Post::factory()->count(2)->for($template = Template::factory()->create())->create();
+test('templates are listed with their post counts and colors', function () {
+    Post::factory()->count(2)->for($template = Template::factory()->create(['name' => 'Articles', 'color' => null]))->create();
+    $colored = Template::factory()->create(['name' => 'Recipes', 'color' => '#aa3300']);
 
     $this->get(route('cp.templates.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('cp/templates/Index')
             ->where('templates.0.id', $template->id)
-            ->where('templates.0.posts_count', 2));
+            ->where('templates.0.posts_count', 2)
+            ->where('templates.0.accent', $template->accentColor())
+            ->where('templates.1.accent', '#aa3300'));
 });
 
 test('a template can be created', function () {

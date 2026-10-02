@@ -22,7 +22,9 @@ class TemplateController extends Controller
             'templates' => Template::query()
                 ->withCount('posts')
                 ->orderBy('name')
-                ->get(['id', 'name', 'handle', 'description', 'color']),
+                ->get(['id', 'name', 'handle', 'description', 'color'])
+                // The chosen color, or the automatic one the site uses.
+                ->map(fn (Template $template) => [...$template->toArray(), 'accent' => $template->accentColor()]),
         ]);
     }
 

@@ -7,16 +7,89 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/*
+ * dark: styles apply when dark is chosen with the theme switch (data-theme on
+ * <html>, see resources/js/lib/theme.ts), or when following a dark system.
+ */
+@custom-variant dark {
+    &:where([data-theme='dark'], [data-theme='dark'] *) {
+        @slot;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        &:where(:not([data-theme='light'], [data-theme='light'] *)) {
+            @slot;
+        }
+    }
+}
+
 @theme inline {
     --font-sans:
         Instrument Sans, ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+
+    /* The one accent: primary buttons, the current page, focus rings. */
+    --color-brand: var(--cp-brand);
+    --color-brand-hover: var(--cp-brand-hover);
+    --color-brand-fg: var(--cp-brand-fg);
 }
 
-/* Native parts (scrollbars, date pickers) follow the light or dark system theme. */
+/*
+ * Grays with a little of the site's warmth (its paper and ink), at the same
+ * lightness as Tailwind's neutral, so every contrast stays as it was.
+ */
+@theme {
+    --color-neutral-50: oklch(0.985 0.003 80);
+    --color-neutral-100: oklch(0.968 0.005 80);
+    --color-neutral-200: oklch(0.922 0.007 78);
+    --color-neutral-300: oklch(0.87 0.009 76);
+    --color-neutral-400: oklch(0.708 0.012 72);
+    --color-neutral-500: oklch(0.556 0.013 70);
+    --color-neutral-600: oklch(0.439 0.012 68);
+    --color-neutral-700: oklch(0.371 0.011 66);
+    --color-neutral-800: oklch(0.269 0.009 64);
+    --color-neutral-900: oklch(0.205 0.008 62);
+    --color-neutral-950: oklch(0.145 0.007 60);
+}
+
+/*
+ * A deep ink blue: serious, apart from the green, amber and red that mean
+ * published, draft and danger, and of a kind with the charts' blue.
+ */
 :root {
+    --cp-brand: oklch(0.49 0.13 262);
+    --cp-brand-hover: oklch(0.43 0.13 262);
+    --cp-brand-fg: oklch(0.99 0 0);
+
+    /* Native parts (scrollbars, date pickers) follow the theme. */
     color-scheme: light dark;
+    accent-color: var(--cp-brand);
+}
+
+:root[data-theme='light'] {
+    color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --cp-brand: oklch(0.76 0.1 262);
+    --cp-brand-hover: oklch(0.82 0.08 262);
+    --cp-brand-fg: oklch(0.17 0.02 262);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+        --cp-brand: oklch(0.76 0.1 262);
+        --cp-brand-hover: oklch(0.82 0.08 262);
+        --cp-brand-fg: oklch(0.17 0.02 262);
+    }
+}
+
+/* While switching themes, so every color changes at once. */
+.theme-switching,
+.theme-switching * {
+    transition: none !important;
 }
 
 /* Anchors and focused fields scroll into view below the sticky page header. */
@@ -30,7 +103,7 @@ html {
     }
 
     .cp-input {
-        @apply block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200 focus:outline-none dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:ring-neutral-800;
+        @apply block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-xs transition-[border-color,box-shadow] focus:border-brand focus:ring-3 focus:ring-brand/15 focus:outline-none dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-brand dark:focus:ring-brand/25;
     }
 
     .cp-error {
@@ -38,20 +111,33 @@ html {
     }
 
     .cp-btn {
-        @apply inline-flex items-center justify-center gap-2 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-xs transition-colors hover:border-neutral-400 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-neutral-600 dark:hover:bg-neutral-800;
     }
 
     .cp-btn-primary {
-        @apply inline-flex items-center justify-center gap-2 rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-brand-fg shadow-xs transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50;
     }
 
     /* Shaped like .cp-btn, as it usually sits beside one, in red. */
     .cp-btn-danger {
-        @apply inline-flex items-center justify-center gap-2 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:border-red-300 hover:bg-red-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-red-400 dark:hover:border-red-900 dark:hover:bg-red-950;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-red-600 shadow-xs transition-colors hover:border-red-300 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-red-400 dark:hover:border-red-900 dark:hover:bg-red-950;
     }
 
     .cp-card {
-        @apply rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900;
+        @apply rounded-xl border border-neutral-200 bg-white shadow-[0_1px_2px_0_oklch(0.2_0.01_60/0.05)] dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none;
+    }
+
+    /* A small label for a state, like Published or Draft. */
+    .cp-badge {
+        @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset;
+    }
+
+    .cp-badge-published {
+        @apply bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-400 dark:ring-green-400/20;
+    }
+
+    .cp-badge-draft {
+        @apply bg-amber-50 text-amber-800 ring-amber-600/25 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-400/20;
     }
 }
 
