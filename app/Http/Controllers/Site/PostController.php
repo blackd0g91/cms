@@ -19,18 +19,29 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class PostController extends Controller
 {
     /**
-     * List a template's published posts.
+     * Whole rows of the grid, with two or three posts in a row.
+     */
+    private const int PER_PAGE = 24;
+
+    /**
+     * List a template's published posts, a page at a time.
      */
     public function index(Template $template): View
     {
+        $posts = $template->posts()
+            ->with('thumbnail')
+            ->where('status', PostStatus::Published)
+            ->pinnedFirst()
+            ->paginate(self::PER_PAGE);
+
+        // Past the last page there is nothing to show.
+        abort_if($posts->isEmpty() && $posts->currentPage() > 1, 404);
+
+        $posts->getCollection()->each->setRelation('template', $template);
+
         return view('site.index', [
             'template' => $template,
-            'posts' => $template->posts()
-                ->with('thumbnail')
-                ->where('status', PostStatus::Published)
-                ->pinnedFirst()
-                ->get()
-                ->each->setRelation('template', $template),
+            'posts' => $posts,
         ]);
     }
 

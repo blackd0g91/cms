@@ -11,7 +11,9 @@
     // Link previews (WhatsApp, Slack, ...) do not show SVG images.
     $image = collect([$meta['image'] ?? null, $settings->logo()?->url])
         ->first(fn (?string $url) => $url !== null && ! Str::endsWith(Str::lower($url), '.svg'));
-    $url = url()->current();
+    // Later pages of a listing are pages of their own, not copies of the first.
+    $page = request()->integer('page');
+    $url = url()->current().($page > 1 ? "?page={$page}" : '');
 @endphp
 @if ($description !== '')
     <meta name="description" content="{{ $description }}">

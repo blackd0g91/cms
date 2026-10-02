@@ -7,7 +7,6 @@
 @source '../views/site';
 @source '../views/errors';
 @source '../js/site.ts';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 /*
  * A personal notebook: warm paper and ink, a serif for titles, monospace for

@@ -1,5 +1,5 @@
 @extends('site.layout', [
-    'title' => $template->name,
+    'title' => $template->name.($posts->currentPage() > 1 ? " – page {$posts->currentPage()}" : ''),
     'meta' => [
         'description' => $template->description,
         'feed' => ['title' => $template->name, 'url' => route('site.template.feed', $template)],
@@ -20,11 +20,12 @@
                     @endif
                 </div>
                 <p class="shrink-0 font-mono text-xs text-muted">
-                    {{ $posts->count() }} {{ Str::plural('entry', $posts->count()) }}
+                    {{ $posts->total() }} {{ Str::plural('entry', $posts->total()) }}
                 </p>
             </div>
         </header>
 
         @include('site.partials.post-grid', ['posts' => $posts])
+        @include('site.partials.pagination', ['paginator' => $posts])
     </div>
 @endsection

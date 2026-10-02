@@ -16,8 +16,6 @@
 
         @include('site.partials.post-list', ['posts' => $posts, 'excerpt' => $excerpt])
 
-        <div class="mt-8">
-            {{ $posts->links() }}
-        </div>
+        @include('site.partials.pagination', ['paginator' => $posts])
     @endif
 @endsection
