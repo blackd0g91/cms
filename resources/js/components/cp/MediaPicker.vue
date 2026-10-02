@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { requestJson } from '@/lib/http';
-import { library, store } from '@/routes/cp/media';
+import { IMAGE_TYPES, uploadImage } from '@/lib/media';
+import { library } from '@/routes/cp/media';
 import type { Media } from '@/types';
 
 const emit = defineEmits<{
@@ -45,21 +46,11 @@ const upload = async (event: Event) => {
         return;
     }
 
-    const body = new FormData();
-    body.append('file', file);
-
     uploading.value = true;
     error.value = null;
 
     try {
-        const uploaded = (
-            await requestJson<{ media: Media }>(store().url, {
-                method: 'POST',
-                body,
-            })
-        ).media;
-
-        choose(uploaded);
+        choose(await uploadImage(file));
     } catch (e) {
         error.value = e instanceof Error ? e.message : 'Upload failed';
     } finally {
@@ -86,7 +77,7 @@ defineExpose({ open });
                     {{ uploading ? 'Uploading…' : 'Upload' }}
                     <input
                         type="file"
-                        accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml"
+                        :accept="IMAGE_TYPES.join(',')"
                         class="sr-only"
                         :disabled="uploading"
                         @change="upload"

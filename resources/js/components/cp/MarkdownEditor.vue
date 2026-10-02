@@ -4,6 +4,7 @@ import EmojiPicker from '@/components/cp/EmojiPicker.vue';
 import MarkdownHelp from '@/components/cp/MarkdownHelp.vue';
 import MediaPicker from '@/components/cp/MediaPicker.vue';
 import { requestJson } from '@/lib/http';
+import { IMAGE_TYPES, uploadImage } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import { preview as previewRoute } from '@/routes/cp/markdown';
 import type { Media } from '@/types';
@@ -201,10 +202,115 @@ const link = () => {
     replace(markdown, [text.length + 3, markdown.length - 1]);
 };
 
-const insertImage = (media: Media) => {
-    const alt = (media.alt ?? media.filename).replace(/[[\]]/g, '');
+const imageMarkdown = (media: Media) =>
+    `![${(media.alt ?? media.filename).replace(/[[\]]/g, '')}](${media.url})`;
 
-    replace(`![${alt}](${media.url})`);
+const insertImage = (media: Media) => replace(imageMarkdown(media));
+
+// --- Pasting and dropping images ---------------------------------------------
+
+const uploadError = ref<string | null>(null);
+const dragging = ref(false);
+let uploads = 0;
+
+/**
+ * Put text where a placeholder is, keeping the cursor where it was (it may
+ * have moved on while uploading). Nothing happens if the placeholder was
+ * deleted meanwhile.
+ */
+const swap = (placeholder: string, text: string) => {
+    const textarea = textareaRef.value;
+    const at = textarea?.value.indexOf(placeholder) ?? -1;
+
+    if (!textarea || at === -1) {
+        return;
+    }
+
+    textarea.setRangeText(text, at, at + placeholder.length, 'preserve');
+    model.value = textarea.value;
+};
+
+/**
+ * Upload images into the media library and add them at the cursor (or at
+ * the end, when nothing in the text was clicked). Each gets a placeholder
+ * right away, replaced once it is uploaded, so writing can go on.
+ */
+const addImages = async (files: File[]) => {
+    const textarea = textareaRef.value;
+    const images = files.filter((file) => IMAGE_TYPES.includes(file.type));
+    const others = files.filter((file) => !images.includes(file));
+
+    uploadError.value = others.length
+        ? `Only images can be added here, not ${others.map((file) => file.name).join(', ')}.`
+        : null;
+
+    if (!textarea || !images.length) {
+        return;
+    }
+
+    let before = '';
+
+    if (document.activeElement !== textarea) {
+        textarea.setSelectionRange(
+            textarea.value.length,
+            textarea.value.length,
+        );
+        before =
+            textarea.value === '' || textarea.value.endsWith('\n')
+                ? ''
+                : '\n\n';
+    }
+
+    const placeholders = images.map(
+        (file) =>
+            `[Uploading ${file.name.replace(/[[\]]/g, '')}…](#uploading-${++uploads})`,
+    );
+    replace(before + placeholders.join('\n'));
+
+    // One at a time, as each one is resized on the server.
+    for (const [i, file] of images.entries()) {
+        try {
+            swap(placeholders[i], imageMarkdown(await uploadImage(file)));
+        } catch (e) {
+            swap(placeholders[i], '');
+            uploadError.value = `${file.name} was not added: ${e instanceof Error ? e.message : 'the upload failed'}`;
+        }
+    }
+};
+
+const onPaste = (event: ClipboardEvent) => {
+    const data = event.clipboardData;
+    const files = [...(data?.files ?? [])];
+
+    // Text copied from documents often comes with a picture of it too, so
+    // only clipboards without text are uploaded.
+    if (!files.length || data?.types.includes('text/plain')) {
+        return;
+    }
+
+    event.preventDefault();
+    void addImages(files);
+};
+
+const draggingFiles = (event: DragEvent) =>
+    event.dataTransfer?.types.includes('Files') ?? false;
+
+const onDragOver = (event: DragEvent) => {
+    // Text dragged around inside the editor moves as usual.
+    if (draggingFiles(event)) {
+        event.preventDefault();
+        dragging.value = true;
+    }
+};
+
+const onDrop = (event: DragEvent) => {
+    dragging.value = false;
+
+    if (draggingFiles(event)) {
+        // Otherwise the browser would open the file instead of the page.
+        event.preventDefault();
+        void addImages([...(event.dataTransfer?.files ?? [])]);
+    }
 };
 
 type Tool = {
@@ -272,7 +378,7 @@ const tools: Tool[][] = [
         },
         {
             label: 'Image',
-            title: 'Insert image',
+            title: 'Insert image (or paste or drop one into the text)',
             run: () => picker.value?.open(),
         },
     ],
@@ -407,6 +513,21 @@ const modeClass = (name: Mode) =>
         </div>
         <MediaPicker ref="picker" @select="insertImage" />
 
+        <p
+            v-if="uploadError"
+            class="mb-2 flex items-start justify-between gap-3 text-sm text-red-600 dark:text-red-400"
+            role="alert"
+        >
+            {{ uploadError }}
+            <button
+                type="button"
+                class="shrink-0 text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+                @click="uploadError = null"
+            >
+                Dismiss
+            </button>
+        </p>
+
         <div
             :class="
                 cn(
@@ -425,16 +546,23 @@ const modeClass = (name: Mode) =>
                 :value="model ?? ''"
                 :rows="mode === 'write' && !fullscreen ? 14 : undefined"
                 spellcheck="false"
+                placeholder="Write in markdown. Paste or drop images to add them."
                 :class="
                     cn(
                         'cp-input font-mono',
                         (mode === 'split' || fullscreen) &&
                             'h-full resize-none',
+                        dragging &&
+                            'border-blue-500 ring-2 ring-blue-500/30 dark:border-blue-400',
                     )
                 "
                 @input="model = ($event.target as HTMLTextAreaElement).value"
                 @keydown="onKeydown"
                 @scroll="syncScroll"
+                @paste="onPaste"
+                @dragover="onDragOver"
+                @dragleave="dragging = false"
+                @drop="onDrop"
             />
 
             <div
