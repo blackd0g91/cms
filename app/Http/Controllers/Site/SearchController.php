@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Site;
 
+use App\Cms\SiteSearches;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
@@ -12,7 +13,7 @@ use Illuminate\View\View;
 
 class SearchController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, SiteSearches $searches): View
     {
         $query = trim($request->string('q')->limit(200, '')->toString());
 
@@ -25,6 +26,11 @@ class SearchController extends Controller
                 ->latest('published_at')
                 ->paginate(20)
                 ->withQueryString();
+
+        // Paging through the results is the same search.
+        if ($posts?->onFirstPage()) {
+            $searches->record($request, $query);
+        }
 
         return view('site.search', [
             'query' => $query,

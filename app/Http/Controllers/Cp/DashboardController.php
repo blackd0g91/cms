@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cp;
 
 use App\Cms\ContentCheckup;
 use App\Cms\PostViews;
+use App\Cms\SiteSearches;
 use App\Cms\SystemStatus;
 use App\Cms\Trash;
 use App\Enums\PostStatus;
@@ -18,7 +19,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, ContentCheckup $checkup, PostViews $views, SystemStatus $system, Trash $trash): Response
+    public function __invoke(Request $request, ContentCheckup $checkup, PostViews $views, SystemStatus $system, SiteSearches $searches, Trash $trash): Response
     {
         $trash->purgeExpired();
 
@@ -30,6 +31,7 @@ class DashboardController extends Controller
                 ...$row['post']->toListItem(),
                 'views' => $row['views'],
             ], $views->popular()),
+            'searches' => $searches->overview(),
             'checkup' => $checkup->run(),
             'activity' => $this->activity(),
             'stats' => [

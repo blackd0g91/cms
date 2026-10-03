@@ -7,6 +7,8 @@ import type { Check } from '@/components/cp/ContentCheckup.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PopularPosts from '@/components/cp/PopularPosts.vue';
 import PostList from '@/components/cp/PostList.vue';
+import SiteSearches from '@/components/cp/SiteSearches.vue';
+import type { SearchOverview } from '@/components/cp/SiteSearches.vue';
 import SiteViews from '@/components/cp/SiteViews.vue';
 import SystemStatus from '@/components/cp/SystemStatus.vue';
 import type { SystemReport } from '@/components/cp/SystemStatus.vue';
@@ -38,6 +40,7 @@ const props = defineProps<{
     activity: { month: string; count: number }[];
     views: { daily: DayViews[]; total: number; previous: number };
     popular: (PostListItem & { views: number })[];
+    searches: SearchOverview;
     // Only for admins.
     system: SystemReport | null;
 }>();
@@ -244,6 +247,8 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
         <ActivityChart :months="activity" />
         <PopularPosts :posts="popular" />
     </div>
+
+    <SiteSearches :searches="searches" class="mb-6" />
 
     <div class="grid gap-6 lg:grid-cols-2">
         <section class="cp-card">

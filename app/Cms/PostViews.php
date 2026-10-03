@@ -13,14 +13,9 @@ use Illuminate\Support\Facades\DB;
  */
 class PostViews
 {
-    /**
-     * User agents of crawlers and link preview fetchers, which are not readers.
-     */
-    private const string BOTS = '/bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|slack|skype|curl|wget|python|headless|lighthouse|monitor|uptime/i';
-
     public function record(Request $request, Post $post): void
     {
-        if (! $request->isMethod('GET') || $request->user() || ! $post->isPublished() || $this->isBot($request)) {
+        if (! $request->isMethod('GET') || $request->user() || ! $post->isPublished() || Bots::sent($request)) {
             return;
         }
 
@@ -150,12 +145,5 @@ class PostViews
             ->where('post_id', $post->id)
             ->where('date', '>=', now()->subDays($days - 1)->toDateString())
             ->sum('views');
-    }
-
-    private function isBot(Request $request): bool
-    {
-        $agent = (string) $request->userAgent();
-
-        return $agent === '' || preg_match(self::BOTS, $agent) === 1;
     }
 }
