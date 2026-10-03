@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { initials } from '@/lib/utils';
+import SiteMark from '@/components/cp/SiteMark.vue';
 
 // The frame of the pages for logging in, with the site's mark and name.
 defineProps<{
@@ -14,12 +14,7 @@ defineProps<{
     >
         <div class="w-full max-w-sm">
             <div class="mb-6 flex flex-col items-center gap-3 text-center">
-                <span
-                    class="grid size-10 place-items-center rounded-xl bg-brand text-sm font-semibold text-brand-fg shadow-xs"
-                    aria-hidden="true"
-                >
-                    {{ initials($page.props.name) }}
-                </span>
+                <SiteMark size="lg" />
                 <div>
                     <h1 class="text-xl font-semibold tracking-tight">
                         {{ $page.props.name }}

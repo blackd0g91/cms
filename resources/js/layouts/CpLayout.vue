@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref } from 'vue';
 import CpIcon from '@/components/cp/CpIcon.vue';
 import type { IconName } from '@/components/cp/CpIcon.vue';
+import SiteMark from '@/components/cp/SiteMark.vue';
 import ThemeButton from '@/components/cp/ThemeButton.vue';
 import { openSidebarKey } from '@/lib/sidebar';
 import { cn, initials } from '@/lib/utils';
@@ -164,12 +165,7 @@ const iconClass = (active: boolean) =>
                     :href="dashboard()"
                     class="flex min-w-0 items-center gap-2.5 font-semibold"
                 >
-                    <span
-                        class="grid size-7 shrink-0 place-items-center rounded-lg bg-brand text-xs font-semibold text-brand-fg"
-                        aria-hidden="true"
-                    >
-                        {{ initials(page.props.name) }}
-                    </span>
+                    <SiteMark />
                     <span class="truncate">{{ page.props.name }}</span>
                 </Link>
             </div>

@@ -130,3 +130,11 @@ export type PasswordLink = {
     // Inviting them, rather than a new password for someone who has one.
     invited: boolean;
 };
+
+/** The site's logo from the settings, shared with every control panel page. */
+export type SiteLogo = {
+    // Null without a logo, or once its image is deleted.
+    url: string | null;
+    // A CSS declaration like "background: #c2410c", or null for none.
+    background: string | null;
+};

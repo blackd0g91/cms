@@ -1,6 +1,6 @@
 import type { Directive } from 'vue';
 import type { Auth } from '@/types/auth';
-import type { PasswordLink } from '@/types/cms';
+import type { PasswordLink, SiteLogo } from '@/types/cms';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -23,6 +23,7 @@ declare module '@inertiajs/core' {
         };
         sharedPageProps: {
             name: string;
+            logo: SiteLogo;
             auth: Auth;
             sidebarOpen: boolean;
             [key: string]: unknown;

@@ -36,9 +36,16 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $settings = app(Settings::class);
+
         return [
             ...parent::share($request),
-            'name' => app(Settings::class)->siteName(),
+            'name' => $settings->siteName(),
+            // The site's mark, shown beside its name like on the public site.
+            'logo' => fn () => [
+                'url' => $settings->logo()?->url,
+                'background' => $settings->logoBackground(),
+            ],
             'auth' => [
                 'user' => $request->user(),
             ],

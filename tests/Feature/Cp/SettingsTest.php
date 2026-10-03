@@ -50,6 +50,34 @@ test('the control panel uses the site name', function () {
         ->assertInertia(fn (Assert $page) => $page->where('name', 'Garmr'));
 });
 
+test('the control panel shows the site logo', function () {
+    $logo = Media::factory()->create();
+    app(Settings::class)->update([
+        'logo_id' => $logo->id,
+        'logo_background' => ['type' => 'solid', 'from' => '#c2410c', 'to' => '#c2410c', 'angle' => 135],
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('cp.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('logo.url', $logo->url)
+            ->where('logo.background', 'background: #c2410c'));
+
+    // The login page shows it too.
+    auth()->logout();
+
+    $this->get(route('cp.login'))
+        ->assertInertia(fn (Assert $page) => $page->where('logo.url', $logo->url));
+});
+
+test('without a logo the control panel shows the letter badge', function () {
+    $this->actingAs(User::factory()->create())
+        ->get(route('cp.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('logo.url', null)
+            ->where('logo.background', null));
+});
+
 test('the public site shows the settings', function () {
     app(Settings::class)->update([
         'site_name' => 'Garmr',
