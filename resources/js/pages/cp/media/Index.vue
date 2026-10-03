@@ -48,12 +48,12 @@ const remove = (item: Media) => {
     const usages = usagesOf(item);
     const message =
         usages.length === 0
-            ? `Delete "${item.filename}"?`
+            ? `Move "${item.filename}" to the trash? It can be restored from there for a while.`
             : [
                   `"${item.filename}" is still used in:`,
                   ...usages.map((usage) => `• ${usage.label}`),
                   '',
-                  'Those places will show no image, or a broken one if it was inserted into markdown. Delete anyway?',
+                  'Move it to the trash anyway? Thumbnails and image fields stop showing it right away, and markdown shows a broken image once it is deleted for good.',
               ].join('\n');
 
     if (!confirm(message)) {

@@ -104,11 +104,12 @@ test('photos rotated by the camera are stored upright', function () {
         ->and(variantSize($media, 400))->toBe([400, 600, 'image/webp']);
 });
 
-test('deleting an image removes its copies', function () {
+test('deleting an image for good removes its copies', function () {
     $this->post(route('cp.media.store'), ['file' => realImage(2000, 1000)]);
     $media = Media::sole();
 
     $this->delete(route('cp.media.destroy', $media));
+    $this->delete(route('cp.trash.media.destroy', $media->id));
 
     foreach ($media->variants as $path) {
         Storage::disk('public')->assertMissing($path);

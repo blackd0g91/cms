@@ -47,8 +47,9 @@ class TemplateController extends Controller
     {
         return Inertia::render('cp/templates/Edit', [
             'template' => $template->only(['id', 'name', 'handle', 'description', 'color', 'fields', 'layout']),
-            // Templates with posts can not be deleted.
-            'postsCount' => $template->posts()->count(),
+            // Templates with posts can not be deleted, counting those in the trash.
+            'postsCount' => $template->posts()->withTrashed()->count(),
+            'trashedPostsCount' => $template->posts()->onlyTrashed()->count(),
             'fieldTypes' => $this->fieldTypes(),
         ]);
     }
@@ -88,9 +89,11 @@ class TemplateController extends Controller
 
     public function destroy(Template $template): RedirectResponse
     {
-        if ($template->posts()->exists()) {
+        if ($template->posts()->withTrashed()->exists()) {
             throw ValidationException::withMessages([
-                'template' => 'Delete this template\'s posts before deleting the template.',
+                'template' => $template->posts()->exists()
+                    ? 'Delete this template\'s posts before deleting the template.'
+                    : 'This template\'s posts are in the trash. Delete them for good from the trash first.',
             ]);
         }
 

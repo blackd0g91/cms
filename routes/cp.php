@@ -11,6 +11,7 @@ use App\Http\Controllers\Cp\PostController;
 use App\Http\Controllers\Cp\SettingsController;
 use App\Http\Controllers\Cp\TagController;
 use App\Http\Controllers\Cp\TemplateController;
+use App\Http\Controllers\Cp\TrashController;
 use App\Http\Controllers\Cp\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,14 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::get('account', [AccountController::class, 'edit'])->name('account.edit');
         Route::put('account', [AccountController::class, 'update'])->name('account.update');
         Route::put('account/password', [AccountController::class, 'updatePassword'])->name('account.password');
+
+        // Deleted posts and images, kept for a while before they are deleted for good.
+        Route::get('trash', [TrashController::class, 'index'])->name('trash.index');
+        Route::delete('trash', [TrashController::class, 'empty'])->name('trash.empty');
+        Route::post('trash/posts/{id}/restore', [TrashController::class, 'restorePost'])->whereNumber('id')->name('trash.posts.restore');
+        Route::delete('trash/posts/{id}', [TrashController::class, 'destroyPost'])->whereNumber('id')->name('trash.posts.destroy');
+        Route::post('trash/media/{id}/restore', [TrashController::class, 'restoreMedia'])->whereNumber('id')->name('trash.media.restore');
+        Route::delete('trash/media/{id}', [TrashController::class, 'destroyMedia'])->whereNumber('id')->name('trash.media.destroy');
 
         Route::get('tags', [TagController::class, 'index'])->name('tags.index');
         Route::put('tags/{tag:id}', [TagController::class, 'update'])->name('tags.update');

@@ -106,7 +106,7 @@ class ContentCheckup
         return [
             'key' => 'broken-images',
             'label' => 'Posts with missing images',
-            'hint' => 'These posts point at images that were deleted, so they show nothing or a broken image.',
+            'hint' => 'These posts point at images that were deleted or are in the trash, so they show nothing or a broken image.',
             'count' => $broken->count(),
             'items' => $this->postItems(
                 $broken->take(self::SHOWN),

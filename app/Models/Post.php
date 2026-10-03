@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Cms\ShareImage;
+use App\Cms\Trash;
 use App\Enums\FieldType;
 use App\Enums\PostStatus;
 use Carbon\CarbonImmutable;
@@ -12,9 +13,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
@@ -31,6 +34,7 @@ use Illuminate\Support\Str;
  * @property int|null $thumbnail_id
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at When it was moved to the trash
  * @property-read Template $template
  * @property-read User|null $author
  * @property-read Media|null $thumbnail
@@ -41,7 +45,7 @@ use Illuminate\Support\Str;
 class Post extends Model
 {
     /** @use HasFactory<PostFactory> */
-    use HasFactory;
+    use HasFactory, Prunable, SoftDeletes;
 
     protected static function booted(): void
     {
@@ -51,6 +55,16 @@ class Post extends Model
         static::saved(fn (Post $post) => $post->syncMedia());
 
         static::deleted(fn (Post $post) => app(ShareImage::class)->forget($post));
+    }
+
+    /**
+     * Posts in the trash for long enough to be deleted for good.
+     *
+     * @return Builder<Post>
+     */
+    public function prunable(): Builder
+    {
+        return static::onlyTrashed()->where('deleted_at', '<=', now()->subDays(Trash::DAYS));
     }
 
     /**
@@ -229,10 +243,11 @@ class Post extends Model
 
         $ids = [
             ...array_filter($ids, is_int(...)),
-            ...Media::query()->whereIn('path', array_unique($paths[0]))->pluck('id')->all(),
+            ...Media::withTrashed()->whereIn('path', array_unique($paths[0]))->pluck('id')->all(),
         ];
 
-        $this->media()->sync(Media::query()->whereKey(array_unique($ids))->pluck('id'));
+        // Images in the trash count too, so their usage is known if restored.
+        $this->media()->sync(Media::withTrashed()->whereKey(array_unique($ids))->pluck('id'));
     }
 
     /**

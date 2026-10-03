@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 /**
  * Finds where images are used: post thumbnails, image fields, images inserted
  * into markdown (or any other text) by URL, the home page intro, and the site
- * logo and icon.
+ * logo and icon. Posts in the trash count too, as they can be restored.
  */
 class MediaUsage
 {
@@ -31,15 +31,20 @@ class MediaUsage
 
         $ids = $media->pluck('id')->all();
 
-        $posts = Post::query()
-            ->with(['template:id,name', 'media' => fn ($query) => $query->whereKey($ids)->select('media.id')])
-            ->whereHas('media', fn ($query) => $query->whereKey($ids))
+        $posts = Post::withTrashed()
+            ->with(['template:id,name', 'media' => fn ($query) => $query->withTrashed()->whereKey($ids)->select('media.id')])
+            ->whereHas('media', fn ($query) => $query->withTrashed()->whereKey($ids))
             ->orderBy('title')
-            ->get(['id', 'template_id', 'title']);
+            ->get(['id', 'template_id', 'title', 'deleted_at']);
 
         foreach ($posts as $post) {
             foreach ($post->media as $item) {
-                $usages[$item->id][] = [
+                // A post in the trash can not be opened, so it gets no link.
+                $usages[$item->id][] = $post->trashed() ? [
+                    'label' => "{$post->title} ({$post->template->name}, in the trash)",
+                    'post_id' => null,
+                    'template_id' => null,
+                ] : [
                     'label' => "{$post->title} ({$post->template->name})",
                     'post_id' => $post->id,
                     'template_id' => $post->template_id,

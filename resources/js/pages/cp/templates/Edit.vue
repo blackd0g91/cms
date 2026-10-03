@@ -19,8 +19,10 @@ defineOptions({ layout: CpLayout });
 
 const props = defineProps<{
     template: Template | null;
-    // Only when editing: a template with posts can not be deleted.
+    // Only when editing: a template with posts can not be deleted, counting
+    // those in the trash.
     postsCount?: number;
+    trashedPostsCount?: number;
     fieldTypes: FieldTypeOption[];
 }>();
 
@@ -206,7 +208,7 @@ const variables = computed(() => [
                 :disabled="(postsCount ?? 0) > 0"
                 :title="
                     postsCount
-                        ? `Delete its ${postsCount === 1 ? 'post' : `${postsCount} posts`} first`
+                        ? `Delete its ${postsCount === 1 ? 'post' : `${postsCount} posts`} first${trashedPostsCount ? ` (${trashedPostsCount} in the trash)` : ''}`
                         : 'Delete this template'
                 "
                 @click="deleteTemplate"

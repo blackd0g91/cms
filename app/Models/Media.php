@@ -4,13 +4,17 @@ namespace App\Models;
 
 use App\Cms\ImageVariants;
 use App\Cms\Svg;
+use App\Cms\Trash;
 use Carbon\CarbonImmutable;
 use Database\Factories\MediaFactory;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -33,13 +37,33 @@ use Illuminate\Validation\ValidationException;
  * @property-read string $thumb_url A small version, for grids and pickers
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at When it was moved to the trash
  */
 #[Fillable(['disk', 'path', 'filename', 'mime_type', 'size', 'width', 'height', 'alt'])]
 #[Appends(['url', 'thumb_url'])]
 class Media extends Model
 {
     /** @use HasFactory<MediaFactory> */
-    use HasFactory;
+    use HasFactory, Prunable, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        // In the trash the files stay, so the image can be restored.
+        static::forceDeleted(function (Media $media) {
+            app(ImageVariants::class)->deleteFiles($media);
+            Storage::disk($media->disk)->delete($media->path);
+        });
+    }
+
+    /**
+     * Images in the trash for long enough to be deleted for good.
+     *
+     * @return Builder<Media>
+     */
+    public function prunable(): Builder
+    {
+        return static::onlyTrashed()->where('deleted_at', '<=', now()->subDays(Trash::DAYS));
+    }
 
     /**
      * Store an uploaded image on the public disk. SVGs are sanitized first,
@@ -134,17 +158,6 @@ class Media extends Model
             'width' => $width,
             'height' => $height,
         ]);
-    }
-
-    /**
-     * Remove the file along with the record.
-     */
-    public function deleteWithFile(): void
-    {
-        app(ImageVariants::class)->deleteFiles($this);
-        Storage::disk($this->disk)->delete($this->path);
-
-        $this->delete();
     }
 
     /**

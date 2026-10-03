@@ -16,6 +16,7 @@ import { index as postsIndex } from '@/routes/cp/posts';
 import { edit as settingsEdit } from '@/routes/cp/settings';
 import { index as tagsIndex } from '@/routes/cp/tags';
 import { index as templatesIndex } from '@/routes/cp/templates';
+import { index as trashIndex } from '@/routes/cp/trash';
 import { index as usersIndex } from '@/routes/cp/users';
 
 type NavItem = {
@@ -73,6 +74,12 @@ const groups: NavGroup[] = [
                 href: mediaIndex().url,
                 icon: 'media',
                 active: (path) => path.startsWith(mediaIndex().url),
+            },
+            {
+                title: 'Trash',
+                href: trashIndex().url,
+                icon: 'trash',
+                active: (path) => path === trashIndex().url,
             },
         ],
     },

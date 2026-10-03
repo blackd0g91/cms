@@ -121,11 +121,14 @@ test('renaming a field also updates old versions', function () {
         ->not->toHaveKey('body');
 });
 
-test('deleting a post deletes its history', function () {
+test('deleting a post for good deletes its history', function () {
     savePost($this->template, null);
     $post = Post::sole();
 
     $this->delete(route('cp.templates.posts.destroy', [$this->template, $post]));
+    expect(PostRevision::count())->toBe(1);
+
+    $this->delete(route('cp.trash.posts.destroy', $post->id));
 
     expect(PostRevision::count())->toBe(0);
 });

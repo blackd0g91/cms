@@ -81,14 +81,14 @@ test('alt text can be updated', function () {
     expect($media->fresh()->alt)->toBe('A bowl of soup');
 });
 
-test('deleting media removes the file', function () {
+test('deleting media moves it to the trash, keeping the file', function () {
     $this->post(route('cp.media.store'), ['file' => fakePng()]);
     $media = Media::sole();
 
     $this->delete(route('cp.media.destroy', $media))->assertRedirect();
 
-    $this->assertModelMissing($media);
-    Storage::disk('public')->assertMissing($media->path);
+    $this->assertSoftDeleted($media);
+    Storage::disk('public')->assertExists($media->path);
 });
 
 function imageTemplate(): Template
@@ -131,7 +131,7 @@ test('images in use are only deleted when forced', function () {
     $this->assertModelExists($media);
 
     $this->delete(route('cp.media.destroy', ['media' => $media, 'force' => 1]))->assertSessionHasNoErrors();
-    $this->assertModelMissing($media);
+    $this->assertSoftDeleted($media);
 });
 
 test('a number in another field type does not count as image usage', function () {

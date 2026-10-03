@@ -15,7 +15,8 @@ export type IconName =
     | 'logout'
     | 'monitor'
     | 'sun'
-    | 'moon';
+    | 'moon'
+    | 'trash';
 
 defineProps<{ name: IconName }>();
 </script>
@@ -91,6 +92,11 @@ defineProps<{ name: IconName }>();
         </template>
         <template v-else-if="name === 'moon'">
             <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+        </template>
+        <template v-else-if="name === 'trash'">
+            <path d="M4 7h16M10 11v6M14 11v6" />
+            <path d="M5.5 7l1 12a2 2 0 0 0 2 1.8h7a2 2 0 0 0 2-1.8l1-12" />
+            <path d="M9 7V4.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1V7" />
         </template>
         <template v-else-if="name === 'logout'">
             <path d="M9.5 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3.5" />

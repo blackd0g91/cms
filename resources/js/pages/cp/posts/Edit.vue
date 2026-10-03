@@ -243,7 +243,12 @@ useUnsavedChanges({
 });
 
 const deletePost = () => {
-    if (!props.post || !confirm(`Delete "${props.post.title}"?`)) {
+    if (
+        !props.post ||
+        !confirm(
+            `Move "${props.post.title}" to the trash? It can be restored from there for a while.`,
+        )
+    ) {
         return;
     }
 

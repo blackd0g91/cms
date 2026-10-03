@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use App\Models\User;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -54,7 +55,13 @@ class PostRequest extends FormRequest
             'slug' => [
                 'required', 'string', 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique(Post::class)->where('template_id', $this->template()->id)->ignore($post),
+                Rule::unique(Post::class)->where('template_id', $this->template()->id)->ignore($post)->withoutTrashed(),
+                // Posts in the trash keep their slugs, for when they are restored.
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if (Post::onlyTrashed()->where('template_id', $this->template()->id)->where('slug', $value)->exists()) {
+                        $fail('A post in the trash uses this slug. Restore it, or delete it for good from the trash.');
+                    }
+                },
             ],
             'status' => ['required', Rule::enum(PostStatus::class)],
             'thumbnail_id' => ['nullable', 'integer', Rule::exists(Media::class, 'id')],

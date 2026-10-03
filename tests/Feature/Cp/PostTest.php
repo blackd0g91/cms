@@ -137,13 +137,13 @@ test('posts are scoped to their template', function () {
     $this->get(route('cp.templates.posts.edit', [$this->template, $post]))->assertNotFound();
 });
 
-test('a post can be deleted', function () {
+test('a deleted post goes to the trash', function () {
     $post = Post::factory()->for($this->template)->create();
 
     $this->delete(route('cp.templates.posts.destroy', [$this->template, $post]))
         ->assertRedirect(route('cp.posts.index'));
 
-    $this->assertModelMissing($post);
+    $this->assertSoftDeleted($post);
 });
 
 test('markdown can be previewed', function () {
@@ -236,11 +236,17 @@ test('a post can have a thumbnail', function () {
             ->where("media.{$media->id}.id", $media->id));
 });
 
-test('deleting the thumbnail image clears it from the post', function () {
+test('a thumbnail in the trash is hidden, and cleared once deleted for good', function () {
     $media = Media::factory()->create();
     $post = Post::factory()->for($this->template)->create(['thumbnail_id' => $media->id]);
 
     $this->delete(route('cp.media.destroy', ['media' => $media, 'force' => 1]))->assertSessionHasNoErrors();
+
+    // Kept, for when the image is restored.
+    expect($post->fresh()->thumbnail_id)->toBe($media->id)
+        ->and($post->fresh()->thumbnail)->toBeNull();
+
+    $this->delete(route('cp.trash.media.destroy', $media->id));
 
     expect($post->fresh()->thumbnail_id)->toBeNull();
 });

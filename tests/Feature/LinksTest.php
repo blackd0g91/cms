@@ -130,7 +130,7 @@ test('the link to the page being viewed is marked as current', function () {
 test('links go away with their post', function () {
     Link::query()->create(['post_id' => $this->post->id, 'position' => 0]);
 
-    $this->post->delete();
+    $this->post->forceDelete();
 
     expect(Link::query()->count())->toBe(0);
 });

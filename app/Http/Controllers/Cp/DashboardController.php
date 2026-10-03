@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cp;
 use App\Cms\ContentCheckup;
 use App\Cms\PostViews;
 use App\Cms\SystemStatus;
+use App\Cms\Trash;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
@@ -17,8 +18,10 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, ContentCheckup $checkup, PostViews $views, SystemStatus $system): Response
+    public function __invoke(Request $request, ContentCheckup $checkup, PostViews $views, SystemStatus $system, Trash $trash): Response
     {
+        $trash->purgeExpired();
+
         return Inertia::render('cp/Dashboard', [
             // Only admins can do something about it.
             'system' => $request->user()?->isAdmin() ? $system->report() : null,

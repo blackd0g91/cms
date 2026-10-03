@@ -213,7 +213,8 @@ class PostController extends Controller
     {
         $candidate = $slug;
 
-        for ($i = 2; $template->posts()->where('slug', $candidate)->exists(); $i++) {
+        // Posts in the trash keep their slugs, for when they are restored.
+        for ($i = 2; $template->posts()->withTrashed()->where('slug', $candidate)->exists(); $i++) {
             $candidate = "{$slug}-{$i}";
         }
 

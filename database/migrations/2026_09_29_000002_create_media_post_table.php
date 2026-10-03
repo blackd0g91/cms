@@ -21,7 +21,8 @@ return new class extends Migration
             $table->primary(['media_id', 'post_id']);
         });
 
-        Post::query()->with('template')->each(fn (Post $post) => $post->syncMedia());
+        // Without the trash's scope, as the deleted_at column comes later.
+        Post::withoutGlobalScopes()->with('template')->each(fn (Post $post) => $post->syncMedia());
     }
 
     /**

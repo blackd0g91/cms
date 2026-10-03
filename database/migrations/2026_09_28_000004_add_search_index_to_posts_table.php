@@ -17,7 +17,8 @@ return new class extends Migration
         });
 
         // Index the posts that already exist, without touching their timestamps.
-        Post::query()->with('template')->each(function (Post $post) {
+        // Without the trash's scope, as the deleted_at column comes later.
+        Post::withoutGlobalScopes()->with('template')->each(function (Post $post) {
             $post->timestamps = false;
             $post->saveQuietly();
         });

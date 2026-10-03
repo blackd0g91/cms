@@ -51,6 +51,8 @@ class PostViews
     {
         $totals = DB::table('post_views')
             ->where('date', '>=', now()->subDays($days - 1)->toDateString())
+            // Leaving out posts in the trash.
+            ->whereIn('post_id', Post::query()->select('id'))
             ->groupBy('post_id')
             ->orderByDesc(DB::raw('sum(views)'))
             ->limit($limit)

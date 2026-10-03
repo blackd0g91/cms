@@ -141,7 +141,7 @@ test('views are deleted with their post', function () {
     app(PostViews::class)->record(request()->duplicate(server: ['HTTP_USER_AGENT' => 'Mozilla/5.0']), $this->post);
     expect(viewsOf($this->post))->toBe(1);
 
-    $this->post->delete();
+    $this->post->forceDelete();
 
     expect(DB::table('post_views')->count())->toBe(0);
 });

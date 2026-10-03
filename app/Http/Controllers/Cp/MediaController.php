@@ -59,8 +59,8 @@ class MediaController extends Controller
     }
 
     /**
-     * Images that are still in use are only deleted when the request
-     * confirms it with "force".
+     * Move an image to the trash. Images that are still in use are only
+     * moved when the request confirms it with "force".
      */
     public function destroy(Request $request, Media $media, MediaUsage $usage): RedirectResponse
     {
@@ -72,7 +72,7 @@ class MediaController extends Controller
             ]);
         }
 
-        $media->deleteWithFile();
+        $media->delete();
 
         return back();
     }
