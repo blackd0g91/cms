@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Cms\ShareImage;
+use App\Cms\Summary;
 use App\Cms\Trash;
 use App\Enums\FieldType;
 use App\Enums\PostStatus;
@@ -153,11 +154,12 @@ class Post extends Model
     }
 
     /**
-     * A short plain-text summary, for page descriptions, link previews and feeds.
+     * Its opening words as plain text, for cards, page descriptions, link
+     * previews and feeds (see App\Cms\Summary).
      */
     public function summary(int $length = 180): string
     {
-        return Str::limit($this->plainText(), $length);
+        return app(Summary::class)->of($this, $length);
     }
 
     /**

@@ -8,13 +8,24 @@ namespace App\Cms\Widgets;
  * Every {{ recipe-amount }} after it, up to the next one, changes along
  * (resources/js/widgets/recipe.ts). Without the script it is just the text.
  */
-class RecipeServingsWidget implements Widget
+class RecipeServingsWidget implements ReadsAsText, Widget
 {
     public const int MAX = 999;
 
     public function name(): string
     {
         return 'recipe-servings';
+    }
+
+    public function text(string $value): ?string
+    {
+        [$count, $unit] = array_pad(array_map('trim', explode('|', $value, 2)), 2, '');
+
+        if ($this->render($value) === null) {
+            return null;
+        }
+
+        return $unit !== '' ? 'Makes '.(int) $count." {$unit}" : 'Serves '.(int) $count;
     }
 
     public function render(string $value): ?string

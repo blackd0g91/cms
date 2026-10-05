@@ -11,11 +11,23 @@ use Throwable;
  * page's script keeps it up to date in the reader's own time zone; the text
  * written here is what shows without it.
  */
-class CountdownWidget implements Widget
+class CountdownWidget implements ReadsAsText, Widget
 {
     public function name(): string
     {
         return 'countdown';
+    }
+
+    public function text(string $value): ?string
+    {
+        [$when, $label] = array_pad(array_map('trim', explode('|', $value, 2)), 2, '');
+
+        if ($this->render($value) === null) {
+            return null;
+        }
+
+        // Not how long is left, which would go out of date.
+        return $label !== '' ? $label : CarbonImmutable::parse(substr($when, 0, 10))->format('M j, Y');
     }
 
     public function render(string $value): ?string

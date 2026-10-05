@@ -1,5 +1,9 @@
 {{-- A post as a card. Expects $post (template and thumbnail loaded) and optionally $featured. --}}
-@php($featured ??= false)
+@php
+    $featured ??= false;
+    // Its first lines, cut to fit by line-clamp; there is none without any text.
+    $summary = $post->summary($featured ? 320 : 200);
+@endphp
 <article @class(['hue group', 'sm:col-span-2' => $featured]) style="{{ $post->template->accentStyle() }}">
     <a
         href="{{ $post->url() }}"
@@ -30,8 +34,18 @@
             ])>
                 {{ $post->title }}
             </h2>
+            @if ($summary !== '')
+                <p @class([
+                    'mt-2 text-muted',
+                    'line-clamp-3 sm:text-base' => $featured,
+                    'line-clamp-2 text-sm' => ! $featured,
+                ])>{{ $summary }}</p>
+            @endif
             <p class="mt-auto pt-4 font-mono text-xs text-muted">
-                {{ $post->published_at?->format('M j, Y') }}
+                @if ($post->published_at)
+                    {{ $post->published_at->format('M j, Y') }} &middot;
+                @endif
+                {{ $post->readingMinutes() }} min read
             </p>
         </div>
     </a>
