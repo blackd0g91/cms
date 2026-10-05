@@ -211,7 +211,25 @@ const iconClass = (active: boolean) =>
             >
                 <!-- Small buttons for the whole panel. -->
                 <div class="flex items-center justify-end gap-1">
+                    <a
+                        :href="home().url"
+                        target="_blank"
+                        title="View site"
+                        aria-label="View site"
+                        class="cp-icon-btn"
+                    >
+                        <CpIcon name="external" class="size-4" />
+                    </a>
                     <ThemeButton />
+                    <Link
+                        :href="logout()"
+                        as="button"
+                        title="Log out"
+                        aria-label="Log out"
+                        class="cp-icon-btn-danger"
+                    >
+                        <CpIcon name="logout" class="size-4" />
+                    </Link>
                 </div>
                 <Link
                     :href="accountEdit()"
@@ -237,18 +255,6 @@ const iconClass = (active: boolean) =>
                             {{ page.props.auth.user.email }}
                         </span>
                     </span>
-                </Link>
-                <a :href="home().url" target="_blank" :class="rowClass(false)">
-                    <CpIcon name="external" :class="iconClass(false)" />
-                    View site
-                </a>
-                <Link
-                    :href="logout()"
-                    as="button"
-                    :class="cn(rowClass(false), 'w-full text-left')"
-                >
-                    <CpIcon name="logout" :class="iconClass(false)" />
-                    Log out
                 </Link>
             </div>
         </aside>

@@ -29,7 +29,7 @@ const next = () => {
         type="button"
         :title="title"
         :aria-label="title"
-        class="grid size-7 place-items-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-200/60 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-brand dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+        class="cp-icon-btn"
         @click="next"
     >
         <CpIcon :name="icons[theme]" class="size-4" />

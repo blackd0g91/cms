@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Simple outline icons for the control panel's navigation, drawn on a 24px
-// grid with the current text color. Decorative: the text beside them says
-// what they mean.
+// grid with the current text color. Decorative: the text beside them, or
+// their button's label, says what they mean.
 export type IconName =
     | 'dashboard'
     | 'posts'
