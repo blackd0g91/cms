@@ -23,24 +23,24 @@ test('the sidebar lists every template', function () {
         ->assertSee('href="'.url('/recipes').'"', false);
 });
 
-test('cards show the first lines of each post and how long it takes to read', function () {
+test('cards show the summary written for a post, and how long it takes to read', function () {
     $template = Template::factory()->create(['fields' => [
         ['handle' => 'body', 'label' => 'Body', 'type' => 'markdown', 'required' => false, 'options' => []],
     ]]);
     Post::factory()->published()->for($template)->create([
         'title' => 'Bread',
-        'data' => ['body' => "## Before you start\n\nYou need **flour**, water and {{ recipe-amount:5 g }} yeast. ".str_repeat('Knead it well. ', 140)],
+        'summary' => 'A slow loaf for <weekends>.',
+        'data' => ['body' => str_repeat('Knead it well. ', 140)],
     ]);
-    Post::factory()->published()->for($template)->create(['title' => 'Empty', 'data' => ['body' => '']]);
+    Post::factory()->published()->for($template)->create(['title' => 'Untold', 'summary' => null, 'data' => ['body' => 'Not on the card.']]);
 
     $this->get(route('home'))
         ->assertOk()
-        ->assertSee('You need flour, water and 5 g yeast. Knead it well.')
-        ->assertDontSee('Before you start You need')
-        ->assertDontSee('**flour**')
+        ->assertSee('A slow loaf for &lt;weekends&gt;.', false)
+        ->assertDontSee('Not on the card.')
         ->assertSee('3 min read')
         ->assertSee('1 min read');
 
-    // Every other card on the page is the same partial.
-    $this->get(url($template->handle))->assertSee('You need flour, water and 5 g yeast.')->assertSee('3 min read');
+    // Every other card on the site is the same partial.
+    $this->get(url($template->handle))->assertSee('A slow loaf for')->assertSee('3 min read');
 });

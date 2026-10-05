@@ -9,7 +9,7 @@ namespace App\Cms\Widgets;
  * number is read here, so the script (resources/js/widgets/recipe.ts) only
  * multiplies it.
  */
-class RecipeAmountWidget implements ReadsAsText, Widget
+class RecipeAmountWidget implements Widget
 {
     private const int MAX = 100_000;
 
@@ -22,13 +22,6 @@ class RecipeAmountWidget implements ReadsAsText, Widget
     public function name(): string
     {
         return 'recipe-amount';
-    }
-
-    public function text(string $value): ?string
-    {
-        $amount = self::parse($value);
-
-        return $amount === null ? null : trim("{$amount['number']} {$amount['unit']}");
     }
 
     public function render(string $value): ?string

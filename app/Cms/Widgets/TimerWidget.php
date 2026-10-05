@@ -8,20 +8,13 @@ namespace App\Cms\Widgets;
  * page's script (resources/js/site.ts) makes it work; without it, the time
  * still shows.
  */
-class TimerWidget implements ReadsAsText, Widget
+class TimerWidget implements Widget
 {
     private const int MAX_SECONDS = 24 * 3600;
 
     public function name(): string
     {
         return 'timer';
-    }
-
-    public function text(string $value): ?string
-    {
-        $seconds = self::seconds(trim(explode('|', $value, 2)[0]));
-
-        return $seconds === null ? null : self::format($seconds);
     }
 
     public function render(string $value): ?string

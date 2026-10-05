@@ -257,3 +257,33 @@ test('thumbnails count as media usage', function () {
 
     $this->delete(route('cp.media.destroy', $media))->assertSessionHasErrors('media');
 });
+
+test('a post can have a short summary, tidied up when saved', function () {
+    $this->post(route('cp.templates.posts.store', $this->template), [
+        'title' => 'Soup',
+        'summary' => "  A quick soup\n for   cold nights.  ",
+        'status' => 'draft',
+        'data' => ['servings' => 2],
+    ])->assertRedirect();
+
+    expect(Post::sole()->summary)->toBe('A quick soup for cold nights.');
+
+    $post = Post::sole();
+    $this->put(route('cp.templates.posts.update', [$this->template, $post]), [
+        'title' => 'Soup',
+        'slug' => $post->slug,
+        'summary' => '',
+        'status' => 'draft',
+        'data' => ['servings' => 2],
+    ])->assertRedirect();
+
+    expect($post->refresh()->summary)->toBeNull();
+
+    $this->put(route('cp.templates.posts.update', [$this->template, $post]), [
+        'title' => 'Soup',
+        'slug' => $post->slug,
+        'summary' => str_repeat('a', 161),
+        'status' => 'draft',
+        'data' => ['servings' => 2],
+    ])->assertSessionHasErrors('summary');
+});

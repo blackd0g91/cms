@@ -7,22 +7,11 @@ namespace App\Cms\Widgets;
  * label, {{ copy:hunter2 | Wi-Fi password }}, the label shows instead, so
  * the text itself is not printed on the page.
  */
-class CopyWidget implements ReadsAsText, Widget
+class CopyWidget implements Widget
 {
     public function name(): string
     {
         return 'copy';
-    }
-
-    public function text(string $value): ?string
-    {
-        [$text, $label] = array_pad(array_map('trim', explode('|', $value, 2)), 2, '');
-
-        if ($this->render($value) === null) {
-            return null;
-        }
-
-        return $label !== '' ? $label : $text;
     }
 
     public function render(string $value): ?string

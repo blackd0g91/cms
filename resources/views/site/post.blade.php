@@ -1,7 +1,7 @@
 @extends('site.layout', [
     'title' => $post->title,
     'meta' => [
-        'description' => $post->summary(),
+        'description' => $post->description(),
         'image' => $preview['url'],
         'image_width' => $preview['width'],
         'image_height' => $preview['height'],

@@ -1,9 +1,5 @@
 {{-- A post as a card. Expects $post (template and thumbnail loaded) and optionally $featured. --}}
-@php
-    $featured ??= false;
-    // Its first lines, cut to fit by line-clamp; there is none without any text.
-    $summary = $post->summary($featured ? 320 : 200);
-@endphp
+@php($featured ??= false)
 <article @class(['hue group', 'sm:col-span-2' => $featured]) style="{{ $post->template->accentStyle() }}">
     <a
         href="{{ $post->url() }}"
@@ -34,12 +30,8 @@
             ])>
                 {{ $post->title }}
             </h2>
-            @if ($summary !== '')
-                <p @class([
-                    'mt-2 text-muted',
-                    'line-clamp-3 sm:text-base' => $featured,
-                    'line-clamp-2 text-sm' => ! $featured,
-                ])>{{ $summary }}</p>
+            @if ($post->summary)
+                <p @class(['mt-2 text-muted', 'sm:text-base' => $featured, 'text-sm' => ! $featured])>{{ $post->summary }}</p>
             @endif
             <p class="mt-auto pt-4 font-mono text-xs text-muted">
                 @if ($post->published_at)

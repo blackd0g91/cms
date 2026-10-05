@@ -7,31 +7,16 @@ namespace App\Cms\Widgets;
  * Fahrenheit, so recipes work for everyone. Clicking it swaps which comes
  * first (resources/js/site.ts), and that is remembered.
  */
-class TemperatureWidget implements ReadsAsText, Widget
+class TemperatureWidget implements Widget
 {
-    /**
-     * A number of degrees and C or F: "180c", "350 °F", "-18,5 C".
-     */
-    private const string PATTERN = '/^\s*(-?\d+(?:[.,]\d+)?)\s*(?:°)?\s*([cf])\s*$/iu';
-
     public function name(): string
     {
         return 'temp';
     }
 
-    public function text(string $value): ?string
-    {
-        // render() also turns down temperatures that can not be.
-        if ($this->render($value) === null || ! preg_match(self::PATTERN, $value, $match)) {
-            return null;
-        }
-
-        return self::exact((float) str_replace(',', '.', $match[1])).' °'.strtoupper($match[2]);
-    }
-
     public function render(string $value): ?string
     {
-        if (! preg_match(self::PATTERN, $value, $match)) {
+        if (! preg_match('/^\s*(-?\d+(?:[.,]\d+)?)\s*(?:°)?\s*([cf])\s*$/iu', $value, $match)) {
             return null;
         }
 

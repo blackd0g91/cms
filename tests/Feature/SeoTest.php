@@ -18,6 +18,21 @@ beforeEach(function () {
     ]);
 });
 
+test('a written summary is the post\'s description in link previews and feeds', function () {
+    Post::factory()->published()->for($this->template)->create([
+        'title' => 'Soup',
+        'slug' => 'soup',
+        'summary' => 'A quick soup for cold nights.',
+        'data' => ['method' => 'Boil water and add salt.'],
+    ]);
+
+    $this->get('/recipes/soup')
+        ->assertSee('<meta name="description" content="A quick soup for cold nights.">', false)
+        ->assertSee('<meta property="og:description" content="A quick soup for cold nights.">', false);
+
+    $this->get(route('feed'))->assertSee('<description>A quick soup for cold nights.</description>', false);
+});
+
 test('posts have a description, canonical url and link preview tags', function () {
     $media = Media::factory()->create();
     Post::factory()->published()->for($this->template)->create([

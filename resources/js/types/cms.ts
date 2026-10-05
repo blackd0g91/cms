@@ -41,6 +41,7 @@ export type PostStatus = 'draft' | 'published';
 export type Post = {
     id: number;
     title: string;
+    summary: string | null;
     slug: string;
     status: PostStatus;
     published_at: string | null;

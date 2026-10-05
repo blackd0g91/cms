@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Cms\ShareImage;
-use App\Cms\Summary;
 use App\Cms\Trash;
 use App\Enums\FieldType;
 use App\Enums\PostStatus;
@@ -26,6 +25,7 @@ use Illuminate\Support\Str;
  * @property int $template_id
  * @property int|null $author_id
  * @property string $title
+ * @property string|null $summary Written for cards and link previews
  * @property string $slug
  * @property PostStatus $status
  * @property CarbonImmutable|null $published_at
@@ -42,7 +42,7 @@ use Illuminate\Support\Str;
  * @property-read Collection<int, Media> $media
  * @property-read Collection<int, PostRevision> $revisions
  */
-#[Fillable(['title', 'slug', 'status', 'published_at', 'pinned_at', 'data', 'thumbnail_id', 'author_id'])]
+#[Fillable(['title', 'summary', 'slug', 'status', 'published_at', 'pinned_at', 'data', 'thumbnail_id', 'author_id'])]
 class Post extends Model
 {
     /** @use HasFactory<PostFactory> */
@@ -75,7 +75,7 @@ class Post extends Model
     {
         $tags = $this->exists ? $this->tags()->pluck('name')->implode(' ') : '';
 
-        return self::normalizeForSearch($this->title.' '.$this->plainText().' '.$tags);
+        return self::normalizeForSearch($this->title.' '.$this->summary.' '.$this->plainText().' '.$tags);
     }
 
     /**
@@ -154,12 +154,12 @@ class Post extends Model
     }
 
     /**
-     * Its opening words as plain text, for cards, page descriptions, link
-     * previews and feeds (see App\Cms\Summary).
+     * The written summary, or without one the post's first words, for page
+     * descriptions, link previews and feeds.
      */
-    public function summary(int $length = 180): string
+    public function description(int $length = 180): string
     {
-        return app(Summary::class)->of($this, $length);
+        return filled($this->summary) ? $this->summary : Str::limit($this->plainText(), $length);
     }
 
     /**

@@ -21,7 +21,7 @@
                 @if ($post->published_at)
                     <pubDate>{{ $post->published_at->toRssString() }}</pubDate>
                 @endif
-                <description>{{ $post->summary(300) }}</description>
+                <description>{{ $post->description(300) }}</description>
                 <content:encoded>{{ ($post->thumbnail ? '<p><img src="'.e($post->thumbnail->url).'" alt=""></p>' : '').$render($post) }}</content:encoded>
             </item>
         @endforeach

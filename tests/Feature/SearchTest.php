@@ -81,3 +81,13 @@ test('search is reserved as a template handle', function () {
 test('the header has a search box', function () {
     $this->get(route('home'))->assertSee('role="search"', false);
 });
+
+test('posts are found by their summary', function () {
+    recipe(['title' => 'Carbonara', 'summary' => 'A Roman classic, without cream.']);
+    recipe(['title' => 'Pancakes']);
+
+    $this->get(route('search', ['q' => 'roman']))
+        ->assertOk()
+        ->assertSee('Carbonara')
+        ->assertDontSee('Pancakes');
+});

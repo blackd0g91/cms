@@ -97,7 +97,7 @@ class PostController extends Controller
         return Inertia::render('cp/posts/Edit', [
             'template' => $template->only(['id', 'name', 'handle', 'fields']),
             'post' => [
-                ...$post->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'author_id', 'data']),
+                ...$post->only(['id', 'title', 'summary', 'slug', 'status', 'published_at', 'updated_at', 'thumbnail_id', 'author_id', 'data']),
                 'pinned' => $post->isPinned(),
                 'tags' => $post->tags->pluck('name'),
                 'url' => $post->url(),

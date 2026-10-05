@@ -57,6 +57,7 @@ const emptyValue = (field: Field): FieldValue => {
 
 const form = useForm({
     title: props.post?.title ?? '',
+    summary: props.post?.summary ?? '',
     slug: props.post?.slug ?? '',
     status: (props.post?.status ?? 'draft') as PostStatus,
     thumbnail_id: props.post?.thumbnail_id ?? null,
@@ -93,6 +94,8 @@ const dataError = (handle: string) => {
 
 type DraftData = {
     title: string;
+    // Missing in drafts saved before posts had one.
+    summary?: string;
     slug: string;
     status: PostStatus;
     thumbnail_id: number | null;
@@ -111,6 +114,7 @@ const draft = useLocalDraft<DraftData>({
     key: () => draftKey(),
     data: () => ({
         title: form.title,
+        summary: form.summary,
         slug: form.slug,
         status: form.status,
         thumbnail_id: form.thumbnail_id,
@@ -164,6 +168,7 @@ const applyData = async (
     media: Record<number, Media> = {},
 ) => {
     form.title = data.title;
+    form.summary = data.summary ?? form.summary;
     form.slug = data.slug;
     form.status = data.status;
     form.thumbnail_id = data.thumbnail_id;
@@ -346,6 +351,32 @@ const deletePost = () => {
                 />
                 <p v-if="form.errors.title" class="cp-error">
                     {{ form.errors.title }}
+                </p>
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="summary" class="cp-label">
+                    Summary
+                    <span class="font-normal text-neutral-500">(optional)</span>
+                </label>
+                <textarea
+                    id="summary"
+                    v-model="form.summary"
+                    rows="2"
+                    maxlength="160"
+                    class="cp-input resize-none"
+                />
+                <p class="flex justify-between gap-3 text-xs text-neutral-500">
+                    <span>
+                        A sentence or two, shown on the post's card and in link
+                        previews.
+                    </span>
+                    <span class="shrink-0 tabular-nums"
+                        >{{ form.summary.length }}/160</span
+                    >
+                </p>
+                <p v-if="form.errors.summary" class="cp-error">
+                    {{ form.errors.summary }}
                 </p>
             </div>
 
