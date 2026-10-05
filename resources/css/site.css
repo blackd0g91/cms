@@ -391,6 +391,42 @@ body {
 }
 
 /*
+ * The home page's light: a soft glow above the greeting that crosses from
+ * left to right through the day, from --sun-x, and turns to a faint, cool
+ * moonlight at night (see site.ts).
+ */
+.daylight {
+    isolation: isolate;
+}
+
+.daylight::before {
+    content: '';
+    position: absolute;
+    inset: -2.5rem 0 auto;
+    z-index: -1;
+    height: 18rem;
+    pointer-events: none;
+    background: radial-gradient(
+        26rem 10rem at var(--sun-x, 50%) 30%,
+        color-mix(in oklch, var(--accent) 14%, transparent),
+        transparent 75%
+    );
+    /* Faded out at every edge, so the light has no border. */
+    mask-image:
+        linear-gradient(to right, transparent, #000 12%, #000 88%, transparent),
+        linear-gradient(to bottom, transparent, #000 25%, #000 55%, transparent);
+    mask-composite: intersect;
+}
+
+.daylight[data-daylight='night']::before {
+    background: radial-gradient(
+        22rem 9rem at 80% 30%,
+        oklch(0.75 0.05 255 / 0.16),
+        transparent 75%
+    );
+}
+
+/*
  * Post cards catch the light where the pointer is: a soft glow in the
  * template's color, and a brighter edge (see site.ts, which sets --light-x
  * and --light-y and the tilt). Only with a mouse or trackpad.

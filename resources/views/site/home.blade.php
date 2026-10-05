@@ -1,7 +1,12 @@
 @extends('site.layout')
 
 @section('content')
-    <section class="mb-10">
+    {{-- The greeting, the accent and the light follow the visitor's time of day (see site.ts). --}}
+    <section class="hue daylight relative mb-10" data-daylight>
+        <p class="mb-4 flex items-center gap-2 font-mono text-xs tracking-wider text-muted uppercase">
+            <span class="size-2 rounded-full bg-accent"></span>
+            <span data-greeting>Hello</span>
+        </p>
         @if ($intro)
             <div class="prose prose-lg max-w-2xl">
                 {{ $intro }}
