@@ -77,6 +77,7 @@ class PostController extends Controller
             'views' => null,
             'allTags' => Tag::query()->orderBy('name')->pluck('name'),
             'authors' => $this->authors(),
+            'postChoices' => $this->postChoices($template),
         ]);
     }
 
@@ -106,6 +107,7 @@ class PostController extends Controller
             'views' => app(PostViews::class)->history($post),
             'allTags' => Tag::query()->orderBy('name')->pluck('name'),
             'authors' => $this->authors(),
+            'postChoices' => $this->postChoices($template),
             'revisions' => $post->revisions()
                 ->with('user:id,name')
                 ->get(['id', 'post_id', 'user_id', 'title', 'status', 'created_at'])
@@ -122,6 +124,7 @@ class PostController extends Controller
     public function update(PostRequest $request, Template $template, Post $post): RedirectResponse
     {
         $post->fill($request->postAttributes());
+        $this->touchContentUpdatedAt($post);
         $this->touchPublishedAt($post);
         $post->pinned_at = $request->boolean('pinned') ? ($post->pinned_at ?? now()) : null;
         $post->save();
@@ -138,16 +141,11 @@ class PostController extends Controller
     {
         abort_unless($revision->post_id === $post->id, 404);
 
-        $imageIds = collect($template->fieldTypes())
-            ->filter(fn (FieldType $type) => $type === FieldType::Image)
-            ->keys()
-            ->map(fn (string $handle) => $revision->data[$handle] ?? null)
-            ->push($revision->thumbnail_id)
-            ->filter();
+        $imageIds = [$revision->thumbnail_id, ...$template->imageIds($revision->data)];
 
         return response()->json([
             'revision' => $revision->only(['id', 'title', 'slug', 'status', 'thumbnail_id', 'data', 'created_at']),
-            'media' => Media::query()->whereKey($imageIds)->get()->keyBy('id'),
+            'media' => Media::query()->whereKey(array_filter($imageIds))->get()->keyBy('id'),
         ]);
     }
 
@@ -156,7 +154,7 @@ class PostController extends Controller
      */
     public function duplicate(Template $template, Post $post): RedirectResponse
     {
-        $copy = $post->replicate(['published_at', 'pinned_at', 'search_index']);
+        $copy = $post->replicate(['published_at', 'content_updated_at', 'pinned_at', 'search_index']);
         $copy->title = "{$post->title} (copy)";
         $copy->slug = $this->uniqueSlug($template, "{$post->slug}-copy");
         $copy->status = PostStatus::Draft;
@@ -190,20 +188,35 @@ class PostController extends Controller
     }
 
     /**
-     * The images selected in a post's image fields, keyed by id.
+     * Every post, by template, to pick from in posts fields. Nothing for
+     * templates without one.
+     *
+     * @return array<int, Template>
+     */
+    private function postChoices(Template $template): array
+    {
+        if (! in_array(FieldType::Posts, $template->fieldTypes(), true)) {
+            return [];
+        }
+
+        return Template::query()
+            ->with(['posts' => fn ($query) => $query->orderBy('title')->select(['id', 'template_id', 'title', 'status'])])
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->all();
+    }
+
+    /**
+     * The images selected in a post's thumbnail, image and gallery fields,
+     * keyed by id.
      *
      * @return array<int, Media>
      */
     private function selectedMedia(Template $template, Post $post): array
     {
-        $ids = collect($template->fieldTypes())
-            ->filter(fn (FieldType $type) => $type === FieldType::Image)
-            ->keys()
-            ->map(fn (string $handle) => $post->data[$handle] ?? null)
-            ->push($post->thumbnail_id)
-            ->filter();
+        $ids = [$post->thumbnail_id, ...$template->imageIds($post->data)];
 
-        return Media::query()->whereKey($ids)->get()->keyBy('id')->all();
+        return Media::query()->whereKey(array_filter($ids))->get()->keyBy('id')->all();
     }
 
     /**
@@ -219,6 +232,18 @@ class PostController extends Controller
         }
 
         return $candidate;
+    }
+
+    /**
+     * Record when the title or fields of a post that has been published
+     * change, for the "Updated" date on the site. Changes made before it was
+     * first published are part of the original.
+     */
+    private function touchContentUpdatedAt(Post $post): void
+    {
+        if ($post->getOriginal('published_at') !== null && $post->isDirty(['title', 'data'])) {
+            $post->content_updated_at = now();
+        }
     }
 
     /**

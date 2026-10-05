@@ -2,7 +2,6 @@
 
 namespace App\Cms;
 
-use App\Enums\FieldType;
 use App\Enums\PostStatus;
 use App\Models\Media;
 use App\Models\Post;
@@ -73,7 +72,8 @@ class ContentCheckup
     }
 
     /**
-     * Image fields, and images inserted into text, that point at deleted media.
+     * Image and gallery fields, and images inserted into text, that point at
+     * deleted media.
      *
      * @return array{key: string, label: string, hint: string, count: int, items: list<array{title: string, detail: string|null, href: string}>}
      */
@@ -84,15 +84,7 @@ class ContentCheckup
         $broken = collect();
 
         Post::query()->with('template')->each(function (Post $post) use ($ids, $paths, $broken) {
-            $missing = 0;
-
-            foreach ($post->template->fieldTypes() as $handle => $type) {
-                $value = $post->data[$handle] ?? null;
-
-                if ($type === FieldType::Image && is_int($value) && ! $ids->has($value)) {
-                    $missing++;
-                }
-            }
+            $missing = collect($post->template->imageIds($post->data))->reject(fn (int $id) => $ids->has($id))->count();
 
             preg_match_all('#/storage/(media/[A-Za-z0-9]+\.[a-z0-9]+)#i', json_encode($post->data, JSON_UNESCAPED_SLASHES) ?: '', $matches);
             $missing += collect($matches[1])->unique()->reject(fn (string $path) => $paths->has($path))->count();

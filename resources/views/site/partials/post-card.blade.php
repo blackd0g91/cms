@@ -1,5 +1,11 @@
-{{-- A post as a card. Expects $post (template and thumbnail loaded) and optionally $featured. --}}
+{{--
+    A post as a card. Expects $post (template and thumbnail loaded), and
+    optionally $featured, and $titleTag for the title's element (h2 unless
+    the card is inside a post, where its title is not one of the post's
+    headings).
+--}}
 @php($featured ??= false)
+@php($titleTag ??= 'h2')
 <article @class(['hue group', 'sm:col-span-2' => $featured]) style="{{ $post->template->accentStyle() }}">
     {{-- data-card-light: lit where the pointer is, and tilted toward it (see site.ts). --}}
     <a
@@ -25,13 +31,13 @@
                     <span class="ml-auto rounded-full bg-accent-soft px-2 py-0.5 text-ink normal-case" title="Pinned">Pinned</span>
                 @endif
             </p>
-            <h2 @class([
+            <{{ $titleTag }} @class([
                 'mt-2 font-display leading-snug font-semibold tracking-tight decoration-accent decoration-2 underline-offset-4 group-hover:underline',
                 'text-3xl sm:text-4xl' => $featured,
                 'text-xl' => ! $featured,
             ])>
                 {{ $post->title }}
-            </h2>
+            </{{ $titleTag }}>
             @if ($post->summary)
                 <p @class(['mt-2 text-muted', 'sm:text-base' => $featured, 'text-sm' => ! $featured])>{{ $post->summary }}</p>
             @endif

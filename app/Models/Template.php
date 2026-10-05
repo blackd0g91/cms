@@ -182,6 +182,28 @@ class Template extends Model
     }
 
     /**
+     * The images chosen in image and gallery fields of a post's data (or a
+     * saved version's), by id.
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<int>
+     */
+    public function imageIds(array $data): array
+    {
+        $ids = [];
+
+        foreach ($this->fieldTypes() as $handle => $type) {
+            $ids = match ($type) {
+                FieldType::Image => [...$ids, $data[$handle] ?? null],
+                FieldType::Gallery => [...$ids, ...array_values((array) ($data[$handle] ?? []))],
+                default => $ids,
+            };
+        }
+
+        return array_values(array_unique(array_filter($ids, is_int(...))));
+    }
+
+    /**
      * The field type of each field, keyed by field handle.
      *
      * @return array<string, FieldType>

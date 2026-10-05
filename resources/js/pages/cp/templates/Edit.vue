@@ -163,10 +163,22 @@ const deleteTemplate = () => {
 const typeLabel = (type: FieldType) =>
     props.fieldTypes.find((option) => option.value === type)?.label ?? type;
 
-const conversionNote = (from: FieldType, to: FieldType) =>
-    from === 'image' || to === 'image'
+// Kept by id (see FieldType::convertFrom()), so these only become each other.
+const BY_ID: FieldType[] = ['image', 'gallery', 'posts'];
+
+const conversionNote = (from: FieldType, to: FieldType) => {
+    if (from === 'image' && to === 'gallery') {
+        return 'When you save, each image becomes a gallery of one.';
+    }
+
+    if (from === 'gallery' && to === 'image') {
+        return 'When you save, only the first image of each gallery is kept.';
+    }
+
+    return BY_ID.includes(from) || BY_ID.includes(to)
         ? `Existing values can't become ${typeLabel(to)} and will be cleared when you save.`
         : `When you save, existing values are converted from ${typeLabel(from)} to ${typeLabel(to)}. Values that don't fit (like text in a number field) are cleared.`;
+};
 
 const usage = (handle: string, type: FieldType) => {
     switch (type) {
@@ -176,6 +188,12 @@ const usage = (handle: string, type: FieldType) => {
             return `{{# ${handle} }}...{{/ ${handle} }}`;
         case 'image':
             return `{{ ${handle} }} or {{# ${handle} }}{{ url }} {{ alt }}{{/ ${handle} }}`;
+        case 'gallery':
+            return `{{ ${handle} }} or {{# ${handle} }}{{ url }} {{ alt }}{{/ ${handle} }} for each image`;
+        case 'posts':
+            return `{{ ${handle} }} for cards, or {{# ${handle} }}<a href="{{ url }}">{{ title }}</a>{{/ ${handle} }}`;
+        case 'url':
+            return `<a href="{{ ${handle} }}">...</a>`;
         default:
             return `{{ ${handle} }}`;
     }

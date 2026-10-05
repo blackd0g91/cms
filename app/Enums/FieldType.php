@@ -2,9 +2,12 @@
 
 namespace App\Enums;
 
+use App\Cms\Gallery;
 use App\Cms\Image;
+use App\Cms\LinkedPosts;
 use App\Cms\Markdown;
 use App\Models\Media;
+use App\Models\Post;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -15,12 +18,15 @@ enum FieldType: string
     case Text = 'text';
     case Textarea = 'textarea';
     case Markdown = 'markdown';
+    case Url = 'url';
     case Number = 'number';
     case Boolean = 'boolean';
     case Select = 'select';
     case Date = 'date';
     case List = 'list';
     case Image = 'image';
+    case Gallery = 'gallery';
+    case Posts = 'posts';
 
     public function label(): string
     {
@@ -28,12 +34,15 @@ enum FieldType: string
             self::Text => 'Text',
             self::Textarea => 'Long text',
             self::Markdown => 'Markdown',
+            self::Url => 'Web address',
             self::Number => 'Number',
             self::Boolean => 'Yes / No',
             self::Select => 'Select',
             self::Date => 'Date',
             self::List => 'List',
             self::Image => 'Image',
+            self::Gallery => 'Gallery',
+            self::Posts => 'Posts',
         };
     }
 
@@ -51,6 +60,7 @@ enum FieldType: string
         return match ($this) {
             self::Text => [$key => [$presence, 'string', 'max:255']],
             self::Textarea, self::Markdown => [$key => [$presence, 'string']],
+            self::Url => [$key => [$presence, 'string', 'max:2048', 'url:http,https']],
             self::Number => [$key => [$presence, 'numeric']],
             self::Boolean => [$key => [$presence, 'boolean']],
             self::Select => [$key => [$presence, 'string', Rule::in($options)]],
@@ -60,6 +70,14 @@ enum FieldType: string
                 "{$key}.*" => ['string'],
             ],
             self::Image => [$key => [$presence, 'integer', Rule::exists(Media::class, 'id')]],
+            self::Gallery => [
+                $key => $required ? ['required', 'array', 'min:1'] : ['nullable', 'array'],
+                "{$key}.*" => ['integer', 'distinct', Rule::exists(Media::class, 'id')],
+            ],
+            self::Posts => [
+                $key => $required ? ['required', 'array', 'min:1'] : ['nullable', 'array'],
+                "{$key}.*" => ['integer', 'distinct', Rule::exists(Post::class, 'id')->withoutTrashed()],
+            ],
         };
     }
 
@@ -73,6 +91,7 @@ enum FieldType: string
             self::Number => $value === null ? null : $value + 0,
             self::Image => $value === null ? null : (int) $value,
             self::List => array_values((array) $value),
+            self::Gallery, self::Posts => array_values(array_map(intval(...), (array) $value)),
             default => $value,
         };
     }
@@ -90,9 +109,18 @@ enum FieldType: string
             return $this === self::Boolean ? false : null;
         }
 
-        // Images only make sense as images, and nothing else becomes one.
-        if ($from === self::Image || $this === self::Image) {
-            return $from === $this ? $value : null;
+        // Images and posts are kept by id, so they only make sense as what
+        // they were. An image can start a gallery, and a gallery can become
+        // its first image.
+        $byId = [self::Image, self::Gallery, self::Posts];
+
+        if (in_array($from, $byId, true) || in_array($this, $byId, true)) {
+            return match (true) {
+                $from === $this => $value,
+                $from === self::Image && $this === self::Gallery => [(int) $value],
+                $from === self::Gallery && $this === self::Image => is_array($value) ? (array_values($value)[0] ?? null) : null,
+                default => null,
+            };
         }
 
         $items = match (true) {
@@ -116,12 +144,22 @@ enum FieldType: string
             self::Text => Str::limit(trim((string) preg_replace('/\s+/', ' ', $text)), 255, ''),
             self::Textarea => $text,
             self::Markdown => is_array($value) ? implode("\n", array_map(fn (string $item) => "- {$item}", $items)) : $text,
+            self::Url => self::webAddress(trim($text)),
             self::Number => is_numeric(trim($text)) ? trim($text) + 0 : null,
             self::Boolean => is_bool($value) ? $value : (filter_var(trim($text), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true),
             self::Select => collect($options)->first(fn (string $option) => Str::lower($option) === Str::lower(trim($text))),
             self::Date => self::parseDate($text),
             self::List => $items,
         };
+    }
+
+    /**
+     * The address when it is a web (http or https) address, or null. Other
+     * kinds, like javascript:, could run code when followed.
+     */
+    private static function webAddress(mixed $value): ?string
+    {
+        return is_string($value) && Str::isUrl($value, ['http', 'https']) ? $value : null;
     }
 
     private static function parseDate(string $text): ?string
@@ -146,6 +184,9 @@ enum FieldType: string
             self::Image => is_int($value) && ($media = Media::query()->find($value)) instanceof Media
                 ? Image::fromMedia($media)
                 : null,
+            self::Gallery => Gallery::fromIds((array) $value),
+            self::Posts => LinkedPosts::fromIds((array) $value),
+            self::Url => self::webAddress($value),
             default => $value,
         };
     }

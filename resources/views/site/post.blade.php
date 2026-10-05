@@ -45,7 +45,11 @@
                         By {{ $post->author->name }} &middot;
                     @endif
                     @if ($post->published_at)
-                        {{ $post->published_at->format('F j, Y') }} &middot;
+                        <time datetime="{{ $post->published_at->toIso8601String() }}">{{ $post->published_at->format('F j, Y') }}</time> &middot;
+                    @endif
+                    {{-- For posts kept up to date, like cheatsheets. --}}
+                    @if ($updated = $post->updatedSincePublished())
+                        <span class="whitespace-nowrap">Updated <time datetime="{{ $updated->toIso8601String() }}">{{ $updated->format('F j, Y') }}</time></span> &middot;
                     @endif
                     {{ $post->readingMinutes() }} min read
                 </p>

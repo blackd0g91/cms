@@ -2,12 +2,17 @@ export type FieldType =
     | 'text'
     | 'textarea'
     | 'markdown'
+    | 'url'
     | 'number'
     | 'boolean'
     | 'select'
     | 'date'
     | 'list'
-    | 'image';
+    | 'image'
+    // Image ids, in order.
+    | 'gallery'
+    // Ids of other posts, in order.
+    | 'posts';
 
 export type Field = {
     handle: string;
@@ -34,7 +39,7 @@ export type Template = {
 
 export type TemplateSummary = Pick<Template, 'id' | 'name' | 'handle'>;
 
-export type FieldValue = string | number | boolean | string[] | null;
+export type FieldValue = string | number | boolean | string[] | number[] | null;
 
 export type PostStatus = 'draft' | 'published';
 
@@ -66,6 +71,13 @@ export type Media = {
     height: number | null;
     alt: string | null;
     created_at: string;
+};
+
+/** A template's posts, to pick from in posts fields. */
+export type PostChoices = {
+    id: number;
+    name: string;
+    posts: { id: number; title: string; status: PostStatus }[];
 };
 
 export type PostListItem = {

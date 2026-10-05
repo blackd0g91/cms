@@ -301,7 +301,8 @@ body {
     text-decoration: none;
 }
 
-.prose :where(img) {
+/* Not cards placed in a post (with not-prose), which round their own corners. */
+.prose :where(img):not(:where(.not-prose *)) {
     border-radius: 0.75rem;
 }
 
@@ -321,6 +322,42 @@ body {
 .prose .image-zoom:focus-visible img {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
+}
+
+/*
+ * Gallery fields (app/Cms/Gallery.php): the images side by side at one
+ * height, whatever their shape, in a row that scrolls sideways when they do
+ * not all fit, like screenshots in an app store.
+ */
+.prose .gallery {
+    @apply panel-scrollbar;
+    display: flex;
+    gap: 0.75rem;
+    margin-block: 2em;
+    padding-bottom: 0.5rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+}
+
+.prose .gallery > * {
+    flex: none;
+    scroll-snap-align: start;
+}
+
+.prose .gallery img {
+    width: auto;
+    max-width: none;
+    height: 12rem;
+    margin: 0;
+    border: 1px solid var(--line);
+}
+
+/* As tall as Gallery::HEIGHT, from Tailwind's sm breakpoint. */
+@media (width >= 40rem) {
+    .prose .gallery img {
+        height: 16rem;
+    }
 }
 
 .lightbox {

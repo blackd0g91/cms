@@ -29,6 +29,7 @@ use Illuminate\Support\Str;
  * @property string $slug
  * @property PostStatus $status
  * @property CarbonImmutable|null $published_at
+ * @property CarbonImmutable|null $content_updated_at When the title or fields last changed after publishing
  * @property CarbonImmutable|null $pinned_at
  * @property array<string, mixed> $data
  * @property string|null $search_index
@@ -163,6 +164,20 @@ class Post extends Model
     }
 
     /**
+     * When the title or fields last changed after the post was published,
+     * for an "Updated" date beside the publish date. Null when they have not
+     * changed since, or only on the day it was published.
+     */
+    public function updatedSincePublished(): ?CarbonImmutable
+    {
+        $updated = $this->content_updated_at;
+
+        return $updated !== null && $this->published_at !== null && $updated->startOfDay()->isAfter($this->published_at->startOfDay())
+            ? $updated
+            : null;
+    }
+
+    /**
      * Rough reading time, at 200 words a minute.
      */
     public function readingMinutes(): int
@@ -228,18 +243,12 @@ class Post extends Model
     }
 
     /**
-     * Record which images the post uses: its thumbnail, image fields, and
-     * images referenced by URL in any text (like markdown).
+     * Record which images the post uses: its thumbnail, image and gallery
+     * fields, and images referenced by URL in any text (like markdown).
      */
     public function syncMedia(): void
     {
-        $ids = [$this->thumbnail_id];
-
-        foreach ($this->template->fieldTypes() as $handle => $type) {
-            if ($type === FieldType::Image) {
-                $ids[] = $this->data[$handle] ?? null;
-            }
-        }
+        $ids = [$this->thumbnail_id, ...$this->template->imageIds($this->data)];
 
         preg_match_all('#media/[A-Za-z0-9]+\.[a-z0-9]+#i', json_encode($this->data, JSON_UNESCAPED_SLASHES) ?: '', $paths);
 
@@ -375,6 +384,7 @@ class Post extends Model
         return [
             'status' => PostStatus::class,
             'published_at' => 'datetime',
+            'content_updated_at' => 'datetime',
             'pinned_at' => 'datetime',
             'data' => 'array',
         ];

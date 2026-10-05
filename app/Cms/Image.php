@@ -17,11 +17,13 @@ class Image implements Htmlable
         public readonly ?int $width,
         public readonly ?int $height,
         public readonly string $srcset = '',
+        // How wide it is shown, when not the width of the content.
+        public readonly ?string $sizes = null,
     ) {}
 
-    public static function fromMedia(Media $media): self
+    public static function fromMedia(Media $media, ?string $sizes = null): self
     {
-        return new self($media->url, $media->alt ?? '', $media->width, $media->height, $media->srcset());
+        return new self($media->url, $media->alt ?? '', $media->width, $media->height, $media->srcset(), $sizes);
     }
 
     public function toHtml(): string
@@ -29,7 +31,7 @@ class Image implements Htmlable
         $attributes = array_filter([
             'src' => $this->url,
             'srcset' => $this->srcset ?: null,
-            'sizes' => $this->srcset ? ResponsiveImages::CONTENT_SIZES : null,
+            'sizes' => $this->srcset ? $this->sizes ?? ResponsiveImages::CONTENT_SIZES : null,
             'alt' => $this->alt,
             'width' => $this->width,
             'height' => $this->height,

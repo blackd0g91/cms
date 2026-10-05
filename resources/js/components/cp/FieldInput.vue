@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import GalleryField from '@/components/cp/GalleryField.vue';
 import ImageField from '@/components/cp/ImageField.vue';
 import MarkdownEditor from '@/components/cp/MarkdownEditor.vue';
-import type { Field, FieldValue, Media } from '@/types';
+import PostsField from '@/components/cp/PostsField.vue';
+import type { Field, FieldValue, Media, PostChoices } from '@/types';
 
 const props = defineProps<{
     field: Field;
     id: string;
+    // The chosen image, for image fields.
     media?: Media | null;
+    // Images by id, for gallery fields.
+    library?: Record<number, Media>;
+    // For posts fields: every post, and the one being edited.
+    postChoices?: PostChoices[];
+    postId?: number | null;
 }>();
 
 const model = defineModel<FieldValue>();
@@ -27,6 +35,11 @@ const addItem = () => {
 const removeItem = (index: number) => {
     model.value = listItems().filter((_, i) => i !== index);
 };
+
+const ids = () =>
+    (Array.isArray(model.value) ? model.value : []).filter(
+        (id): id is number => typeof id === 'number',
+    );
 
 const inputValue = () =>
     Array.isArray(model.value) || typeof model.value === 'boolean'
@@ -57,6 +70,33 @@ const inputValue = () =>
         :initial="props.media"
         :model-value="typeof model === 'number' ? model : null"
         @update:model-value="model = $event ?? null"
+    />
+
+    <GalleryField
+        v-else-if="props.field.type === 'gallery'"
+        :id="id"
+        :initial="props.library"
+        :model-value="ids()"
+        @update:model-value="model = $event ?? []"
+    />
+
+    <PostsField
+        v-else-if="props.field.type === 'posts'"
+        :id="id"
+        :choices="props.postChoices ?? []"
+        :post-id="props.postId"
+        :model-value="ids()"
+        @update:model-value="model = $event ?? []"
+    />
+
+    <input
+        v-else-if="props.field.type === 'url'"
+        :id="id"
+        type="url"
+        :value="inputValue()"
+        placeholder="https://"
+        class="cp-input"
+        @input="model = ($event.target as HTMLInputElement).value || null"
     />
 
     <label

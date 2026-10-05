@@ -29,6 +29,16 @@ test('values are converted between field types', function (FieldType $from, Fiel
     'date to text' => [FieldType::Date, FieldType::Text, '2024-03-05', '2024-03-05'],
     'image to text' => [FieldType::Image, FieldType::Text, 12, null],
     'text to image' => [FieldType::Text, FieldType::Image, '12', null],
+    'image to gallery' => [FieldType::Image, FieldType::Gallery, 12, [12]],
+    'gallery to image' => [FieldType::Gallery, FieldType::Image, [12, 13], 12],
+    'gallery to list' => [FieldType::Gallery, FieldType::List, [12, 13], null],
+    'list to posts' => [FieldType::List, FieldType::Posts, ['12'], null],
+    'posts to gallery' => [FieldType::Posts, FieldType::Gallery, [12], null],
+    'web address text to web address' => [FieldType::Text, FieldType::Url, ' https://example.com/app ', 'https://example.com/app'],
+    'other text to web address' => [FieldType::Text, FieldType::Url, 'example dot com', null],
+    'script to web address' => [FieldType::Text, FieldType::Url, 'javascript:alert(1)', null],
+    'web address to text' => [FieldType::Url, FieldType::Text, 'https://example.com', 'https://example.com'],
+    'web address to list' => [FieldType::Url, FieldType::List, 'https://example.com', ['https://example.com']],
     'empty stays empty' => [FieldType::Text, FieldType::Number, null, null],
 ]);
 

@@ -23,6 +23,7 @@ import type {
     FieldValue,
     Media,
     Post,
+    PostChoices,
     PostRevision,
     PostRevisionSummary,
     PostStatus,
@@ -40,6 +41,8 @@ const props = defineProps<{
     views: ViewHistory | null;
     allTags: string[];
     authors: Author[];
+    // Empty unless the template has a posts field.
+    postChoices: PostChoices[];
 }>();
 
 const page = usePage();
@@ -50,6 +53,9 @@ const emptyValue = (field: Field): FieldValue => {
             return false;
         case 'list':
             return [''];
+        case 'gallery':
+        case 'posts':
+            return [];
         default:
             return null;
     }
@@ -183,8 +189,8 @@ const applyData = async (
     const imageIds = [
         data.thumbnail_id,
         ...props.template.fields
-            .filter((field) => field.type === 'image')
-            .map((field) => data.values[field.handle]),
+            .filter((field) => ['image', 'gallery'].includes(field.type))
+            .flatMap((field) => data.values[field.handle]),
     ].filter((id): id is number => typeof id === 'number');
 
     if (imageIds.some((id) => !knownMedia.value[id])) {
@@ -402,6 +408,9 @@ const deletePost = () => {
                             ? knownMedia[form.values[field.handle] as number]
                             : null
                     "
+                    :library="knownMedia"
+                    :post-choices="postChoices"
+                    :post-id="post?.id"
                 />
                 <p v-if="dataError(field.handle)" class="cp-error">
                     {{ dataError(field.handle) }}
@@ -512,6 +521,8 @@ const deletePost = () => {
                 :template="template"
                 :post="post"
                 :revisions="revisions"
+                :media="media"
+                :post-choices="postChoices"
                 @restore="restoreRevision"
             />
         </aside>

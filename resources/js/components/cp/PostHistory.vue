@@ -9,6 +9,7 @@ import type {
     FieldValue,
     Media,
     Post,
+    PostChoices,
     PostRevision,
     PostRevisionSummary,
     Template,
@@ -18,6 +19,10 @@ const props = defineProps<{
     template: Pick<Template, 'id' | 'fields'>;
     post: Post;
     revisions: PostRevisionSummary[];
+    // The current version's images, by id.
+    media: Record<number, Media>;
+    // For the titles of posts in posts fields.
+    postChoices: PostChoices[];
 }>();
 
 const emit = defineEmits<{
@@ -75,15 +80,40 @@ const restore = () => {
 
 // --- Comparing with the current saved version -----------------------------
 
+const imageName = (id: number) =>
+    (selectedMedia.value[id] ?? props.media[id])?.filename ??
+    `Image #${id} (deleted)`;
+
+const postTitles = computed(
+    () =>
+        new Map(
+            props.postChoices.flatMap((template) =>
+                template.posts.map((post) => [post.id, post.title]),
+            ),
+        ),
+);
+
 const asText = (field: Field | null, value: FieldValue | undefined): string => {
     if (value === null || value === undefined || value === '') {
         return '';
     }
 
     if (field?.type === 'image') {
-        const media = selectedMedia.value[value as number];
+        return imageName(value as number);
+    }
 
-        return media ? media.filename : `Image #${value} (deleted)`;
+    // One per line, so changes show like those to a list.
+    if (field?.type === 'gallery' && Array.isArray(value)) {
+        return value.map((id) => imageName(Number(id))).join('\n');
+    }
+
+    if (field?.type === 'posts' && Array.isArray(value)) {
+        return value
+            .map(
+                (id) =>
+                    postTitles.value.get(Number(id)) ?? `Post #${id} (deleted)`,
+            )
+            .join('\n');
     }
 
     if (Array.isArray(value)) {
@@ -141,7 +171,9 @@ const comparisons = computed<Comparison[]>(() => {
                 field.label,
                 asText(field, revision.data[field.handle]),
                 asText(field, props.post.data[field.handle]),
-                ['textarea', 'markdown', 'list'].includes(field.type),
+                ['textarea', 'markdown', 'list', 'gallery', 'posts'].includes(
+                    field.type,
+                ),
             ),
         ),
     ];

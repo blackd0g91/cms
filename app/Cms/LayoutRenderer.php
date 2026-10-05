@@ -11,7 +11,8 @@ use Mustache\Engine;
  * Renders a post through its template's Mustache layout.
  *
  * Double braces escape values, except markdown and long-text fields, which
- * are already HTML. Lists and yes/no fields can be used as sections.
+ * are already HTML, and images, galleries and posts, which render as such.
+ * Lists, yes/no fields, galleries and posts can be used as sections.
  */
 class LayoutRenderer
 {
@@ -86,8 +87,15 @@ class LayoutRenderer
                     "    {{# {$handle} }}<li>{{ . }}</li>{{/ {$handle} }}",
                     '  </ul>',
                 ],
-                FieldType::Image => [
+                FieldType::Image, FieldType::Gallery => [
                     "  {{ {$handle} }}",
+                ],
+                FieldType::Posts => [
+                    "  <h2>{$label}</h2>",
+                    "  {{ {$handle} }}",
+                ],
+                FieldType::Url => [
+                    "  {{# {$handle} }}<p><a href=\"{{ {$handle} }}\">{$label}</a></p>{{/ {$handle} }}",
                 ],
                 FieldType::Boolean => [
                     "  {{# {$handle} }}<p>{$label}</p>{{/ {$handle} }}",

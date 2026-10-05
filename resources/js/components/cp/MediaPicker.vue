@@ -2,8 +2,16 @@
 import { ref } from 'vue';
 import { requestJson } from '@/lib/http';
 import { IMAGE_TYPES, uploadImage } from '@/lib/media';
+import { cn } from '@/lib/utils';
 import { library } from '@/routes/cp/media';
 import type { Media } from '@/types';
+
+const props = defineProps<{
+    // Stays open to pick several, one click each, with the ones already
+    // picked (selected) checked. Picking one of those again unpicks it.
+    multiple?: boolean;
+    selected?: number[];
+}>();
 
 const emit = defineEmits<{
     select: [media: Media];
@@ -35,14 +43,19 @@ const close = () => dialog.value?.close();
 
 const choose = (item: Media) => {
     emit('select', item);
-    close();
+
+    if (!props.multiple) {
+        close();
+    }
 };
+
+const isSelected = (item: Media) => props.selected?.includes(item.id) ?? false;
 
 const upload = async (event: Event) => {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = [...(input.files ?? [])];
 
-    if (!file) {
+    if (files.length === 0) {
         return;
     }
 
@@ -50,7 +63,13 @@ const upload = async (event: Event) => {
     error.value = null;
 
     try {
-        choose(await uploadImage(file));
+        for (const file of files) {
+            const item = await uploadImage(file);
+
+            // New uploads are first in the library too.
+            media.value.unshift(item);
+            choose(item);
+        }
     } catch (e) {
         error.value = e instanceof Error ? e.message : 'Upload failed';
     } finally {
@@ -71,20 +90,23 @@ defineExpose({ open });
         <div
             class="flex items-center justify-between border-b border-neutral-200 p-4 dark:border-neutral-800"
         >
-            <h2 class="font-semibold">Choose an image</h2>
+            <h2 class="font-semibold">
+                {{ multiple ? 'Choose images' : 'Choose an image' }}
+            </h2>
             <div class="flex items-center gap-2">
                 <label class="cp-btn-primary cursor-pointer">
                     {{ uploading ? 'Uploading…' : 'Upload' }}
                     <input
                         type="file"
                         :accept="IMAGE_TYPES.join(',')"
+                        :multiple="multiple"
                         class="sr-only"
                         :disabled="uploading"
                         @change="upload"
                     />
                 </label>
                 <button type="button" class="cp-btn" @click="close">
-                    Close
+                    {{ multiple ? 'Done' : 'Close' }}
                 </button>
             </div>
         </div>
@@ -99,8 +121,15 @@ defineExpose({ open });
                 <li v-for="item in media" :key="item.id">
                     <button
                         type="button"
-                        class="block w-full overflow-hidden rounded-md border border-neutral-200 hover:ring-2 hover:ring-neutral-400 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:border-neutral-800"
+                        :class="
+                            cn(
+                                'relative block w-full overflow-hidden rounded-md border border-neutral-200 hover:ring-2 hover:ring-neutral-400 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:border-neutral-800',
+                                isSelected(item) &&
+                                    'ring-2 ring-brand hover:ring-brand focus:ring-brand',
+                            )
+                        "
                         :title="item.filename"
+                        :aria-pressed="multiple ? isSelected(item) : undefined"
                         @click="choose(item)"
                     >
                         <img
@@ -109,6 +138,13 @@ defineExpose({ open });
                             class="aspect-square w-full object-cover"
                             loading="lazy"
                         />
+                        <span
+                            v-if="isSelected(item)"
+                            class="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-brand text-sm text-brand-fg shadow"
+                            aria-hidden="true"
+                        >
+                            &check;
+                        </span>
                     </button>
                 </li>
             </ul>
