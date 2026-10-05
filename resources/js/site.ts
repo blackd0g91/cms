@@ -218,6 +218,45 @@ if (wakeButton && 'wakeLock' in navigator) {
     });
 }
 
+// Post cards catch the light where the pointer is, and tilt a little toward
+// it (see .card-light in site.css). Only with a mouse or trackpad, and not
+// for people who prefer less motion, who still get the light.
+const pointerMedia = matchMedia('(hover: hover) and (pointer: fine)');
+const stillMedia = matchMedia('(prefers-reduced-motion: reduce)');
+// Degrees at the card's edges.
+const TILT = 3;
+
+document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
+    let frame = 0;
+
+    card.addEventListener('pointermove', (event) => {
+        if (!pointerMedia.matches || event.pointerType !== 'mouse') {
+            return;
+        }
+
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+            const box = card.getBoundingClientRect();
+            const x = (event.clientX - box.left) / box.width;
+            const y = (event.clientY - box.top) / box.height;
+
+            card.style.setProperty('--light-x', `${x * 100}%`);
+            card.style.setProperty('--light-y', `${y * 100}%`);
+
+            if (!stillMedia.matches) {
+                card.style.setProperty('--tilt-x', `${(0.5 - y) * TILT}deg`);
+                card.style.setProperty('--tilt-y', `${(x - 0.5) * TILT}deg`);
+            }
+        });
+    });
+
+    card.addEventListener('pointerleave', () => {
+        cancelAnimationFrame(frame);
+        card.style.removeProperty('--tilt-x');
+        card.style.removeProperty('--tilt-y');
+    });
+});
+
 // Light / dark / system theme (see lib/theme.ts); this only handles the button.
 const themeButton = document.querySelector<HTMLButtonElement>(
     '[data-theme-toggle]',

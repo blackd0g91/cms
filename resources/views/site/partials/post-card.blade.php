@@ -1,10 +1,12 @@
 {{-- A post as a card. Expects $post (template and thumbnail loaded) and optionally $featured. --}}
 @php($featured ??= false)
 <article @class(['hue group', 'sm:col-span-2' => $featured]) style="{{ $post->template->accentStyle() }}">
+    {{-- data-card-light: lit where the pointer is, and tilted toward it (see site.ts). --}}
     <a
         href="{{ $post->url() }}"
+        data-card-light
         @class([
-            'flex h-full overflow-hidden rounded-2xl border border-line bg-card shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent-soft',
+            'card-light flex h-full overflow-hidden rounded-2xl border border-line bg-card shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent-soft',
             'flex-col sm:flex-row' => $featured,
             'flex-col' => ! $featured,
         ])

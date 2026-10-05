@@ -390,6 +390,61 @@ body {
     }
 }
 
+/*
+ * Post cards catch the light where the pointer is: a soft glow in the
+ * template's color, and a brighter edge (see site.ts, which sets --light-x
+ * and --light-y and the tilt). Only with a mouse or trackpad.
+ */
+.card-light {
+    position: relative;
+}
+
+.card-light::before,
+.card-light::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+
+/* The glow over the card. */
+.card-light::after {
+    background: radial-gradient(
+        26rem circle at var(--light-x, 50%) var(--light-y, 50%),
+        color-mix(in oklch, var(--accent) 10%, transparent),
+        transparent 60%
+    );
+}
+
+/* The edge: the same light, shown only in a 1px ring. */
+.card-light::before {
+    z-index: 1;
+    padding: 1px;
+    background: radial-gradient(
+        16rem circle at var(--light-x, 50%) var(--light-y, 50%),
+        color-mix(in oklch, var(--accent) 55%, transparent),
+        transparent 70%
+    );
+    mask:
+        linear-gradient(#000 0 0) content-box exclude,
+        linear-gradient(#000 0 0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .card-light:hover {
+        transform: perspective(60rem) rotateX(var(--tilt-x, 0deg))
+            rotateY(var(--tilt-y, 0deg));
+    }
+
+    .card-light:hover::before,
+    .card-light:hover::after {
+        opacity: 1;
+    }
+}
+
 @keyframes lightbox-in {
     from {
         opacity: 0;
