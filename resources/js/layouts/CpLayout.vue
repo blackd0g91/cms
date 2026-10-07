@@ -166,7 +166,7 @@ const iconClass = (active: boolean) =>
             "
         >
             <div
-                class="flex h-14 shrink-0 items-center border-b border-neutral-200 px-4 dark:border-neutral-800"
+                class="flex h-14 shrink-0 items-center gap-2 border-b border-neutral-200 pr-3 pl-4 dark:border-neutral-800"
             >
                 <Link
                     :href="dashboard()"
@@ -175,6 +175,15 @@ const iconClass = (active: boolean) =>
                     <SiteMark />
                     <span class="truncate">{{ page.props.name }}</span>
                 </Link>
+                <a
+                    :href="home().url"
+                    target="_blank"
+                    title="View site"
+                    aria-label="View site"
+                    class="cp-icon-btn ml-auto shrink-0"
+                >
+                    <CpIcon name="external" class="size-4" />
+                </a>
             </div>
 
             <nav class="flex-1 space-y-5 overflow-y-auto p-3 text-sm">
@@ -211,15 +220,6 @@ const iconClass = (active: boolean) =>
             >
                 <!-- Small buttons for the whole panel. -->
                 <div class="flex items-center justify-end gap-1">
-                    <a
-                        :href="home().url"
-                        target="_blank"
-                        title="View site"
-                        aria-label="View site"
-                        class="cp-icon-btn"
-                    >
-                        <CpIcon name="external" class="size-4" />
-                    </a>
                     <ThemeButton />
                     <Link
                         :href="logout()"

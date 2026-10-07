@@ -121,7 +121,6 @@ useUnsavedChanges({
 <template>
     <Head title="Links" />
     <PageHeader title="Links">
-        <a href="/" target="_blank" class="cp-btn">View site</a>
         <SaveButton
             form="links-form"
             :processing="form.processing"

@@ -60,9 +60,7 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
 
 <template>
     <Head title="Dashboard" />
-    <PageHeader title="Dashboard">
-        <a href="/" target="_blank" class="cp-btn">View site</a>
-    </PageHeader>
+    <PageHeader title="Dashboard" />
 
     <p class="mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         Welcome back, {{ $page.props.auth.user.name }}.
