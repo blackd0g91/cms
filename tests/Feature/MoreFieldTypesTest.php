@@ -105,7 +105,7 @@ test('gallery images count as media usage, open in the editor, and show as missi
 
     $deleted->forceDelete();
 
-    $this->get(route('cp.dashboard'))
+    $this->get(route('cp.health'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('checkup.3.key', 'broken-images')
             ->where('checkup.3.items.0.title', 'Timer')

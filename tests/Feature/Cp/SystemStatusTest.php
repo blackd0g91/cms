@@ -69,9 +69,9 @@ test('debug mode in production is flagged', function () {
     expect(implode(' ', warningMessages()))->toContain('Debug mode is on in production');
 });
 
-test('the dashboard includes the system status', function () {
+test('the health page includes the system status', function () {
     $this->actingAs(User::factory()->create())
-        ->get(route('cp.dashboard'))
+        ->get(route('cp.health'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('system.php', PHP_VERSION)
             ->where('system.environment', 'testing')

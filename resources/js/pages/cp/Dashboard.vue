@@ -1,238 +1,76 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
 import ActivityChart from '@/components/cp/ActivityChart.vue';
-import ContentCheckup from '@/components/cp/ContentCheckup.vue';
-import type { Check } from '@/components/cp/ContentCheckup.vue';
+import DraftsInProgress from '@/components/cp/DraftsInProgress.vue';
+import type { Draft } from '@/components/cp/DraftsInProgress.vue';
+import NewPostMenu from '@/components/cp/NewPostMenu.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PopularPosts from '@/components/cp/PopularPosts.vue';
 import PostList from '@/components/cp/PostList.vue';
 import SiteSearches from '@/components/cp/SiteSearches.vue';
 import type { SearchOverview } from '@/components/cp/SiteSearches.vue';
 import SiteViews from '@/components/cp/SiteViews.vue';
-import SystemStatus from '@/components/cp/SystemStatus.vue';
-import type { SystemReport } from '@/components/cp/SystemStatus.vue';
+import ThisWeek from '@/components/cp/ThisWeek.vue';
+import type { Week } from '@/components/cp/ThisWeek.vue';
 import UnsavedDrafts from '@/components/cp/UnsavedDrafts.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
-import { index as mediaIndex } from '@/routes/cp/media';
+import { health } from '@/routes/cp';
 import { create as createTemplate } from '@/routes/cp/templates';
-import { index as postsIndex } from '@/routes/cp/posts';
-import { create as createPost } from '@/routes/cp/templates/posts';
-import type { DayViews, PostListItem, TemplateSummary } from '@/types';
+import type { DayViews, PostListItem } from '@/types';
 
 defineOptions({ layout: CpLayout });
 
-const props = defineProps<{
-    stats: {
-        published: number;
-        drafts: number;
-        templates: number;
-        media: number;
-    };
-    templates: (TemplateSummary & {
-        posts_count: number;
-        drafts_count: number;
-        accent: string;
-    })[];
+defineProps<{
+    // Only counted for admins.
+    systemWarnings: number;
+    week: Week;
+    drafts: Draft[];
+    templates: { id: number; name: string; accent: string }[];
     recentPosts: PostListItem[];
-    drafts: PostListItem[];
-    checkup: Check[];
     activity: { month: string; count: number }[];
     views: { daily: DayViews[]; total: number; previous: number };
     popular: (PostListItem & { views: number })[];
     searches: SearchOverview;
-    // Only for admins.
-    system: SystemReport | null;
 }>();
-
-type TemplateRow = (typeof props.templates)[number];
-
-const published = (template: TemplateRow) =>
-    template.posts_count - template.drafts_count;
-
-// Every bar shares one scale: the template with the most posts is full width.
-const largest = computed(() =>
-    Math.max(1, ...props.templates.map((template) => template.posts_count)),
-);
-
-const share = (count: number) => `${(count / largest.value) * 100}%`;
 </script>
 
 <template>
     <Head title="Dashboard" />
-    <PageHeader title="Dashboard" />
+    <PageHeader title="Dashboard">
+        <NewPostMenu :templates="templates" />
+    </PageHeader>
 
-    <p class="mb-6 text-sm text-neutral-600 dark:text-neutral-400">
-        Welcome back, {{ $page.props.auth.user.name }}.
-    </p>
-
-    <a
-        v-if="system?.warnings.length"
-        href="#system-status"
+    <Link
+        v-if="systemWarnings"
+        :href="health()"
         class="mb-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 hover:underline dark:border-red-900 dark:bg-red-950 dark:text-red-200"
     >
         <span class="font-bold" aria-hidden="true">✕</span>
-        {{ system.warnings.length }} system
-        {{ system.warnings.length === 1 ? 'issue needs' : 'issues need' }}
-        attention. See System status below.
-    </a>
+        {{ systemWarnings }} system
+        {{ systemWarnings === 1 ? 'issue needs' : 'issues need' }}
+        attention. See Health.
+    </Link>
 
-    <dl class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div class="cp-card p-4">
-            <dt
-                class="text-xs font-medium tracking-wide text-neutral-500 uppercase"
-            >
-                Published
-            </dt>
-            <dd
-                class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums"
-            >
-                {{ stats.published }}
-            </dd>
-        </div>
-        <div class="cp-card p-4">
-            <dt
-                class="text-xs font-medium tracking-wide text-neutral-500 uppercase"
-            >
-                Drafts
-            </dt>
-            <dd
-                class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums"
-            >
-                {{ stats.drafts }}
-            </dd>
-        </div>
-        <div class="cp-card p-4">
-            <dt
-                class="text-xs font-medium tracking-wide text-neutral-500 uppercase"
-            >
-                Templates
-            </dt>
-            <dd
-                class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums"
-            >
-                {{ stats.templates }}
-            </dd>
-        </div>
-        <Link
-            :href="mediaIndex()"
-            class="cp-card block p-4 transition-colors hover:border-neutral-400 dark:hover:border-neutral-600"
-        >
-            <dt
-                class="text-xs font-medium tracking-wide text-neutral-500 uppercase"
-            >
-                Images
-            </dt>
-            <dd
-                class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums"
-            >
-                {{ stats.media }}
-            </dd>
-        </Link>
-    </dl>
-
-    <UnsavedDrafts :templates="templates" class="mb-6" />
-
-    <ContentCheckup :checks="checkup" class="mb-6" />
-
-    <section class="cp-card mb-6">
-        <div
-            class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 px-4 py-3 dark:border-neutral-800"
-        >
-            <h2 class="font-semibold">Templates</h2>
-            <p
-                v-if="templates.length"
-                class="flex items-center gap-3 text-xs text-neutral-500"
-                aria-hidden="true"
-            >
-                <span class="flex items-center gap-1.5">
-                    <span class="h-2.5 w-3 rounded-sm bg-neutral-500" />
-                    Published
-                </span>
-                <span class="flex items-center gap-1.5">
-                    <span class="h-2.5 w-3 rounded-sm bg-neutral-500/35" />
-                    Drafts
-                </span>
-            </p>
-        </div>
-        <div
-            v-if="
-                templates.length === 0 && $page.props.auth.user.role === 'admin'
-            "
-            class="p-4 text-sm text-neutral-500"
-        >
-            Create a template first to start writing posts.
+    <p
+        v-if="templates.length === 0"
+        class="mb-6 rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"
+    >
+        <template v-if="$page.props.auth.user.role === 'admin'">
+            Posts are written with a template. Create one to start writing.
             <Link :href="createTemplate()" class="ml-1 underline"
                 >New template</Link
             >
-        </div>
-        <div
-            v-else-if="templates.length === 0"
-            class="p-4 text-sm text-neutral-500"
-        >
+        </template>
+        <template v-else>
             Posts are written with a template. Ask an admin to create one.
-        </div>
-        <ul v-else class="divide-y divide-neutral-200 dark:divide-neutral-800">
-            <li
-                v-for="template in templates"
-                :key="template.id"
-                class="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-4 px-4 py-3"
-            >
-                <div class="min-w-0">
-                    <Link
-                        :href="postsIndex({ query: { template: template.id } })"
-                        class="flex items-center gap-2 text-sm font-medium hover:underline"
-                    >
-                        <span
-                            class="size-2.5 shrink-0 rounded-full"
-                            :style="{ backgroundColor: template.accent }"
-                            aria-hidden="true"
-                        />
-                        <span class="truncate">{{ template.name }}</span>
-                    </Link>
-                    <p class="text-xs text-neutral-500">
-                        {{ published(template) }} published
-                        <template v-if="template.drafts_count">
-                            &middot; {{ template.drafts_count }}
-                            {{
-                                template.drafts_count === 1 ? 'draft' : 'drafts'
-                            }}
-                        </template>
-                    </p>
-                </div>
+        </template>
+    </p>
 
-                <!-- Published and drafts, on a scale shared by every template. -->
-                <div
-                    class="flex h-2.5 items-center gap-[2px]"
-                    role="img"
-                    :aria-label="`${template.name}: ${published(template)} published, ${template.drafts_count} ${template.drafts_count === 1 ? 'draft' : 'drafts'}`"
-                >
-                    <span
-                        v-if="published(template)"
-                        class="h-full rounded-[4px]"
-                        :style="{
-                            width: share(published(template)),
-                            backgroundColor: template.accent,
-                        }"
-                        :title="`${published(template)} published`"
-                    />
-                    <span
-                        v-if="template.drafts_count"
-                        class="h-full rounded-[4px]"
-                        :style="{
-                            width: share(template.drafts_count),
-                            backgroundColor: `color-mix(in oklch, ${template.accent} 35%, transparent)`,
-                        }"
-                        :title="`${template.drafts_count} ${template.drafts_count === 1 ? 'draft' : 'drafts'}`"
-                    />
-                </div>
+    <ThisWeek :week="week" class="mb-6" />
 
-                <Link :href="createPost(template.id)" class="cp-btn shrink-0">
-                    New post
-                </Link>
-            </li>
-        </ul>
-    </section>
+    <DraftsInProgress :drafts="drafts" class="mb-6" />
+
+    <UnsavedDrafts :templates="templates" class="mb-6" />
 
     <SiteViews
         :daily="views.daily"
@@ -248,27 +86,12 @@ const share = (count: number) => `${(count / largest.value) * 100}%`;
 
     <SiteSearches :searches="searches" class="mb-6" />
 
-    <div class="grid gap-6 lg:grid-cols-2">
-        <section class="cp-card">
-            <h2
-                class="border-b border-neutral-200 px-4 py-3 font-semibold dark:border-neutral-800"
-            >
-                Recently edited
-            </h2>
-            <PostList :posts="recentPosts" empty="No posts yet." />
-        </section>
-        <section class="cp-card">
-            <h2
-                class="border-b border-neutral-200 px-4 py-3 font-semibold dark:border-neutral-800"
-            >
-                Drafts
-            </h2>
-            <PostList
-                :posts="drafts"
-                empty="No drafts. Everything is published."
-            />
-        </section>
-    </div>
-
-    <SystemStatus v-if="system" :report="system" class="mt-6" />
+    <section class="cp-card">
+        <h2
+            class="border-b border-neutral-200 px-4 py-3 font-semibold dark:border-neutral-800"
+        >
+            Recently edited
+        </h2>
+        <PostList :posts="recentPosts" empty="No posts yet." />
+    </section>
 </template>

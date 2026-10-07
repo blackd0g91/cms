@@ -4,6 +4,7 @@ use App\Http\Controllers\Cp\AccountController;
 use App\Http\Controllers\Cp\Auth\LoginController;
 use App\Http\Controllers\Cp\Auth\SetPasswordController;
 use App\Http\Controllers\Cp\DashboardController;
+use App\Http\Controllers\Cp\HealthController;
 use App\Http\Controllers\Cp\LinkController;
 use App\Http\Controllers\Cp\MarkdownPreviewController;
 use App\Http\Controllers\Cp\MediaController;
@@ -26,6 +27,7 @@ Route::prefix('cp')->name('cp.')->group(function () {
 
     Route::middleware('auth')->group(function () {
         Route::get('/', DashboardController::class)->name('dashboard');
+        Route::get('health', HealthController::class)->name('health');
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::post('markdown/preview', MarkdownPreviewController::class)->name('markdown.preview');
 

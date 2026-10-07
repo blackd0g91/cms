@@ -8,7 +8,7 @@ import ThemeButton from '@/components/cp/ThemeButton.vue';
 import { openSidebarKey } from '@/lib/sidebar';
 import { cn, initials } from '@/lib/utils';
 import { home } from '@/routes';
-import { dashboard, logout } from '@/routes/cp';
+import { dashboard, health, logout } from '@/routes/cp';
 import { edit as accountEdit } from '@/routes/cp/account';
 import { edit as linksEdit } from '@/routes/cp/links';
 import { index as mediaIndex } from '@/routes/cp/media';
@@ -50,6 +50,12 @@ const groups: NavGroup[] = [
                 href: dashboard().url,
                 icon: 'dashboard',
                 active: (path) => path === dashboard().url,
+            },
+            {
+                title: 'Health',
+                href: health().url,
+                icon: 'health',
+                active: (path) => path === health().url,
             },
         ],
     },

@@ -4,6 +4,9 @@
 // their button's label, says what they mean.
 export type IconName =
     | 'dashboard'
+    | 'health'
+    | 'chevron'
+    | 'plus'
     | 'posts'
     | 'templates'
     | 'tags'
@@ -36,6 +39,15 @@ defineProps<{ name: IconName }>();
             <rect x="13.5" y="3.5" width="7" height="5" rx="1.5" />
             <rect x="13.5" y="11.5" width="7" height="9" rx="1.5" />
             <rect x="3.5" y="14.5" width="7" height="6" rx="1.5" />
+        </template>
+        <template v-else-if="name === 'health'">
+            <path d="M3 12h4l2.5-6 5 12 2.5-6h4" />
+        </template>
+        <template v-else-if="name === 'chevron'">
+            <path d="m6.5 9.5 5.5 5.5 5.5-5.5" />
+        </template>
+        <template v-else-if="name === 'plus'">
+            <path d="M12 5v14M5 12h14" />
         </template>
         <template v-else-if="name === 'posts'">
             <path

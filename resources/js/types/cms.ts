@@ -85,6 +85,7 @@ export type PostListItem = {
     title: string;
     status: PostStatus;
     pinned: boolean;
+    published_at: string | null;
     updated_at: string;
     template: { id: number; name: string };
     author: string | null;

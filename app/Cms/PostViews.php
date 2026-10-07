@@ -74,8 +74,18 @@ class PostViews
      */
     public function overview(int $days = 30): array
     {
+        return ['daily' => $this->daily($days), ...$this->totals($days)];
+    }
+
+    /**
+     * Views of every post over the last $days days and over the $days days
+     * before, to compare them.
+     *
+     * @return array{total: int, previous: int}
+     */
+    public function totals(int $days): array
+    {
         return [
-            'daily' => $this->daily($days),
             'total' => $this->total($days),
             'previous' => (int) DB::table('post_views')
                 ->whereBetween('date', [now()->subDays(2 * $days - 1)->toDateString(), now()->subDays($days)->toDateString()])

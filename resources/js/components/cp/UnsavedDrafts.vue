@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 import { listLocalDrafts, removeLocalDraft } from '@/composables/useLocalDraft';
+import { timeAgo } from '@/lib/utils';
 import { create, edit } from '@/routes/cp/templates/posts';
 
 const props = defineProps<{
@@ -54,24 +55,6 @@ const discard = (entry: Entry) => {
         removeLocalDraft(entry.key);
         load();
     }
-};
-
-const timeAgo = (iso: string) => {
-    const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-
-    if (minutes < 1) {
-        return 'just now';
-    }
-
-    if (minutes < 60) {
-        return `${minutes} min ago`;
-    }
-
-    const hours = Math.round(minutes / 60);
-
-    return hours < 48
-        ? `${hours} h ago`
-        : new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' });
 };
 </script>
 

@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers\Cp;
 
-use App\Cms\ContentCheckup;
 use App\Cms\PostViews;
 use App\Cms\SiteSearches;
 use App\Cms\SystemStatus;
 use App\Cms\Trash;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,42 +17,54 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, ContentCheckup $checkup, PostViews $views, SystemStatus $system, SiteSearches $searches, Trash $trash): Response
+    public function __invoke(Request $request, PostViews $views, SystemStatus $system, SiteSearches $searches, Trash $trash): Response
     {
         $trash->purgeExpired();
+        $user = $request->user();
+        $top = $views->popular(7, 1)[0] ?? null;
+        $lastPublished = Post::query()
+            ->with(['template:id,name,handle', 'author:id,name'])
+            ->where('status', PostStatus::Published)
+            ->latest('published_at')
+            ->first();
 
         return Inertia::render('cp/Dashboard', [
-            // Only admins can do something about it.
-            'system' => $request->user()?->isAdmin() ? $system->report() : null,
+            // The details are on the health page, for admins, who can do something about them.
+            'systemWarnings' => $user?->isAdmin() ? count($system->report()['warnings']) : 0,
+            'week' => [
+                'views' => $views->totals(7),
+                'searches' => $searches->totals(7),
+                'top' => $top ? [...$top['post']->toListItem(), 'views' => $top['views']] : null,
+                'lastPublished' => $lastPublished?->toListItem(),
+            ],
+            // Yours, and those from before posts had authors.
+            'drafts' => Post::query()
+                ->with(['template:id,name,handle', 'author:id,name'])
+                ->where('status', PostStatus::Draft)
+                ->where(fn (Builder $query) => $query->whereNull('author_id')->orWhere('author_id', $user?->id))
+                ->latest('updated_at')
+                ->limit(5)
+                ->get()
+                ->map(fn (Post $post) => [
+                    ...$post->toListItem(),
+                    'description' => $post->description(160),
+                    'reading_minutes' => $post->readingMinutes(),
+                ]),
             'views' => $views->overview(),
             'popular' => array_map(fn (array $row) => [
                 ...$row['post']->toListItem(),
                 'views' => $row['views'],
             ], $views->popular()),
             'searches' => $searches->overview(),
-            'checkup' => $checkup->run(),
             'activity' => $this->activity(),
-            'stats' => [
-                'published' => Post::query()->where('status', PostStatus::Published)->count(),
-                'drafts' => Post::query()->where('status', PostStatus::Draft)->count(),
-                'templates' => Template::query()->count(),
-                'media' => Media::query()->count(),
-            ],
             'templates' => Template::query()
-                ->withCount([
-                    'posts',
-                    'posts as drafts_count' => fn ($query) => $query->where('status', PostStatus::Draft),
-                ])
                 ->orderBy('name')
                 ->get(['id', 'name', 'handle', 'color'])
                 ->map(fn (Template $template) => [
-                    ...$template->only(['id', 'name', 'handle', 'posts_count', 'drafts_count']),
+                    ...$template->only(['id', 'name']),
                     'accent' => $template->accentColor(),
                 ]),
             'recentPosts' => $this->posts(Post::query()->latest('updated_at')->limit(8)),
-            'drafts' => $this->posts(
-                Post::query()->where('status', PostStatus::Draft)->latest('updated_at')->limit(8),
-            ),
         ]);
     }
 

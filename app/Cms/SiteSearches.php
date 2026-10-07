@@ -86,6 +86,22 @@ class SiteSearches
     }
 
     /**
+     * Searches over the last $days days and over the $days days before, to
+     * compare them.
+     *
+     * @return array{total: int, previous: int}
+     */
+    public function totals(int $days): array
+    {
+        return [
+            'total' => (int) DB::table('searches')->where('date', '>=', now()->subDays($days - 1)->toDateString())->sum('times'),
+            'previous' => (int) DB::table('searches')
+                ->whereBetween('date', [now()->subDays(2 * $days - 1)->toDateString(), now()->subDays($days)->toDateString()])
+                ->sum('times'),
+        ];
+    }
+
+    /**
      * Lowercase with single spaces, so "Pão  de Queijo" and "pão de queijo"
      * count as one search. Accents stay, to show the search as typed.
      */

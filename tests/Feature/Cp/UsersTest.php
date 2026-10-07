@@ -19,7 +19,7 @@ function flashedLink(): string
 test('editors write posts and look after tags and media, but not the rest', function () {
     $this->actingAs(User::factory()->editor()->create());
 
-    foreach (['cp.dashboard', 'cp.posts.index', 'cp.tags.index', 'cp.media.index', 'cp.account.edit'] as $route) {
+    foreach (['cp.dashboard', 'cp.health', 'cp.posts.index', 'cp.tags.index', 'cp.media.index', 'cp.account.edit'] as $route) {
         $this->get(route($route))->assertOk();
     }
 
@@ -31,13 +31,15 @@ test('editors write posts and look after tags and media, but not the rest', func
     expect(User::query()->where('email', 'sneaky@example.com')->exists())->toBeFalse();
 });
 
-test('only admins see the system status on the dashboard', function () {
+test('only admins see the system status', function () {
     $this->actingAs(User::factory()->editor()->create())
-        ->get(route('cp.dashboard'))
+        ->get(route('cp.health'))
         ->assertInertia(fn (Assert $page) => $page->where('system', null));
+    $this->get(route('cp.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('systemWarnings', 0));
 
     $this->actingAs(User::factory()->create())
-        ->get(route('cp.dashboard'))
+        ->get(route('cp.health'))
         ->assertInertia(fn (Assert $page) => $page->whereNot('system', null));
 });
 
