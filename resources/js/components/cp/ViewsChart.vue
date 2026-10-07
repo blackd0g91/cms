@@ -24,11 +24,44 @@ const largest = computed(() =>
 const left = (i: number) => (last.value > 0 ? (i / last.value) * 100 : 50);
 const top = (views: number) => 100 - (views / largest.value) * 100;
 
-const line = computed(() =>
-    props.days
-        .map((day, i) => `${i ? 'L' : 'M'}${left(i)} ${top(day.views)}`)
-        .join(' '),
-);
+// A smooth curve through every day (monotone cubic, Fritsch–Carlson): it
+// never overshoots, so it stays above zero and peaks on the busiest day.
+const line = computed(() => {
+    const xs = props.days.map((_, i) => left(i));
+    const ys = props.days.map((day) => top(day.views));
+    const n = xs.length;
+
+    if (n < 3) {
+        return xs.map((x, i) => `${i ? 'L' : 'M'}${x} ${ys[i]}`).join(' ');
+    }
+
+    const slopes = xs.slice(1).map((x, i) => (ys[i + 1] - ys[i]) / (x - xs[i]));
+    const tangents = xs.map((_, i) => {
+        if (i === 0) {
+            return slopes[0];
+        }
+
+        if (i === n - 1) {
+            return slopes[n - 2];
+        }
+
+        const [before, after] = [slopes[i - 1], slopes[i]];
+
+        // Flat at peaks, valleys and plateaus.
+        return before * after <= 0
+            ? 0
+            : (2 * before * after) / (before + after);
+    });
+
+    let path = `M${xs[0]} ${ys[0]}`;
+
+    for (let i = 0; i < n - 1; i++) {
+        const third = (xs[i + 1] - xs[i]) / 3;
+        path += ` C${xs[i] + third} ${ys[i] + tangents[i] * third} ${xs[i + 1] - third} ${ys[i + 1] - tangents[i + 1] * third} ${xs[i + 1]} ${ys[i + 1]}`;
+    }
+
+    return path;
+});
 
 const area = computed(() => `${line.value} L100 100 L0 100 Z`);
 
