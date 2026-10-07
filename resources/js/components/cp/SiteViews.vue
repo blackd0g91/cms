@@ -30,7 +30,7 @@ const change = computed(() => {
 </script>
 
 <template>
-    <section class="cp-card">
+    <section class="cp-card flex flex-col">
         <div
             class="border-b border-neutral-200 px-4 py-3 dark:border-neutral-800"
         >
@@ -46,10 +46,13 @@ const change = computed(() => {
             visitor per day. Yours don't count while you're logged in.
         </p>
 
-        <div v-else class="px-4 pt-8 pb-3">
+        <!-- As tall as the card beside it, on the dashboard. -->
+        <div v-else class="flex flex-1 flex-col px-4 pt-8 pb-3">
             <ViewsChart
                 :days="daily"
                 caption="Views of every post per day, over the last 30 days"
+                height="fill"
+                class="flex-1"
             />
         </div>
     </section>

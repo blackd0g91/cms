@@ -37,19 +37,6 @@ class DashboardController extends Controller
                 'top' => $top ? [...$top['post']->toListItem(), 'views' => $top['views']] : null,
                 'lastPublished' => $lastPublished?->toListItem(),
             ],
-            // Yours, and those from before posts had authors.
-            'drafts' => Post::query()
-                ->with(['template:id,name,handle', 'author:id,name'])
-                ->where('status', PostStatus::Draft)
-                ->where(fn (Builder $query) => $query->whereNull('author_id')->orWhere('author_id', $user?->id))
-                ->latest('updated_at')
-                ->limit(5)
-                ->get()
-                ->map(fn (Post $post) => [
-                    ...$post->toListItem(),
-                    'description' => $post->description(160),
-                    'reading_minutes' => $post->readingMinutes(),
-                ]),
             'views' => $views->overview(),
             'popular' => array_map(fn (array $row) => [
                 ...$row['post']->toListItem(),

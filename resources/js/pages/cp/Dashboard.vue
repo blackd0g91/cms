@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import ActivityChart from '@/components/cp/ActivityChart.vue';
-import DraftsInProgress from '@/components/cp/DraftsInProgress.vue';
-import type { Draft } from '@/components/cp/DraftsInProgress.vue';
 import NewPostMenu from '@/components/cp/NewPostMenu.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PopularPosts from '@/components/cp/PopularPosts.vue';
@@ -24,7 +22,6 @@ defineProps<{
     // Only counted for admins.
     systemWarnings: number;
     week: Week;
-    drafts: Draft[];
     templates: { id: number; name: string; accent: string }[];
     recentPosts: PostListItem[];
     activity: { month: string; count: number }[];
@@ -68,21 +65,18 @@ defineProps<{
 
     <ThisWeek :week="week" class="mb-6" />
 
-    <DraftsInProgress :drafts="drafts" class="mb-6" />
-
     <UnsavedDrafts :templates="templates" class="mb-6" />
 
-    <SiteViews
-        :daily="views.daily"
-        :total="views.total"
-        :previous="views.previous"
-        class="mb-6"
-    />
-
-    <div class="mb-6 grid gap-6 xl:grid-cols-[3fr_2fr]">
-        <ActivityChart :months="activity" />
+    <div class="mb-6 grid gap-6 lg:grid-cols-2">
+        <SiteViews
+            :daily="views.daily"
+            :total="views.total"
+            :previous="views.previous"
+        />
         <PopularPosts :posts="popular" />
     </div>
+
+    <ActivityChart :months="activity" class="mb-6" />
 
     <SiteSearches :searches="searches" class="mb-6" />
 

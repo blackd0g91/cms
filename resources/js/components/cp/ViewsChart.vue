@@ -8,8 +8,9 @@ const props = withDefaults(
         days: DayViews[];
         // What is counted, for screen readers.
         caption: string;
-        // Of the plot, in pixels.
-        height?: number;
+        // Of the plot, in pixels, or "fill" to take the room the chart is
+        // given (144px at least).
+        height?: number | 'fill';
     }>(),
     { height: 144 },
 );
@@ -144,11 +145,12 @@ const at = (i: number, y?: number) => ({
 </script>
 
 <template>
-    <div>
+    <div class="flex flex-col">
         <div
             ref="plot"
+            :class="height === 'fill' && 'min-h-36 flex-1'"
             class="relative cursor-crosshair touch-pan-y border-b border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:ring-offset-4 dark:border-neutral-800 dark:ring-offset-neutral-900 dark:focus-visible:ring-neutral-700"
-            :style="{ height: `${height}px` }"
+            :style="height === 'fill' ? {} : { height: `${height}px` }"
             tabindex="0"
             :aria-label="`${caption}. Use the arrow keys to read each day.`"
             @pointerdown="pointAt"

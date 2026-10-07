@@ -9,38 +9,26 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('the dashboard shows your drafts to pick up, the templates and recent posts', function () {
-    $user = User::factory()->create();
+test('the dashboard shows the templates and recent posts', function () {
     $template = Template::factory()->create(['name' => 'Recipes']);
     $published = Post::factory()->published()->for($template)->create(['updated_at' => now()->subDay()]);
-    $older = Post::factory()->for($template)->for($user, 'author')->create(['updated_at' => now()->subDays(2)]);
-    $latest = Post::factory()->for($template)->for($user, 'author')->create(['summary' => 'Almost done.', 'updated_at' => now()]);
-    // From before posts had authors.
-    $legacy = Post::factory()->for($template)->create(['author_id' => null, 'updated_at' => now()->subDays(3)]);
-    // Someone else's.
-    Post::factory()->for($template)->for(User::factory()->editor(), 'author')->create(['updated_at' => now()->subHour()]);
+    $draft = Post::factory()->for($template)->create(['updated_at' => now()]);
 
-    $this->actingAs($user)
+    $this->actingAs(User::factory()->create())
         ->get(route('cp.dashboard'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('cp/Dashboard')
-            ->has('drafts', 3)
-            ->where('drafts.0.id', $latest->id)
-            ->where('drafts.0.description', 'Almost done.')
-            ->where('drafts.0.reading_minutes', 1)
-            ->where('drafts.1.id', $older->id)
-            ->where('drafts.2.id', $legacy->id)
+            ->missing('drafts')
             ->where('templates.0.name', 'Recipes')
-            ->has('recentPosts', 5)
-            ->where('recentPosts.0.id', $latest->id)
-            ->where('recentPosts.2.url', $published->url()));
+            ->has('recentPosts', 2)
+            ->where('recentPosts.0.id', $draft->id)
+            ->where('recentPosts.1.url', $published->url()));
 });
 
 test('the dashboard works without any content', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('cp.dashboard'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('drafts', 0)
             ->has('templates', 0)
             ->where('week.top', null)
             ->where('week.lastPublished', null)
