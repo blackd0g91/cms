@@ -7,6 +7,7 @@ import PageHeader from '@/components/cp/PageHeader.vue';
 import SaveButton from '@/components/cp/SaveButton.vue';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
+import { sameData, sentForm } from '@/lib/forms';
 import { update } from '@/routes/cp/settings';
 import type { Media } from '@/types';
 
@@ -93,12 +94,18 @@ const profileError = (key: string) =>
     (form.errors as Record<string, string | undefined>)[`profiles.${key}`];
 
 const submit = () => {
+    const sent = sentForm(form);
+
     form.submit(update(), {
         preserveScroll: true,
         onSuccess: () => {
-            // Show usernames as the addresses they were saved as.
-            form.profiles = profilesFromProps();
-            form.defaults();
+            // Show usernames as the addresses they were saved as, unless
+            // they were changed while saving.
+            if (sameData(form.profiles, sent.data.profiles)) {
+                form.profiles = profilesFromProps();
+            }
+
+            sent.saved({ ...sent.data, profiles: profilesFromProps() });
         },
     });
 };

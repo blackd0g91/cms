@@ -12,6 +12,7 @@ import TagInput from '@/components/cp/TagInput.vue';
 import { useLocalDraft } from '@/composables/useLocalDraft';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
+import { sentForm } from '@/lib/forms';
 import { requestJson } from '@/lib/http';
 import { slugify } from '@/lib/utils';
 import { library } from '@/routes/cp/media';
@@ -228,6 +229,8 @@ const restoreRevision = (
     );
 
 const submit = () => {
+    const sent = sentForm(form);
+
     form.transform(({ values, ...rest }) => ({ ...rest, data: values })).submit(
         props.post
             ? update([props.template.id, props.post.id])
@@ -237,11 +240,18 @@ const submit = () => {
             onSuccess: () => {
                 // The page stays mounted after creating, so the slug is now fixed.
                 slugTouched.value = true;
-                form.defaults();
-                // Saved, so the browser copy is no longer needed. A new post
-                // also forgets the draft it had before it got an id.
-                draft.clear();
+                sent.saved();
+                // Saved, so the browser copy is no longer needed, unless more
+                // was typed while saving. A new post also forgets the draft
+                // it had before it got an id.
                 draft.clear(draftKey(null));
+
+                if (form.isDirty) {
+                    draft.save();
+                } else {
+                    draft.clear();
+                }
+
                 draft.dismiss();
             },
         },

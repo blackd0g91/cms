@@ -2,6 +2,7 @@
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
+import { sentForm } from '@/lib/forms';
 import { password, update } from '@/routes/cp/account';
 
 defineOptions({ layout: CpLayout });
@@ -20,9 +21,11 @@ const passwords = useForm({
 });
 
 const saveProfile = () => {
+    const sent = sentForm(profile);
+
     profile.submit(update(), {
         preserveScroll: true,
-        onSuccess: () => profile.defaults(),
+        onSuccess: () => sent.saved(),
     });
 };
 

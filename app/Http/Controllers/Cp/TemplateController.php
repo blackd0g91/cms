@@ -59,6 +59,7 @@ class TemplateController extends Controller
         DB::transaction(function () use ($request, $template) {
             $renames = $request->renamedFields();
             $typeChanges = $request->changedFieldTypes();
+            $added = $request->addedFields();
 
             $attributes = $request->templateAttributes();
             $attributes['layout'] = LayoutRenderer::renameVariables($attributes['layout'], $renames);
@@ -66,9 +67,10 @@ class TemplateController extends Controller
             $template->update($attributes);
             $template->renameFieldsInPosts($renames);
             $template->convertFieldTypesInPosts($typeChanges);
+            $template->clearFieldsInPosts($added);
 
             // Image fields may have been added or removed.
-            $template->posts()->each(fn (Post $post) => $post->setRelation('template', $template)->syncMedia());
+            $template->posts()->withTrashed()->each(fn (Post $post) => $post->setRelation('template', $template)->syncMedia());
         });
 
         return redirect()->route('cp.templates.edit', $template);

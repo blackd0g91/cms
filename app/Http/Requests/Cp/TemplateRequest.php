@@ -88,6 +88,29 @@ class TemplateRequest extends FormRequest
     }
 
     /**
+     * Handles of fields the template did not have before, neither as they
+     * are nor renamed. Posts may still hold values of a removed field under
+     * one of them.
+     *
+     * @return list<string>
+     */
+    public function addedFields(): array
+    {
+        /** @var Template|null $template */
+        $template = $this->route('template');
+
+        if ($template === null) {
+            return [];
+        }
+
+        return array_values(array_diff(
+            array_column($this->templateAttributes()['fields'], 'handle'),
+            array_column($template->fields, 'handle'),
+            $this->renamedFields(),
+        ));
+    }
+
+    /**
      * Field handles that changed, as [old handle => new handle]. Only handles
      * the template currently has count, so stale or made-up ones are ignored.
      *

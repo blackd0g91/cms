@@ -149,6 +149,14 @@ const tabs = computed(() =>
     })),
 );
 
+// The picker sits inside editor forms, where Enter in a text box would save
+// the form. Here it picks the best match instead.
+const chooseFirst = () => {
+    if (query.value.trim() && results.value[0]) {
+        choose(results.value[0].e);
+    }
+};
+
 const label = (item: EmojiData['emoji'][number]) =>
     item.s.length ? `${item.n} (:${item.s[0]}:)` : item.n;
 
@@ -184,6 +192,7 @@ defineExpose({ show });
                     placeholder="Search emoji…"
                     aria-label="Search emoji"
                     class="cp-input py-1.5 text-sm"
+                    @keydown.enter.prevent="chooseFirst"
                 />
             </div>
 

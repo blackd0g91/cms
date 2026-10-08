@@ -125,6 +125,30 @@ const syncScroll = () => {
 // --- Editing --------------------------------------------------------------
 
 /**
+ * Put text between from and to the way typing does, so Ctrl+Z undoes it.
+ * That needs the editor to have focus; otherwise (or in a browser that can't)
+ * the text is set directly, which the undo history does not include.
+ */
+const insertText = (
+    textarea: HTMLTextAreaElement,
+    text: string,
+    from: number,
+    to: number,
+) => {
+    if (document.activeElement === textarea) {
+        textarea.setSelectionRange(from, to);
+
+        if (document.execCommand('insertText', false, text)) {
+            return true;
+        }
+    }
+
+    textarea.setRangeText(text, from, to, 'end');
+
+    return false;
+};
+
+/**
  * Replace the selection (or the text between start and end) and select the
  * given part of the new text, so typing continues naturally.
  */
@@ -145,8 +169,9 @@ const replace = (
     }
 
     const from = start ?? textarea.selectionStart;
+    const to = end ?? textarea.selectionEnd;
     textarea.focus();
-    textarea.setRangeText(text, from, end ?? textarea.selectionEnd, 'end');
+    insertText(textarea, text, from, to);
     textarea.setSelectionRange(from + select[0], from + select[1]);
     model.value = textarea.value;
 };
@@ -169,8 +194,14 @@ const wrap = (before: string, after: string, placeholder: string) => {
     ]);
 };
 
-/** Put a prefix before every selected line, e.g. "- " for a list. */
-const prefixLines = (prefix: (index: number) => string) => {
+/**
+ * Put a prefix before every selected line, e.g. "- " for a list. With
+ * keepSelected, the lines stay selected, so it can be done again.
+ */
+const prefixLines = (
+    prefix: (index: number) => string,
+    keepSelected = false,
+) => {
     const textarea = textareaRef.value;
 
     if (!textarea) {
@@ -188,7 +219,7 @@ const prefixLines = (prefix: (index: number) => string) => {
         .map((line, index) => prefix(index) + line);
     const text = lines.join('\n');
 
-    replace(text, [text.length, text.length], start, end);
+    replace(text, [keepSelected ? 0 : text.length, text.length], start, end);
 };
 
 const codeBlock = () => {
@@ -233,7 +264,17 @@ const swap = (placeholder: string, text: string) => {
         return;
     }
 
-    textarea.setRangeText(text, at, at + placeholder.length, 'preserve');
+    const end = at + placeholder.length;
+    const { selectionStart, selectionEnd } = textarea;
+    // Where a cursor position ends up once the placeholder is swapped.
+    const moved = (position: number) =>
+        position >= end
+            ? position + text.length - placeholder.length
+            : Math.min(position, at + text.length);
+
+    insertText(textarea, text, at, end);
+    textarea.setSelectionRange(moved(selectionStart), moved(selectionEnd));
+
     model.value = textarea.value;
 };
 
@@ -404,10 +445,16 @@ const onKeydown = (event: KeyboardEvent) => {
         !event.ctrlKey &&
         !event.altKey
     ) {
-        // Indent instead of leaving the editor, which matters for code.
-        // Shift+Tab still moves focus on.
+        // Indent instead of leaving the editor, which matters for code: the
+        // selected lines, or at the cursor. Shift+Tab still moves focus on.
         event.preventDefault();
-        replace('    ');
+        const textarea = event.target as HTMLTextAreaElement;
+
+        if (textarea.selectionStart === textarea.selectionEnd) {
+            replace('    ');
+        } else {
+            prefixLines(() => '    ', true);
+        }
 
         return;
     }

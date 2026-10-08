@@ -114,19 +114,24 @@ class Template extends Model
             return;
         }
 
-        // Old versions move too, so restoring one still fills the right fields.
-        PostRevision::query()
-            ->whereIn('post_id', $this->posts()->select('id'))
-            ->each(function (PostRevision $revision) use ($renames) {
-                $revision->update(['data' => self::renameKeys($revision->data, $renames)]);
-            });
+        $this->changeDataInPosts(fn (array $data) => self::renameKeys($data, $renames));
+    }
 
-        $this->posts()->each(function (Post $post) use ($renames) {
-            // Moving data around is not an edit, so leave updated_at alone.
-            $post->timestamps = false;
-            $post->setRelation('template', $this);
-            $post->update(['data' => self::renameKeys($post->data, $renames)]);
-        });
+    /**
+     * Clear post values under the handles of fields that were just added. A
+     * removed field's values stay in posts that were not saved since (and in
+     * their history), and a new field starts empty rather than taking them,
+     * whatever type it has.
+     *
+     * @param  list<string>  $handles
+     */
+    public function clearFieldsInPosts(array $handles): void
+    {
+        if ($handles === []) {
+            return;
+        }
+
+        $this->changeDataInPosts(fn (array $data) => array_diff_key($data, array_flip($handles)));
     }
 
     /**
@@ -151,15 +156,26 @@ class Template extends Model
             return $data;
         };
 
-        PostRevision::query()
-            ->whereIn('post_id', $this->posts()->select('id'))
-            ->each(fn (PostRevision $revision) => $revision->update(['data' => $convert($revision->data)]));
+        $this->changeDataInPosts($convert);
+    }
 
-        $this->posts()->each(function (Post $post) use ($convert) {
-            // Converting values is not an edit, so leave updated_at alone.
+    /**
+     * Change the data of every post, including those in the trash, and of
+     * their old versions, so restoring either fills the right fields.
+     *
+     * @param  callable(array<string, mixed>): array<string, mixed>  $change
+     */
+    private function changeDataInPosts(callable $change): void
+    {
+        PostRevision::query()
+            ->whereIn('post_id', $this->posts()->withTrashed()->select('id'))
+            ->each(fn (PostRevision $revision) => $revision->update(['data' => $change($revision->data)]));
+
+        $this->posts()->withTrashed()->each(function (Post $post) use ($change) {
+            // Changing the fields is not an edit, so leave updated_at alone.
             $post->timestamps = false;
             $post->setRelation('template', $this);
-            $post->update(['data' => $convert($post->data)]);
+            $post->update(['data' => $change($post->data)]);
         });
     }
 
@@ -170,7 +186,9 @@ class Template extends Model
      */
     private static function renameKeys(array $data, array $renames): array
     {
-        $renamed = array_diff_key($data, $renames);
+        // New handles are cleared too, so a field renamed to the handle of a
+        // removed one does not take its values.
+        $renamed = array_diff_key($data, $renames, array_flip($renames));
 
         foreach ($renames as $old => $new) {
             if (array_key_exists($old, $data)) {

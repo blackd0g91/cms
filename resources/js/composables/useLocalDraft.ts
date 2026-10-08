@@ -116,5 +116,7 @@ export function useLocalDraft<T>(options: {
         },
         /** Remove the stored draft, for example once the form is saved. */
         clear: (key = options.key()) => write(key, null),
+        /** Store the draft now, without waiting for the next change. */
+        save,
     };
 }

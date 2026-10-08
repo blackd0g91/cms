@@ -5,6 +5,7 @@ import PageHeader from '@/components/cp/PageHeader.vue';
 import SaveButton from '@/components/cp/SaveButton.vue';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
+import { sentForm } from '@/lib/forms';
 import { slugify } from '@/lib/utils';
 import {
     destroy,
@@ -106,6 +107,8 @@ const optionsError = (index: number) =>
     )?.[1];
 
 const submit = () => {
+    const sent = sentForm(form);
+
     form.transform((data) => ({
         ...data,
         fields: data.fields.map((field) => ({
@@ -124,16 +127,37 @@ const submit = () => {
         })),
     })).submit(props.template ? update(props.template.id) : store(), {
         preserveScroll: true,
-        // An empty layout is generated on the server, so show the result.
         onSuccess: () => {
-            form.layout = props.template?.layout ?? form.layout;
-            form.fields.forEach((field) => {
-                field.originalHandle = field.handle;
-                field.originalType = field.type;
+            const saved = sent.data;
+
+            // An empty layout is generated on the server, and renamed fields
+            // are renamed in it, so show the result unless the layout was
+            // changed while saving.
+            const layout = props.template?.layout ?? saved.layout;
+
+            if (form.layout === saved.layout) {
+                form.layout = layout;
+            }
+
+            // The fields as sent are the template's now. Fields may have been
+            // renamed, added or removed while saving, so they are matched by
+            // key, and changes made since stay unsaved.
+            const sentFields = new Map(
+                saved.fields.map((field) => [field.key, field]),
+            );
+
+            [...saved.fields, ...form.fields].forEach((field) => {
+                const sentField = sentFields.get(field.key);
+
+                if (sentField) {
+                    field.originalHandle = sentField.handle;
+                    field.originalType = sentField.type;
+                }
             });
+
             // The page stays mounted after creating, so the handle is now fixed.
             handleTouched.value = true;
-            form.defaults();
+            sent.saved({ ...saved, layout });
         },
     });
 };

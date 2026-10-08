@@ -6,6 +6,7 @@ import PageHeader from '@/components/cp/PageHeader.vue';
 import SaveButton from '@/components/cp/SaveButton.vue';
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges';
 import CpLayout from '@/layouts/CpLayout.vue';
+import { sentForm } from '@/lib/forms';
 import { update } from '@/routes/cp/links';
 import type { PostStatus } from '@/types';
 
@@ -92,6 +93,8 @@ const linkError = (index: number, key: string) =>
     form.errors[`links.${index}.${key}` as keyof typeof form.errors];
 
 const submit = () => {
+    const sent = sentForm(form);
+
     form.transform((data) => ({
         heading: data.heading,
         links: data.links.map((link) => ({
@@ -105,9 +108,30 @@ const submit = () => {
         preserveScroll: true,
         onSuccess: () => {
             // New links now have ids, so saving again updates them.
-            form.links = editable(props.links);
-            form.heading = props.heading;
-            form.defaults();
+            if (!sent.changed()) {
+                form.links = editable(props.links);
+                form.heading = props.heading;
+                form.defaults();
+
+                return;
+            }
+
+            // Changed while saving: keep the changes, only giving the new
+            // links their ids. Links are saved in order.
+            const ids = new Map(
+                sent.data.links.map((link, i) => [
+                    link.key,
+                    props.links[i]?.id ?? link.id,
+                ]),
+            );
+            const withIds = (links: EditableLink[]) =>
+                links.map((link) => ({
+                    ...link,
+                    id: link.id ?? ids.get(link.key) ?? null,
+                }));
+
+            form.links = withIds(form.links);
+            sent.saved({ ...sent.data, links: withIds(sent.data.links) });
         },
     });
 };

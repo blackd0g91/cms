@@ -269,3 +269,74 @@ test('unchanged fields are left alone', function () {
 
     expect($post->fresh()->data)->toBe(['notes' => 'not a number']);
 });
+
+test('renaming and retyping fields reaches posts in the trash and their history', function () {
+    $template = Template::factory()->create([
+        'fields' => [
+            ['handle' => 'body', 'label' => 'Body', 'type' => 'markdown', 'required' => false, 'options' => []],
+            ['handle' => 'servings', 'label' => 'Servings', 'type' => 'text', 'required' => false, 'options' => []],
+        ],
+    ]);
+    $post = Post::factory()->for($template)->create(['data' => ['body' => 'Stir well', 'servings' => '4']]);
+    $post->recordRevision();
+    $post->delete();
+
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [
+            ['original_handle' => 'body', 'handle' => 'method', 'label' => 'Method', 'type' => 'markdown'],
+            ['original_handle' => 'servings', 'handle' => 'servings', 'label' => 'Servings', 'type' => 'number'],
+        ],
+    ]))->assertSessionHasNoErrors();
+
+    $post = Post::withTrashed()->find($post->id);
+
+    expect($post->data)->toEqual(['method' => 'Stir well', 'servings' => 4])
+        ->and($post->revisions()->first()->data)->toEqual(['method' => 'Stir well', 'servings' => 4]);
+});
+
+test('a new field starts empty, whatever a removed field of the same name held', function () {
+    $template = Template::factory()->create([
+        'fields' => [
+            ['handle' => 'title2', 'label' => 'Subtitle', 'type' => 'text', 'required' => false, 'options' => []],
+            ['handle' => 'notes', 'label' => 'Notes', 'type' => 'text', 'required' => false, 'options' => []],
+        ],
+    ]);
+    $post = Post::factory()->for($template)->create(['data' => ['title2' => 'Quick', 'notes' => 'old note']]);
+    $post->recordRevision();
+
+    // Notes removed...
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [['original_handle' => 'title2', 'handle' => 'title2', 'label' => 'Subtitle', 'type' => 'text']],
+    ]))->assertSessionHasNoErrors();
+
+    // ...and added again, as a gallery.
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [
+            ['original_handle' => 'title2', 'handle' => 'title2', 'label' => 'Subtitle', 'type' => 'text'],
+            ['original_handle' => null, 'handle' => 'notes', 'label' => 'Notes', 'type' => 'gallery'],
+        ],
+    ]))->assertSessionHasNoErrors();
+
+    expect($post->fresh()->data)->toBe(['title2' => 'Quick'])
+        ->and($post->revisions()->first()->data)->toBe(['title2' => 'Quick']);
+});
+
+test('a field renamed to the name of a removed one does not take its old values', function () {
+    $template = Template::factory()->create([
+        'fields' => [
+            ['handle' => 'photos', 'label' => 'Photos', 'type' => 'gallery', 'required' => false, 'options' => []],
+        ],
+    ]);
+    // "notes" is left over from a removed text field.
+    $post = Post::factory()->for($template)->create(['data' => ['notes' => 'old note']]);
+
+    $this->put(route('cp.templates.update', $template), templatePayload([
+        'handle' => $template->handle,
+        'fields' => [['original_handle' => 'photos', 'handle' => 'notes', 'label' => 'Notes', 'type' => 'gallery']],
+    ]))->assertSessionHasNoErrors();
+
+    expect($post->fresh()->data)->toBe([]);
+});
