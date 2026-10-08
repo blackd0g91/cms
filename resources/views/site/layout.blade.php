@@ -21,8 +21,36 @@
     </head>
     <body class="flex min-h-screen flex-col bg-paper font-sans text-ink antialiased">
         <header class="border-b border-line">
-            <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-5">
-                <a href="{{ route('home') }}" class="group flex min-w-0 flex-1 items-center gap-3 sm:flex-none">
+            {{--
+                The site's name in the middle, the profiles on the left and
+                search on the right. On small screens: the menu, the name and
+                the theme button, with search below.
+            --}}
+            <div class="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-x-4 gap-y-3 px-4 py-5">
+                {{-- On small screens they move into the menu. --}}
+                <div class="col-start-1 row-start-1 hidden md:block">
+                    @if ($profiles)
+                        @include('site.partials.profiles')
+                    @endif
+                </div>
+
+                {{-- On small screens the sidebar collapses into this menu. --}}
+                <details class="relative col-start-1 row-start-1 justify-self-start md:hidden">
+                    <summary class="cursor-pointer list-none rounded-full border border-line bg-card px-4 py-2 text-sm">
+                        Menu
+                    </summary>
+                    <div class="absolute left-0 z-10 mt-2 w-64 rounded-xl border border-line bg-card p-3 shadow-xl">
+                        @include('site.partials.nav')
+
+                        @if ($profiles)
+                            <div class="mt-4 border-t border-line pt-3">
+                                @include('site.partials.profiles')
+                            </div>
+                        @endif
+                    </div>
+                </details>
+
+                <a href="{{ route('home') }}" class="group col-start-2 row-start-1 flex min-w-0 items-center justify-center gap-3">
                     @php($logoBackground = $settings->logoBackground())
                     @if ($logo = $settings->logo())
                         @if ($logoBackground)
@@ -52,54 +80,33 @@
                     </span>
                 </a>
 
-                {{-- Beside the name it shrinks before anything else wraps, like when there are profile icons. --}}
-                <form action="{{ route('search') }}" method="get" role="search" class="relative order-last w-full sm:order-none sm:ml-auto sm:w-auto sm:max-w-xs sm:min-w-36 sm:flex-1">
-                    <label for="site-search" class="sr-only">Search</label>
-                    <input
-                        id="site-search"
-                        type="search"
-                        name="q"
-                        value="{{ request()->routeIs('search') ? request('q') : '' }}"
-                        placeholder="Search"
-                        class="w-full rounded-full border border-line bg-card py-2 pr-10 pl-4 text-sm placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent-soft focus:outline-none"
+                {{-- Search and the theme button: side by side on the right, or
+                     with search on its own row on small screens. --}}
+                <div class="contents md:col-start-3 md:row-start-1 md:flex md:items-center md:justify-end md:gap-3">
+                    <form action="{{ route('search') }}" method="get" role="search" class="relative col-span-3 row-start-2 w-full md:max-w-xs md:min-w-32 md:flex-1">
+                        <label for="site-search" class="sr-only">Search</label>
+                        <input
+                            id="site-search"
+                            type="search"
+                            name="q"
+                            value="{{ request()->routeIs('search') ? request('q') : '' }}"
+                            placeholder="Search"
+                            class="w-full rounded-full border border-line bg-card py-2 pr-10 pl-4 text-sm placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent-soft focus:outline-none"
+                        >
+                        <kbd class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-line px-1.5 font-mono text-[10px] text-muted sm:block">/</kbd>
+                    </form>
+                    <button
+                        type="button"
+                        data-theme-toggle
+                        hidden
+                        class="col-start-3 row-start-1 grid size-10 shrink-0 place-items-center justify-self-end rounded-full border border-line bg-card text-muted transition hover:border-accent hover:text-ink"
                     >
-                    <kbd class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-line px-1.5 font-mono text-[10px] text-muted sm:block">/</kbd>
-                </form>
-
-                {{-- On small screens they move into the menu. --}}
-                @if ($profiles)
-                    <div class="hidden md:block">
-                        @include('site.partials.profiles')
-                    </div>
-                @endif
-
-                <button
-                    type="button"
-                    data-theme-toggle
-                    hidden
-                    class="grid size-10 shrink-0 place-items-center rounded-full border border-line bg-card text-muted transition hover:border-accent hover:text-ink"
-                >
-                    {{-- site.ts shows the icon for the current choice. --}}
-                    <svg data-theme-icon="system" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
-                    <svg data-theme-icon="light" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-                    <svg data-theme-icon="dark" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
-                </button>
-
-                {{-- On small screens the sidebar collapses into this menu. --}}
-                <details class="relative shrink-0 md:hidden">
-                    <summary class="cursor-pointer list-none rounded-full border border-line bg-card px-4 py-2 text-sm">
-                        Menu
-                    </summary>
-                    <div class="absolute right-0 z-10 mt-2 w-64 rounded-xl border border-line bg-card p-3 shadow-xl">
-                        @include('site.partials.nav')
-
-                        @if ($profiles)
-                            <div class="mt-4 border-t border-line pt-3">
-                                @include('site.partials.profiles')
-                            </div>
-                        @endif
-                    </div>
-                </details>
+                        {{-- site.ts shows the icon for the current choice. --}}
+                        <svg data-theme-icon="system" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+                        <svg data-theme-icon="light" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                        <svg data-theme-icon="dark" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+                    </button>
+                </div>
             </div>
         </header>
 
