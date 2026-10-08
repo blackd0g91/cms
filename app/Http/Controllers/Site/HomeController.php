@@ -7,6 +7,8 @@ use App\Cms\Settings;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\Template;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\View;
 
@@ -26,6 +28,12 @@ class HomeController extends Controller
                 ->where('status', PostStatus::Published)
                 ->pinnedFirst()
                 ->limit(20)
+                ->get(),
+            // To browse by, with their colors.
+            'templates' => Template::query()
+                ->whereHas('posts', fn (Builder $query) => $query->where('status', PostStatus::Published))
+                ->withCount(['posts' => fn (Builder $query) => $query->where('status', PostStatus::Published)])
+                ->orderBy('name')
                 ->get(),
         ]);
     }

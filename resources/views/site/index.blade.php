@@ -8,7 +8,7 @@
 
 @section('content')
     <div class="hue" style="{{ $template->accentStyle() }}">
-        <header class="relative mb-10 overflow-hidden rounded-3xl border border-line bg-card px-6 py-5">
+        <header class="relative mb-10 overflow-hidden rounded-3xl border border-(--tint-line) bg-(--tint) px-6 py-5">
             <div class="absolute -top-16 -right-16 size-44 rounded-full bg-accent-soft" aria-hidden="true"></div>
             <div class="absolute -right-4 -bottom-20 size-32 rounded-full bg-accent-soft" aria-hidden="true"></div>
 

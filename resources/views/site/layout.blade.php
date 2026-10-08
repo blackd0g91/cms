@@ -109,10 +109,14 @@
                 page", with the links at its bottom. It is as tall as the screen
                 without the header (81px), the footer (65px) and the space above
                 and below it (2.5rem each), and scrolls inside if that is not
-                enough. On pages shorter than the screen it fills the column.
+                enough. On pages shorter than the screen it fills the column, when
+                there are links to put at the bottom.
             --}}
             <aside class="hidden w-56 shrink-0 md:block">
-                <div class="panel-scrollbar sticky top-10 flex h-full max-h-[calc(100vh-81px-65px-5rem)] flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3">
+                <div @class([
+                    'panel-scrollbar sticky top-10 flex max-h-[calc(100vh-81px-65px-5rem)] flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3',
+                    'h-full' => $navLinks->isNotEmpty(),
+                ])>
                     @include('site.partials.nav')
                 </div>
             </aside>

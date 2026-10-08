@@ -150,7 +150,7 @@ test('posts without a thumbnail get a lettered placeholder in the accent color',
     $this->get('/recipes')
         ->assertOk()
         ->assertSee('style="--hue: '.$this->template->hue().'; --accent-base: initial"', false)
-        ->assertSeeInOrder(['text-accent', '>P</span>'], false);
+        ->assertSeeInOrder(['thumb-placeholder', '>P</span>'], false);
 });
 
 test('templates get distinct accent hues', function () {
@@ -254,4 +254,23 @@ test('posts have an open on phone qr code, and widgets are kept out of search te
         ->assertSee('<svg aria-hidden="true"', false);
 
     expect($post->plainText())->not->toContain('{{')->not->toContain('[!TIP]')->toContain('Ctrl');
+});
+
+test('the home page has the templates to browse by, in their colors, and features the newest post', function () {
+    $this->template->update(['name' => 'Recipes', 'color' => '#c2410c']);
+    $notes = Template::factory()->create(['name' => 'Notes', 'handle' => 'notes', 'fields' => [], 'layout' => '']);
+    Template::factory()->create(['name' => 'Empty', 'handle' => 'empty', 'fields' => [], 'layout' => '']);
+    Post::factory()->published()->for($this->template)->create(['title' => 'Soup', 'published_at' => now()->subDay()]);
+    Post::factory()->published()->for($notes)->create(['title' => 'A thought', 'published_at' => now()]);
+
+    $response = $this->get('/')
+        ->assertOk()
+        // A wash of both colors behind the greeting.
+        ->assertSee('color-mix(in oklch, #c2410c 26%, transparent)', false)
+        ->assertSee($notes->accentColor(), false)
+        ->assertSeeInOrder(['template-chip', 'Notes', 'template-chip', 'Recipes'], false)
+        ->assertSeeInOrder(['post-card-featured', 'A thought', 'Soup'], false);
+
+    // Templates without published posts are left out.
+    expect(substr_count($response->getContent(), 'template-chip'))->toBe(2);
 });

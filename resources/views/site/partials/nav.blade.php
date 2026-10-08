@@ -1,6 +1,7 @@
 {{--
     One entry per template, in its accent color. Always shown on a card (the
-    sidebar, or the menu on phones), so highlights use the paper color.
+    sidebar, or the menu on phones): templates are highlighted in their own
+    color, other entries in the paper color.
 --}}
 <nav class="flex flex-1 flex-col text-sm">
     <ul class="space-y-0.5">
@@ -9,8 +10,8 @@
                 <a
                     href="{{ route('site.template', $navTemplate) }}"
                     @class([
-                        'flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-paper',
-                        'bg-paper font-medium ring-1 ring-line' => $currentTemplate?->is($navTemplate),
+                        'flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-(--tint)',
+                        'bg-(--tint) font-medium ring-1 ring-(--tint-line)' => $currentTemplate?->is($navTemplate),
                     ])
                 >
                     <span class="size-2.5 shrink-0 rounded-full bg-accent"></span>

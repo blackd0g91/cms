@@ -41,6 +41,21 @@
     --accent-l: 0.58;
     --accent-c: 0.13;
     --hue: 45;
+
+    /* Surfaces in a template's color (see .hue below): their lightness, so
+       every template's cards look alike in all but the color. */
+    --tint-l: 0.95;
+    --tint-c: 0.4;
+    --tint-line-l: 0.87;
+    --tint-muted-l: 0.47;
+    --deep-l: 0.46;
+    --on-deep: #fffaf0;
+    --label-l: 0.46;
+    --label-fg: #fffaf0;
+
+    /* The home page's daylight (see .daylight): a warm white by day. */
+    --sun-l: 0.995;
+    --sun-a: 0.75;
 }
 
 /*
@@ -70,6 +85,15 @@
     --accent-c: 0.11;
     --accent-min-l: 0.7;
     --accent-max-l: 1;
+    --tint-l: 0.25;
+    --tint-c: 0.28;
+    --tint-line-l: 0.33;
+    --tint-muted-l: 0.78;
+    --deep-l: 0.36;
+    --label-l: 0.8;
+    --label-fg: #16130f;
+    --sun-l: 0.75;
+    --sun-a: 0.16;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -83,6 +107,15 @@
         --accent-c: 0.11;
         --accent-min-l: 0.7;
         --accent-max-l: 1;
+        --tint-l: 0.25;
+        --tint-c: 0.28;
+        --tint-line-l: 0.33;
+        --tint-muted-l: 0.78;
+        --deep-l: 0.36;
+        --label-l: 0.8;
+        --label-fg: #16130f;
+        --sun-l: 0.75;
+        --sun-a: 0.16;
     }
 }
 
@@ -151,6 +184,14 @@
         oklch(var(--accent-l) var(--accent-c) var(--hue))
     );
     --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+
+    /* A pale surface in the accent, its border and its small print, and a
+       deep version of the accent to put light text on. */
+    --tint: color-mix(in oklch, var(--accent) 13%, var(--card));
+    --tint-line: color-mix(in oklch, var(--accent) 30%, var(--card));
+    --tint-muted: color-mix(in oklch, var(--accent) 45%, var(--muted));
+    --accent-deep: color-mix(in oklch, var(--accent) 72%, black);
+    --accent-label: var(--accent-deep);
 }
 
 /* Keep chosen colors readable: not too light on paper, not too dark on ink. */
@@ -165,6 +206,17 @@
                 )
                 clamp(var(--accent-min-l), l, var(--accent-max-l)) c h
         );
+        --tint: oklch(
+            from var(--accent) var(--tint-l) calc(c * var(--tint-c)) h
+        );
+        --tint-line: oklch(
+            from var(--accent) var(--tint-line-l) calc(c * 0.55) h
+        );
+        --tint-muted: oklch(
+            from var(--accent) var(--tint-muted-l) calc(c * 0.6) h
+        );
+        --accent-deep: oklch(from var(--accent) var(--deep-l) c h);
+        --accent-label: oklch(from var(--accent) var(--label-l) c h);
     }
 }
 
@@ -433,6 +485,7 @@ body {
  * moonlight at night (see site.ts).
  */
 .daylight {
+    --sunlight: oklch(var(--sun-l) 0.05 var(--hue) / var(--sun-a));
     isolation: isolate;
 }
 
@@ -445,7 +498,7 @@ body {
     pointer-events: none;
     background: radial-gradient(
         26rem 10rem at var(--sun-x, 50%) 30%,
-        color-mix(in oklch, var(--accent) 14%, transparent),
+        var(--sunlight),
         transparent 75%
     );
     /* Faded out at every edge, so the light has no border. */
@@ -461,6 +514,59 @@ body {
         oklch(0.75 0.05 255 / 0.16),
         transparent 75%
     );
+}
+
+/*
+ * Post cards in their template's color: a pale surface with the small print
+ * in the same hue. The featured one (first on the home page) is deep in the
+ * color, with light text.
+ */
+.post-card {
+    --muted: var(--tint-muted);
+    border-color: var(--tint-line);
+    background: var(--tint);
+}
+
+.post-card-featured {
+    --ink: var(--on-deep);
+    --muted: color-mix(in oklch, var(--on-deep) 78%, transparent);
+    --accent-label: var(--on-deep);
+    --label-fg: var(--accent-deep);
+    border-color: transparent;
+    background:
+        radial-gradient(
+            40rem 22rem at 100% 0%,
+            color-mix(in oklch, var(--accent) 45%, transparent),
+            transparent 70%
+        ),
+        var(--accent-deep);
+    color: var(--ink);
+}
+
+/* The template's name on a card, as a label in its color. */
+.post-card-label {
+    background: var(--accent-label);
+    color: var(--label-fg);
+}
+
+/*
+ * A post without a thumbnail gets one in its template's color, with the
+ * first letter of its title.
+ */
+.thumb-placeholder {
+    background:
+        radial-gradient(
+            circle at 88% 12%,
+            color-mix(in oklch, white 18%, transparent) 0 22%,
+            transparent 22.5%
+        ),
+        radial-gradient(
+            circle at 0% 105%,
+            color-mix(in oklch, black 14%, transparent) 0 34%,
+            transparent 34.5%
+        ),
+        linear-gradient(150deg, var(--accent), var(--accent-deep));
+    color: var(--on-deep);
 }
 
 /*
@@ -527,4 +633,21 @@ body {
 
 .prose :where(li)::marker {
     color: var(--accent);
+}
+
+/* The home page's greeting, on a wash of the templates' colors (--wash). */
+.home-hero {
+    background:
+        var(--wash, linear-gradient(transparent, transparent)),
+        var(--card);
+}
+
+/* A template to browse by, on the home page: a pill in its color. */
+.template-chip {
+    border-color: var(--tint-line);
+    background: var(--tint);
+}
+
+.template-chip:hover {
+    border-color: var(--accent);
 }
