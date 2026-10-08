@@ -1,5 +1,6 @@
 <?php
 
+use App\Cms\Settings;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Template;
@@ -265,12 +266,18 @@ test('the home page has the templates to browse by, in their colors, and feature
 
     $response = $this->get('/')
         ->assertOk()
-        // A wash of both colors behind the greeting.
-        ->assertSee('color-mix(in oklch, #c2410c 26%, transparent)', false)
-        ->assertSee($notes->accentColor(), false)
         ->assertSeeInOrder(['template-chip', 'Notes', 'template-chip', 'Recipes'], false)
         ->assertSeeInOrder(['post-card-featured', 'A thought', 'Soup'], false);
 
     // Templates without published posts are left out.
     expect(substr_count($response->getContent(), 'template-chip'))->toBe(2);
+
+    // Only an intro gets a card, on a wash of both colors.
+    $response->assertDontSee('home-hero', false)->assertDontSee('color-mix(in oklch, #c2410c', false);
+
+    app(Settings::class)->update(['home_intro' => 'Welcome **in**']);
+
+    $this->get('/')
+        ->assertSeeInOrder(['home-hero', 'color-mix(in oklch, #c2410c 26%, transparent)', 'Welcome <strong>in</strong>', 'template-chip'], false)
+        ->assertSee($notes->accentColor(), false);
 });

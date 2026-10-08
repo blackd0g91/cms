@@ -638,8 +638,7 @@ body {
 /* The home page's greeting, on a wash of the templates' colors (--wash). */
 .home-hero {
     background:
-        var(--wash, linear-gradient(transparent, transparent)),
-        var(--card);
+        var(--wash, linear-gradient(transparent, transparent)), var(--card);
 }
 
 /* A template to browse by, on the home page: a pill in its color. */
