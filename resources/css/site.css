@@ -52,10 +52,6 @@
     --on-deep: #fffaf0;
     --label-l: 0.46;
     --label-fg: #fffaf0;
-
-    /* The home page's daylight (see .daylight): a warm white by day. */
-    --sun-l: 0.995;
-    --sun-a: 0.75;
 }
 
 /*
@@ -92,8 +88,6 @@
     --deep-l: 0.36;
     --label-l: 0.8;
     --label-fg: #16130f;
-    --sun-l: 0.75;
-    --sun-a: 0.16;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -114,8 +108,6 @@
         --deep-l: 0.36;
         --label-l: 0.8;
         --label-fg: #16130f;
-        --sun-l: 0.75;
-        --sun-a: 0.16;
     }
 }
 
@@ -480,43 +472,6 @@ body {
 }
 
 /*
- * The home page's light: a soft glow above the greeting that crosses from
- * left to right through the day, from --sun-x, and turns to a faint, cool
- * moonlight at night (see site.ts).
- */
-.daylight {
-    --sunlight: oklch(var(--sun-l) 0.05 var(--hue) / var(--sun-a));
-    isolation: isolate;
-}
-
-.daylight::before {
-    content: '';
-    position: absolute;
-    inset: -2.5rem 0 auto;
-    z-index: -1;
-    height: 18rem;
-    pointer-events: none;
-    background: radial-gradient(
-        26rem 10rem at var(--sun-x, 50%) 30%,
-        var(--sunlight),
-        transparent 75%
-    );
-    /* Faded out at every edge, so the light has no border. */
-    mask-image:
-        linear-gradient(to right, transparent, #000 12%, #000 88%, transparent),
-        linear-gradient(to bottom, transparent, #000 25%, #000 55%, transparent);
-    mask-composite: intersect;
-}
-
-.daylight[data-daylight='night']::before {
-    background: radial-gradient(
-        22rem 9rem at 80% 30%,
-        oklch(0.75 0.05 255 / 0.16),
-        transparent 75%
-    );
-}
-
-/*
  * Post cards in their template's color: a pale surface with the small print
  * in the same hue. The featured one (first on the home page) is deep in the
  * color, with light text.
@@ -530,8 +485,6 @@ body {
 .post-card-featured {
     --ink: var(--on-deep);
     --muted: color-mix(in oklch, var(--on-deep) 78%, transparent);
-    --accent-label: var(--on-deep);
-    --label-fg: var(--accent-deep);
     border-color: transparent;
     background:
         radial-gradient(
@@ -635,18 +588,8 @@ body {
     color: var(--accent);
 }
 
-/* The home page's greeting, on a wash of the templates' colors (--wash). */
+/* The home page's intro, on a wash of the templates' colors (--wash). */
 .home-hero {
     background:
         var(--wash, linear-gradient(transparent, transparent)), var(--card);
-}
-
-/* A template to browse by, on the home page: a pill in its color. */
-.template-chip {
-    border-color: var(--tint-line);
-    background: var(--tint);
-}
-
-.template-chip:hover {
-    border-color: var(--accent);
 }

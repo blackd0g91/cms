@@ -45,9 +45,12 @@ test('cards show the summary written for a post, and how long it takes to read',
     $this->get(url($template->handle))->assertSee('A slow loaf for')->assertSee('3 min read');
 });
 
-test('the home page has a greeting, which the visitor\'s browser sets by their time of day', function () {
+test('without an intro, the home page is only the posts', function () {
+    Post::factory()->published()->for(Template::factory()->create())->create(['title' => 'Git basics']);
+
     $this->get(route('home'))
         ->assertOk()
-        ->assertSee('data-daylight', false)
-        ->assertSee('<span data-greeting>Hello</span>', false);
+        ->assertSee('<h1 class="sr-only">Latest entries</h1>', false)
+        ->assertDontSee('home-hero', false)
+        ->assertSee('Git basics');
 });

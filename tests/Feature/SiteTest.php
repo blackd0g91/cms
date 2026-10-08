@@ -257,27 +257,24 @@ test('posts have an open on phone qr code, and widgets are kept out of search te
     expect($post->plainText())->not->toContain('{{')->not->toContain('[!TIP]')->toContain('Ctrl');
 });
 
-test('the home page has the templates to browse by, in their colors, and features the newest post', function () {
+test('the home page features the newest post, and puts an intro on the templates\' colors', function () {
     $this->template->update(['name' => 'Recipes', 'color' => '#c2410c']);
     $notes = Template::factory()->create(['name' => 'Notes', 'handle' => 'notes', 'fields' => [], 'layout' => '']);
     Template::factory()->create(['name' => 'Empty', 'handle' => 'empty', 'fields' => [], 'layout' => '']);
     Post::factory()->published()->for($this->template)->create(['title' => 'Soup', 'published_at' => now()->subDay()]);
     Post::factory()->published()->for($notes)->create(['title' => 'A thought', 'published_at' => now()]);
 
-    $response = $this->get('/')
+    $this->get('/')
         ->assertOk()
-        ->assertSeeInOrder(['template-chip', 'Notes', 'template-chip', 'Recipes'], false)
-        ->assertSeeInOrder(['post-card-featured', 'A thought', 'Soup'], false);
-
-    // Templates without published posts are left out.
-    expect(substr_count($response->getContent(), 'template-chip'))->toBe(2);
-
-    // Only an intro gets a card, on a wash of both colors.
-    $response->assertDontSee('home-hero', false)->assertDontSee('color-mix(in oklch, #c2410c', false);
+        ->assertSeeInOrder(['post-card-featured', 'A thought', 'Soup'], false)
+        ->assertDontSee('home-hero', false);
 
     app(Settings::class)->update(['home_intro' => 'Welcome **in**']);
 
-    $this->get('/')
-        ->assertSeeInOrder(['home-hero', 'color-mix(in oklch, #c2410c 26%, transparent)', 'Welcome <strong>in</strong>', 'template-chip'], false)
+    $response = $this->get('/')
+        ->assertSeeInOrder(['home-hero', 'color-mix(in oklch, #c2410c 26%, transparent)', 'Welcome <strong>in</strong>', 'post-card-featured'], false)
         ->assertSee($notes->accentColor(), false);
+
+    // Templates without published posts are left out.
+    expect(substr_count($response->getContent(), 'radial-gradient(at '))->toBe(2);
 });

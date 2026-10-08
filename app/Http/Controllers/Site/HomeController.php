@@ -29,10 +29,9 @@ class HomeController extends Controller
                 ->pinnedFirst()
                 ->limit(20)
                 ->get(),
-            // To browse by, with their colors.
+            // Their colors are behind the intro.
             'templates' => Template::query()
                 ->whereHas('posts', fn (Builder $query) => $query->where('status', PostStatus::Published))
-                ->withCount(['posts' => fn (Builder $query) => $query->where('status', PostStatus::Published)])
                 ->orderBy('name')
                 ->get(),
         ]);

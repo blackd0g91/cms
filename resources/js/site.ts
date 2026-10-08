@@ -218,47 +218,6 @@ if (wakeButton && 'wakeLock' in navigator) {
     });
 }
 
-// The home page greets visitors by their time of day, and its accent and
-// light follow the day: golden in the morning, deeper toward the evening,
-// with the light crossing from left to right (see .daylight in site.css).
-const daylight = document.querySelector<HTMLElement>('[data-daylight]');
-
-if (daylight) {
-    type Period = 'morning' | 'afternoon' | 'evening' | 'night';
-
-    const periods: Record<Period, { greeting: string; hue: number }> = {
-        morning: { greeting: 'Good morning', hue: 70 },
-        afternoon: { greeting: 'Good afternoon', hue: 50 },
-        evening: { greeting: 'Good evening', hue: 38 },
-        night: { greeting: 'Hello, night owl', hue: 30 },
-    };
-
-    const now = new Date();
-    const hour = now.getHours() + now.getMinutes() / 60;
-    const period: Period =
-        hour >= 5 && hour < 12
-            ? 'morning'
-            : hour >= 12 && hour < 18
-              ? 'afternoon'
-              : hour >= 18 && hour < 22
-                ? 'evening'
-                : 'night';
-    const { greeting, hue } = periods[period];
-
-    daylight.dataset.daylight = period;
-    daylight.style.setProperty('--hue', String(hue));
-    // From the left at 6 in the morning to the right at 6 in the evening,
-    // kept away from the edges, where the light fades out.
-    const day = Math.min(Math.max((hour - 6) / 12, 0), 1);
-    daylight.style.setProperty('--sun-x', `${10 + day * 80}%`);
-
-    const text = daylight.querySelector('[data-greeting]');
-
-    if (text) {
-        text.textContent = greeting;
-    }
-}
-
 // Post cards catch the light where the pointer is, and tilt a little toward
 // it (see .card-light in site.css). Only with a mouse or trackpad, and not
 // for people who prefer less motion, who still get the light.
