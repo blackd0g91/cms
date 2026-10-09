@@ -7,6 +7,8 @@ import NewPostMenu from '@/components/cp/NewPostMenu.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PopularPosts from '@/components/cp/PopularPosts.vue';
 import PostList from '@/components/cp/PostList.vue';
+import Referrers from '@/components/cp/Referrers.vue';
+import type { ReferrerOverview } from '@/components/cp/Referrers.vue';
 import SiteSearches from '@/components/cp/SiteSearches.vue';
 import type { SearchOverview } from '@/components/cp/SiteSearches.vue';
 import SiteViews from '@/components/cp/SiteViews.vue';
@@ -31,6 +33,7 @@ defineProps<{
     popular: (PostListItem & { views: number })[];
     searches: SearchOverview;
     clicks: ClickOverview;
+    referrers: ReferrerOverview;
 }>();
 </script>
 
@@ -80,9 +83,11 @@ defineProps<{
     </div>
 
     <div class="mb-6 grid gap-6 lg:grid-cols-2">
+        <Referrers :referrers="referrers" />
         <LinkClicks :clicks="clicks" />
-        <ActivityChart :months="activity" />
     </div>
+
+    <ActivityChart :months="activity" class="mb-6" />
 
     <SiteSearches :searches="searches" class="mb-6" />
 
