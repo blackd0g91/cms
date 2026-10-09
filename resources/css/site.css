@@ -694,3 +694,18 @@ body {
     height: 100%;
     pointer-events: none;
 }
+
+/*
+ * Behind a post's content, so it reads easily over the backdrop: the page's
+ * paper (light or dark, with the theme), see-through enough to still show
+ * the colors and lines behind it.
+ */
+.post-surface {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+    background: color-mix(in oklch, var(--paper) 60%, transparent);
+
+    @media (width >= 40rem) {
+        padding: 2rem 2.5rem;
+    }
+}

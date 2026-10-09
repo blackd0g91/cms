@@ -88,7 +88,7 @@
             </details>
         @endif
 
-        <div class="prose max-w-none">
+        <div class="post-surface prose max-w-none">
             {{ $content }}
         </div>
 
