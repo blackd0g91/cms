@@ -703,7 +703,7 @@ body {
 .post-surface {
     padding: 1.25rem;
     border-radius: 1.5rem;
-    background: color-mix(in oklch, var(--paper) 60%, transparent);
+    background: color-mix(in oklch, var(--paper) 90%, transparent);
 
     @media (width >= 40rem) {
         padding: 2rem 2.5rem;
