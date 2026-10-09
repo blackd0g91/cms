@@ -100,6 +100,14 @@ export default defineConfig({
             ],
         },
     },
+    // Frontend tests (`npm test`), in a simulated browser.
+    test: {
+        include: ['tests/js/**/*.test.ts'],
+        setupFiles: ['tests/js/setup.ts'],
+        environment: 'happy-dom',
+        restoreMocks: true,
+        unstubGlobals: true,
+    },
     lint: {
         ignorePatterns: [
             'vendor/**',
