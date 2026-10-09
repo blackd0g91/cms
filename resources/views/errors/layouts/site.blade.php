@@ -6,12 +6,13 @@
     Views pass $title and $message, and optionally $accent (a template's
     accentStyle()) and an "actions" section to replace the home page link.
 --}}
-@extends('site.layout', ['title' => $title, 'meta' => ['noindex' => true]])
+@extends('site.layout', ['title' => $title, 'meta' => ['noindex' => true], 'backdrop' => 'ripples'])
 
 @section('content')
     @php($accent ??= null)
     <div @class(['max-w-2xl py-4 sm:py-10', 'hue' => $accent]) @if ($accent) style="{{ $accent }}" @endif>
-        <p class="inline-block -rotate-3 font-display text-8xl leading-none font-semibold tracking-tight text-accent sm:text-9xl" aria-hidden="true">
+        {{-- Redrawn in the dots behind the page (see partials/dot-ripples.blade.php). --}}
+        <p class="inline-block font-display text-9xl leading-none font-bold tracking-tight text-accent sm:text-[12rem]" aria-hidden="true" data-dot-code>
             {{ $exception->getStatusCode() }}
         </p>
         <h1 class="mt-8 font-display text-4xl font-semibold tracking-tight">{{ $title }}</h1>

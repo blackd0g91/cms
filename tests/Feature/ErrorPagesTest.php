@@ -111,3 +111,21 @@ test('the maintenance page is rendered when the site goes down, the way deploy.s
         File::deleteDirectory($storage);
     }
 });
+
+test('error pages have the rippling dot grid instead of the contour lines, with the code drawn in it', function () {
+    $this->get('/no-such-thing')
+        ->assertNotFound()
+        ->assertSee('data-dot-ripples', false)
+        ->assertSee('data-dot-code', false)
+        ->assertDontSee('data-contours', false);
+
+    config(['app.debug' => false]);
+    Route::get('_test/errors/crash', fn () => throw new RuntimeException('crash'));
+
+    // Inline, as server error pages can not rely on the built script.
+    $this->get('/_test/errors/crash')
+        ->assertStatus(500)
+        ->assertSee('data-dot-ripples', false)
+        ->assertSee('data-dot-code', false)
+        ->assertSee('startDotRipples', false);
+});

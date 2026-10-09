@@ -52,6 +52,11 @@
     --on-deep: #fffaf0;
     --label-l: 0.46;
     --label-fg: #fffaf0;
+
+    /* The aurora behind the page: how much of each template color it mixes
+       into the paper, and how strong it shows. */
+    --aurora-mix: 45%;
+    --aurora-opacity: 0.8;
 }
 
 /*
@@ -88,6 +93,8 @@
     --deep-l: 0.36;
     --label-l: 0.8;
     --label-fg: #16130f;
+    --aurora-mix: 55%;
+    --aurora-opacity: 0.6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -108,6 +115,8 @@
         --deep-l: 0.36;
         --label-l: 0.8;
         --label-fg: #16130f;
+        --aurora-mix: 55%;
+        --aurora-opacity: 0.6;
     }
 }
 
@@ -592,4 +601,96 @@ body {
 .home-hero {
     background:
         var(--wash, linear-gradient(transparent, transparent)), var(--card);
+}
+
+/*
+ * Behind every page (see site/partials/backdrop.blade.php): an aurora in the
+ * templates' colors (--c1 to --c4) that fades out down the first screen, and
+ * contour lines on a canvas that stays in view (see backdrop.ts).
+ */
+.backdrop-aurora {
+    --a1: color-mix(in oklch, var(--c1) var(--aurora-mix), var(--paper));
+    --a2: color-mix(in oklch, var(--c2) var(--aurora-mix), var(--paper));
+    --a3: color-mix(in oklch, var(--c3) var(--aurora-mix), var(--paper));
+    --a4: color-mix(in oklch, var(--c4) var(--aurora-mix), var(--paper));
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: min(48rem, 90vh);
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: linear-gradient(#000 15%, transparent 95%);
+}
+
+.backdrop-aurora span {
+    position: absolute;
+    left: -40%;
+    width: 180%;
+    height: 55%;
+    opacity: var(--aurora-opacity);
+    filter: blur(40px);
+    will-change: transform;
+}
+
+.backdrop-aurora span:first-child {
+    top: -8%;
+    background: linear-gradient(
+        100deg,
+        transparent 8%,
+        var(--a1) 24%,
+        transparent 38%,
+        var(--a4) 55%,
+        transparent 70%,
+        var(--a2) 84%,
+        transparent 96%
+    );
+    animation: aurora-a 26s ease-in-out infinite alternate;
+}
+
+.backdrop-aurora span:last-child {
+    top: 14%;
+    background: linear-gradient(
+        80deg,
+        transparent 5%,
+        var(--a3) 22%,
+        transparent 40%,
+        var(--a1) 62%,
+        transparent 80%
+    );
+    animation: aurora-b 33s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-a {
+    from {
+        transform: translateX(-12%) skewY(-5deg);
+    }
+
+    to {
+        transform: translateX(12%) skewY(4deg);
+    }
+}
+
+@keyframes aurora-b {
+    from {
+        transform: translateX(14%) skewY(4deg) scaleY(0.8);
+    }
+
+    to {
+        transform: translateX(-10%) skewY(-3deg) scaleY(1.2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .backdrop-aurora span {
+        animation: none;
+    }
+}
+
+.backdrop-contours {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }

@@ -54,3 +54,15 @@ test('without an intro, the home page is only the posts', function () {
         ->assertDontSee('home-hero', false)
         ->assertSee('Git basics');
 });
+
+test('pages have the aurora and contour lines behind them, in the templates\' colors', function () {
+    Template::factory()->create(['name' => 'Apps', 'color' => '#2563eb']);
+    $notes = Template::factory()->create(['name' => 'Notes', 'color' => null]);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('class="backdrop-aurora"', false)
+        ->assertSee('--c1: #2563eb; --c2: '.$notes->accentColor().'; --c3: oklch(0.58 0.13 45)', false)
+        ->assertSee('data-contours', false)
+        ->assertDontSee('data-dot-ripples', false);
+});

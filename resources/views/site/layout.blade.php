@@ -4,6 +4,13 @@
     $currentTemplate = $currentTemplate instanceof \App\Models\Template ? $currentTemplate : null;
     $siteName = $settings->siteName();
     $profiles = $settings->profiles();
+
+    // Behind the page: the aurora and contour lines, or the dot grid on error pages.
+    $backdrop ??= 'contours';
+    $backdropColors = array_slice([
+        ...$navTemplates->map(fn ($template) => $template->accentColor())->all(),
+        'oklch(0.58 0.13 45)', 'oklch(0.58 0.13 255)', 'oklch(0.58 0.13 150)', 'oklch(0.58 0.13 310)',
+    ], 0, 4);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -19,7 +26,13 @@
         @fonts
         @vite(['resources/css/site.css', 'resources/js/site.ts'])
     </head>
-    <body class="flex min-h-screen flex-col bg-paper font-sans text-ink antialiased">
+    <body class="relative flex min-h-screen flex-col bg-paper font-sans text-ink antialiased">
+        @if ($backdrop === 'ripples')
+            @include('partials.dot-ripples', ['colors' => $backdropColors])
+        @else
+            @include('site.partials.backdrop', ['colors' => $backdropColors])
+        @endif
+
         <header class="border-b border-line">
             {{--
                 The site's name in the middle, the profiles on the left and

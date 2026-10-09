@@ -73,6 +73,7 @@
             }
 
             body {
+                position: relative;
                 display: flex;
                 flex-direction: column;
                 min-height: 100vh;
@@ -111,9 +112,8 @@
                 display: inline-block;
                 margin: 0;
                 color: var(--accent);
-                font: 600 6rem/1 var(--display);
+                font: 700 8rem/1 var(--display);
                 letter-spacing: -0.025em;
-                transform: rotate(-3deg);
             }
 
             h1 {
@@ -155,12 +155,14 @@
                 }
 
                 .code {
-                    font-size: 8rem;
+                    font-size: 12rem;
                 }
             }
         </style>
     </head>
     <body>
+        @include('partials.dot-ripples', ['colors' => ['oklch(0.58 0.13 45)', 'oklch(0.58 0.13 255)', 'oklch(0.58 0.13 150)', 'oklch(0.58 0.13 310)']])
+
         <header>
             <div class="wrap">
                 <a href="/" class="site-name">{{ $siteName }}</a>
@@ -168,7 +170,8 @@
         </header>
 
         <main class="wrap">
-            <p class="code" aria-hidden="true">{{ $code }}</p>
+            {{-- Redrawn in the dots behind the page (see partials/dot-ripples.blade.php). --}}
+            <p class="code" aria-hidden="true" data-dot-code>{{ $code }}</p>
             <h1>{{ $title }}</h1>
             <p class="message">{{ $message }}</p>
 

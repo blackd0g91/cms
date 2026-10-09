@@ -41,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
                 'navTemplates' => Template::query()
                     ->withCount(['posts' => fn ($query) => $query->where('status', PostStatus::Published)])
                     ->orderBy('name')
-                    ->get(['id', 'name', 'handle']),
+                    ->get(['id', 'name', 'handle', 'color']),
                 'settings' => app(Settings::class),
                 'hasTags' => Tag::query()->whereHas('posts', fn ($query) => $query->where('status', PostStatus::Published))->exists(),
                 // Links to drafts wait until they are published.

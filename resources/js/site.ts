@@ -1,3 +1,4 @@
+import { startContours } from './backdrop';
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
 import { startWidgets } from './widgets';
@@ -257,6 +258,13 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
         card.style.removeProperty('--tilt-y');
     });
 });
+
+// The contour lines behind the page (see backdrop.ts).
+const contours = document.querySelector<HTMLCanvasElement>('[data-contours]');
+
+if (contours) {
+    startContours(contours);
+}
 
 // Following a sidebar link or a profile icon is counted, for the dashboard
 // (see app/Cms/LinkClicks.php). A beacon is still sent as the page leaves.
