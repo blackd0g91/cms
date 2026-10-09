@@ -30,6 +30,7 @@
         let code = null;
         let nextRing = 0;
         let last = -Infinity;
+        let frame = 0;
 
         // Digits on a 5 by 7 dot matrix, like an LED display: each row as
         // five bits, the leftmost dot first.
@@ -92,6 +93,8 @@
         };
 
         const resize = () => {
+            redraw();
+
             const ratio = Math.min(2, window.devicePixelRatio || 1);
 
             canvas.style.height = '0';
@@ -111,7 +114,10 @@
             const still = stillMedia.matches;
             const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();
 
-            pointer.strength += ((pointer.inside ? 1 : 0) - pointer.strength) * 0.15;
+            // Standing still, the light follows the pointer without easing in.
+            pointer.strength = still
+                ? Number(pointer.inside)
+                : pointer.strength + (Number(pointer.inside) - pointer.strength) * 0.15;
 
             if (!still && time > nextRing) {
                 ripple(Math.random() * width, scrollY + Math.random() * window.innerHeight, time);
@@ -160,13 +166,35 @@
             context.globalAlpha = 1;
         };
 
+        // Animated, the grid is redrawn about 30 times a second. Standing
+        // still, only when something changes (see redraw).
         const loop = (time) => {
             if (time - last >= 33) {
                 last = time;
                 draw(time);
             }
 
-            requestAnimationFrame(loop);
+            frame = stillMedia.matches ? 0 : requestAnimationFrame(loop);
+        };
+
+        const redraw = () => {
+            if (!frame) {
+                frame = requestAnimationFrame((time) => {
+                    frame = 0;
+                    draw(time);
+                });
+            }
+        };
+
+        const restart = () => {
+            cancelAnimationFrame(frame);
+            frame = 0;
+
+            if (stillMedia.matches) {
+                redraw();
+            } else {
+                frame = requestAnimationFrame(loop);
+            }
         };
 
         document.addEventListener('pointermove', (event) => {
@@ -174,9 +202,13 @@
                 pointer.x = event.pageX;
                 pointer.y = event.pageY;
                 pointer.inside = true;
+                redraw();
             }
         });
-        document.documentElement.addEventListener('pointerleave', () => (pointer.inside = false));
+        document.documentElement.addEventListener('pointerleave', () => {
+            pointer.inside = false;
+            redraw();
+        });
 
         // A click anywhere but on a link or a field starts a ripple there.
         document.addEventListener('pointerdown', (event) => {
@@ -186,6 +218,10 @@
         });
 
         window.addEventListener('resize', resize);
+        stillMedia.addEventListener('change', restart);
+        // The idle dots take the theme's muted color.
+        new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
         new ResizeObserver(resize).observe(document.body);
         // Once the fonts are in, the code may have moved, so it is traced again.
         document.fonts?.ready.then(resize);
@@ -198,7 +234,7 @@
             nextRing = performance.now() + 3000;
         }
 
-        requestAnimationFrame(loop);
+        restart();
     };
 
     if (document.readyState === 'loading') {

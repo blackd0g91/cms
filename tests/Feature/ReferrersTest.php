@@ -92,3 +92,41 @@ test('the dashboard shows where visitors came from most', function () {
                 ['source' => 'budget app', 'visits' => 3],
             ]));
 });
+
+test('names in the link are kept to plain labels, which never look like a site', function () {
+    arriveFrom(null, '/?ref='.urlencode('evil.example/<b>Hi</b>!'));
+
+    expect(DB::table('referrers')->pluck('source')->all())->toBe(['evil example b hi b']);
+});
+
+test('one address can not add up visits by dropping its session', function () {
+    foreach (range(1, 8) as $i) {
+        $this->flushSession();
+        arriveFrom('https://google.com/');
+    }
+
+    expect(visitsFrom('google.com'))->toBe(5);
+
+    // A different address still counts.
+    $this->flushSession();
+    $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.2']);
+    arriveFrom('https://google.com/');
+
+    expect(visitsFrom('google.com'))->toBe(6);
+});
+
+test('one address can only add a few sources a day', function () {
+    foreach (range(1, 15) as $i) {
+        $this->flushSession();
+        arriveFrom(null, "/?ref=spam{$i}");
+    }
+
+    expect(DB::table('referrers')->count())->toBe(10);
+
+    // The next day it can again.
+    Date::setTestNow(now()->addDay());
+    $this->flushSession();
+    arriveFrom(null, '/?ref=spam99');
+
+    expect(visitsFrom('spam99'))->toBe(1);
+});

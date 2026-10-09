@@ -95,3 +95,12 @@ test('the dashboard lists every link and profile, most clicked first', function 
             ->where('clicks.links.2.target', "link:{$other->id}")
             ->where('clicks.links.2.clicks', 0));
 });
+
+test('one address can not add up clicks by dropping its session', function () {
+    foreach (range(1, 8) as $i) {
+        $this->flushSession();
+        clickOn('profile:github');
+    }
+
+    expect(clicksOn('profile:github'))->toBe(5);
+});

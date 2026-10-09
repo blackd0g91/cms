@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
  * linked here, without "www." and the like, or the name in a ?ref= or
  * ?utm_source= parameter, which links from your own apps can carry. Visits
  * without either count as direct. Each visitor counts once per source per
- * day, when arriving: moving around the site does not count.
+ * day (see DailyVisitor), when arriving: moving around the site does not count.
  */
 class Referrers
 {
@@ -20,6 +20,11 @@ class Referrers
      * Prefixes that are the same site, like "m.facebook.com" for facebook.com.
      */
     private const string SAME_SITE = '/^(www\d*|m|l|lm|mobile)\./';
+
+    /**
+     * Sources one address can add to the counts in a day.
+     */
+    private const int SOURCES_PER_ADDRESS = 10;
 
     public function record(Request $request): void
     {
@@ -34,19 +39,18 @@ class Referrers
             return;
         }
 
-        $today = now()->toDateString();
-        $key = "referred.{$today}.".md5($source);
+        if (! DailyVisitor::first($request, 'referred.'.md5($source))) {
+            return;
+        }
 
-        if ($request->hasSession()) {
-            if ($request->session()->get($key)) {
-                return;
-            }
-
-            $request->session()->put($key, true);
+        // Each source counted for an address is a new row on the dashboard,
+        // so one address can not make up more than a few in a day.
+        if (! DailyVisitor::withinLimit($request, 'referred.sources.'.now()->toDateString(), self::SOURCES_PER_ADDRESS)) {
+            return;
         }
 
         DB::table('referrers')->upsert(
-            ['date' => $today, 'source' => $source, 'visits' => 1],
+            ['date' => now()->toDateString(), 'source' => $source, 'visits' => 1],
             ['date', 'source'],
             ['visits' => DB::raw('visits + 1')],
         );
@@ -60,7 +64,7 @@ class Referrers
     {
         $named = $request->query('ref') ?? $request->query('utm_source');
 
-        if (is_string($named) && ($named = Str::limit(Str::lower(Str::squish($named)), 100, '')) !== '') {
+        if (is_string($named) && ($named = self::name($named)) !== '') {
             return $named;
         }
 
@@ -81,6 +85,18 @@ class Referrers
         }
 
         return Str::limit((string) preg_replace(self::SAME_SITE, '', $host), 100, '');
+    }
+
+    /**
+     * A name from the address as a plain label: letters, digits, spaces,
+     * "-" and "_". Anything else, dots included, becomes a space, so a name
+     * can never pass for a site (the dashboard links those).
+     */
+    private static function name(string $name): string
+    {
+        $name = (string) preg_replace('/[^\p{L}\p{N} _-]+/u', ' ', $name);
+
+        return Str::limit(Str::lower(Str::squish($name)), 40, '');
     }
 
     /**

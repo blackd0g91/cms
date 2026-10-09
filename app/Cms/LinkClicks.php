@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Counts clicks on the sidebar links and the profile icons, like PostViews
  * counts views: one number per link per day, nothing about the visitor. Each
- * visitor counts once per link per day.
+ * visitor counts once per link per day (see DailyVisitor).
  */
 class LinkClicks
 {
@@ -25,19 +25,12 @@ class LinkClicks
             return;
         }
 
-        $today = now()->toDateString();
-        $key = "clicked.{$today}.{$target}";
-
-        if ($request->hasSession()) {
-            if ($request->session()->get($key)) {
-                return;
-            }
-
-            $request->session()->put($key, true);
+        if (! DailyVisitor::first($request, "clicked.{$target}")) {
+            return;
         }
 
         DB::table('link_clicks')->upsert(
-            ['date' => $today, 'target' => $target, 'clicks' => 1],
+            ['date' => now()->toDateString(), 'target' => $target, 'clicks' => 1],
             ['date', 'target'],
             ['clicks' => DB::raw('clicks + 1')],
         );
