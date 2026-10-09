@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import ActivityChart from '@/components/cp/ActivityChart.vue';
+import LinkClicks from '@/components/cp/LinkClicks.vue';
+import type { ClickOverview } from '@/components/cp/LinkClicks.vue';
 import NewPostMenu from '@/components/cp/NewPostMenu.vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import PopularPosts from '@/components/cp/PopularPosts.vue';
@@ -28,6 +30,7 @@ defineProps<{
     views: { daily: DayViews[]; total: number; previous: number };
     popular: (PostListItem & { views: number })[];
     searches: SearchOverview;
+    clicks: ClickOverview;
 }>();
 </script>
 
@@ -76,7 +79,10 @@ defineProps<{
         <PopularPosts :posts="popular" />
     </div>
 
-    <ActivityChart :months="activity" class="mb-6" />
+    <div class="mb-6 grid gap-6 lg:grid-cols-2">
+        <LinkClicks :clicks="clicks" />
+        <ActivityChart :months="activity" />
+    </div>
 
     <SiteSearches :searches="searches" class="mb-6" />
 

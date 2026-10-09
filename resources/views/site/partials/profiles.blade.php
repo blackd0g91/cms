@@ -7,6 +7,7 @@
         <a
             href="{{ $profile['href'] }}"
             rel="me"
+            data-click="profile:{{ $profile['site']->value }}"
             title="{{ $profile['site']->label() }}"
             class="grid size-9 place-items-center rounded-full text-muted transition hover:bg-card hover:text-ink"
         >

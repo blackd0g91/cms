@@ -1,6 +1,7 @@
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
 import { startWidgets } from './widgets';
+import { clicks } from '@/routes';
 
 /**
  * Small enhancements for the public site. Everything works without them.
@@ -256,6 +257,22 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
         card.style.removeProperty('--tilt-y');
     });
 });
+
+// Following a sidebar link or a profile icon is counted, for the dashboard
+// (see app/Cms/LinkClicks.php). A beacon is still sent as the page leaves.
+const countClick = (event: MouseEvent) => {
+    const link = (event.target as Element).closest<HTMLElement>('[data-click]');
+
+    // Left and middle clicks; middle ones come as auxclick.
+    if (link?.dataset.click && event.button <= 1) {
+        const body = new FormData();
+        body.append('target', link.dataset.click);
+        navigator.sendBeacon(clicks.url(), body);
+    }
+};
+
+document.addEventListener('click', countClick);
+document.addEventListener('auxclick', countClick);
 
 // Light / dark / system theme (see lib/theme.ts); this only handles the button.
 const themeButton = document.querySelector<HTMLButtonElement>(

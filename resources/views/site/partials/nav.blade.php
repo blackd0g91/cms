@@ -50,6 +50,7 @@
                         <li>
                             <a
                                 href="{{ $navLink->href() }}"
+                                data-click="link:{{ $navLink->id }}"
                                 @class([
                                     'flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-paper hover:text-ink',
                                     'bg-paper font-medium text-ink ring-1 ring-line' => $isCurrent,

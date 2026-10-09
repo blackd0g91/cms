@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('cp.login'));
         $middleware->redirectUsersTo(fn () => route('cp.dashboard'));
 
+        // Only counts a click (see ClickController), and is sent without a form.
+        $middleware->validateCsrfTokens(except: ['clicks']);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

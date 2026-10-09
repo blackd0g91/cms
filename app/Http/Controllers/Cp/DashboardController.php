@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Cp;
 
+use App\Cms\LinkClicks;
 use App\Cms\PostViews;
 use App\Cms\SiteSearches;
 use App\Cms\SystemStatus;
@@ -17,7 +18,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, PostViews $views, SystemStatus $system, SiteSearches $searches, Trash $trash): Response
+    public function __invoke(Request $request, PostViews $views, SystemStatus $system, SiteSearches $searches, LinkClicks $clicks, Trash $trash): Response
     {
         $trash->purgeExpired();
         $user = $request->user();
@@ -43,6 +44,7 @@ class DashboardController extends Controller
                 'views' => $row['views'],
             ], $views->popular()),
             'searches' => $searches->overview(),
+            'clicks' => $clicks->overview(),
             'activity' => $this->activity(),
             'templates' => Template::query()
                 ->orderBy('name')
