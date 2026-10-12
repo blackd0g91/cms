@@ -22,20 +22,6 @@
         @endforeach
     </ul>
 
-    @if ($hasTags)
-        <a
-            href="{{ route('site.tags') }}"
-            @class([
-                'mt-4 flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-paper hover:text-ink',
-                'bg-paper font-medium text-ink ring-1 ring-line' => request()->routeIs('site.tags', 'site.tag'),
-                'text-muted' => ! request()->routeIs('site.tags', 'site.tag'),
-            ])
-        >
-            <span class="w-2.5 text-center font-mono" aria-hidden="true">#</span>
-            Tags
-        </a>
-    @endif
-
     {{-- The links set in the control panel: at the bottom of the sidebar, and
          right below the rest in the menu on phones. --}}
     @if ($navLinks->isNotEmpty())

@@ -101,18 +101,14 @@ test('tag pages list published posts only', function () {
     $this->get('/tags/nope')->assertNotFound();
 });
 
-test('posts show their tags and the sidebar links to tags', function () {
+test('posts show their tags, and the sidebar does not link to them', function () {
     $tag = Tag::factory()->create(['name' => 'Vegan', 'slug' => 'vegan']);
     Post::factory()->published()->for($this->template)->create(['slug' => 'salad'])->tags()->attach($tag);
 
     $this->get('/recipes/salad')
         ->assertSee('href="'.route('site.tag', $tag).'"', false)
         ->assertSee('#Vegan')
-        ->assertSee('href="'.route('site.tags').'"', false);
-});
-
-test('the sidebar has no tags link without tagged posts', function () {
-    $this->get(route('home'))->assertDontSee('href="'.route('site.tags').'"', false);
+        ->assertDontSee('href="'.route('site.tags').'"', false);
 });
 
 test('tags are in the sitemap', function () {
