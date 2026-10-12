@@ -1,9 +1,11 @@
 /**
- * The weather card on the home page (see site/partials/weather.blade.php).
- * Nothing happens until the visitor asks for it: their location is then
- * looked up once, rounded to about a kilometer and kept in this browser, so
- * later visits show the weather straight away. It is only ever sent to the
- * weather and place name services, from the visitor's own browser.
+ * The weather card on the home page (see site/partials/weather.blade.php):
+ * small, with the weather now, and opening a dialog with the details and
+ * the week ahead. Nothing happens until the visitor asks for it: their
+ * location is then looked up once, rounded to about a kilometer and kept in
+ * this browser, so later visits show the weather straight away. It is only
+ * ever sent to the weather and place name services, from the visitor's own
+ * browser.
  *
  * Weather: Open-Meteo (open-meteo.com). Place names: BigDataCloud's free
  * reverse geocoding for browser locations (bigdatacloud.com).
@@ -15,23 +17,32 @@ export type Place = {
     name: string | null;
 };
 
+export type Day = {
+    // "2026-10-11", in the place's time zone.
+    date: string;
+    code: number;
+    high: number;
+    low: number;
+    rainChance: number | null;
+};
+
 export type Weather = {
     temperature: number;
     feelsLike: number;
     code: number;
     isDay: boolean;
     wind: number;
-    high: number;
-    low: number;
-    rainChance: number | null;
     sunrise: string;
     sunset: string;
+    // Today first, then the six days after it.
+    days: Day[];
 };
 
 export type Unit = 'c' | 'f';
 
 const PLACE_KEY = 'site.weather.place';
-const CACHE_KEY = 'site.weather.cache';
+// Versioned, as cached weather from before the forecast has no days.
+const CACHE_KEY = 'site.weather.cache.v2';
 // Shared with the {{ temp }} widgets (see widgets/temperature.ts).
 const UNIT_KEY = 'site.temperature';
 // Open-Meteo updates every 15 minutes.
@@ -54,7 +65,7 @@ const CONDITIONS: [number[], string, string, string][] = [
 
 export const describeWeather = (
     code: number,
-    isDay: boolean,
+    isDay = true,
 ): { label: string; icon: string } => {
     const condition = CONDITIONS.find(([codes]) => codes.includes(code));
 
@@ -72,6 +83,19 @@ export const temperatureIn = (celsius: number, unit: Unit) =>
 /** "06:12" from the local times Open-Meteo sends, like "2026-10-11T06:12". */
 export const clockTime = (iso: string) => iso.slice(11, 16);
 
+/** "Today", then short weekday names: "Tue", "Wed"… */
+export const dayName = (date: string, index: number) => {
+    if (index === 0) {
+        return 'Today';
+    }
+
+    const [year, month, day] = date.split('-').map(Number);
+
+    return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+        weekday: 'short',
+    });
+};
+
 export async function fetchWeather(
     place: Pick<Place, 'latitude' | 'longitude'>,
 ): Promise<Weather> {
@@ -80,9 +104,9 @@ export async function fetchWeather(
         longitude: String(place.longitude),
         current:
             'temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m',
-        daily: 'temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
+        daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
         timezone: 'auto',
-        forecast_days: '1',
+        forecast_days: '7',
     });
     const response = await fetch(
         `https://api.open-meteo.com/v1/forecast?${query}`,
@@ -100,11 +124,15 @@ export async function fetchWeather(
         code: current.weather_code,
         isDay: current.is_day === 1,
         wind: current.wind_speed_10m,
-        high: daily.temperature_2m_max[0],
-        low: daily.temperature_2m_min[0],
-        rainChance: daily.precipitation_probability_max[0] ?? null,
         sunrise: daily.sunrise[0],
         sunset: daily.sunset[0],
+        days: (daily.time as string[]).map((date, i) => ({
+            date,
+            code: daily.weather_code[i],
+            high: daily.temperature_2m_max[i],
+            low: daily.temperature_2m_min[i],
+            rainChance: daily.precipitation_probability_max[i] ?? null,
+        })),
     };
 }
 
@@ -124,7 +152,16 @@ export async function fetchPlaceName(
         );
         const data = await response.json();
 
-        return data.city || data.locality || data.principalSubdivision || null;
+        // The city can be a whole region ("Região Metropolitana de São
+        // Paulo") and the locality a district ("Cidade de Westminster" for
+        // London): the shorter of the two reads best.
+        const names = [data.city, data.locality].filter(
+            (name): name is string => typeof name === 'string' && name !== '',
+        );
+
+        return names.length
+            ? names.reduce((a, b) => (b.length < a.length ? b : a))
+            : data.principalSubdivision || null;
     } catch {
         // The weather still shows, just without the name.
         return null;
@@ -189,10 +226,14 @@ export function startWeather(card: HTMLElement) {
 
     const part = <T extends HTMLElement = HTMLElement>(name: string) =>
         card.querySelector<T>(`[data-weather-${name}]`)!;
+    const all = (name: string) =>
+        card.querySelectorAll<HTMLElement>(`[data-weather-${name}]`);
+    const dialog = part<HTMLDialogElement>('dialog');
+    const dayTemplate = part<HTMLTemplateElement>('day-template');
     let weather: Weather | null = null;
 
     const show = (state: State, message = '') => {
-        card.querySelectorAll<HTMLElement>('[data-weather-state]').forEach(
+        all('state').forEach(
             (element) =>
                 (element.hidden = element.dataset.weatherState !== state),
         );
@@ -203,7 +244,16 @@ export function startWeather(card: HTMLElement) {
         } else if (state === 'error') {
             part('error').textContent = message;
         }
+
+        if (state !== 'ready' && dialog.open) {
+            dialog.close();
+        }
     };
+
+    // Fills every element marked with data-weather-{name}: the card and the
+    // dialog share some, like the temperature and the place.
+    const fill = (name: string, text: string) =>
+        all(name).forEach((element) => (element.textContent = text));
 
     const render = () => {
         if (!weather) {
@@ -213,26 +263,65 @@ export function startWeather(card: HTMLElement) {
         const place = load<Place>(PLACE_KEY);
         const unit = preferredUnit();
         const { label, icon } = describeWeather(weather.code, weather.isDay);
+        const today = weather.days[0];
 
-        part('icon').textContent = icon;
-        part('temperature').textContent = temperatureIn(
-            weather.temperature,
-            unit,
+        fill('icon', icon);
+        fill('temperature', temperatureIn(weather.temperature, unit));
+        fill('label', label);
+        fill('place', place?.name ?? 'Your location');
+        fill('feels', temperatureIn(weather.feelsLike, unit));
+        fill(
+            'range',
+            today
+                ? `${temperatureIn(today.high, unit)} / ${temperatureIn(today.low, unit)}`
+                : '–',
         );
-        part('temperature').title = `Show in °${unit === 'c' ? 'F' : 'C'}`;
-        part('label').textContent = label;
-        part('place').textContent = place?.name ?? 'Your location';
-        part('feels').textContent = temperatureIn(weather.feelsLike, unit);
-        part('range').textContent =
-            `${temperatureIn(weather.high, unit)} / ${temperatureIn(weather.low, unit)}`;
-        part('rain').textContent =
-            weather.rainChance === null ? '–' : `${weather.rainChance}%`;
-        part('wind').textContent =
+        fill('rain', today?.rainChance == null ? '–' : `${today.rainChance}%`);
+        fill(
+            'wind',
             unit === 'f'
                 ? `${Math.round(weather.wind / 1.609)} mph`
-                : `${Math.round(weather.wind)} km/h`;
-        part('sun').textContent =
-            `${clockTime(weather.sunrise)} – ${clockTime(weather.sunset)}`;
+                : `${Math.round(weather.wind)} km/h`,
+        );
+        fill(
+            'sun',
+            `${clockTime(weather.sunrise)} – ${clockTime(weather.sunset)}`,
+        );
+        part('unit').textContent = `Show in °${unit === 'c' ? 'F' : 'C'}`;
+
+        // The week: each day's range drawn on a bar spanning the week's
+        // lowest to highest, so warmer and colder days stand out.
+        const lowest = Math.min(...weather.days.map((day) => day.low));
+        const highest = Math.max(...weather.days.map((day) => day.high));
+        const span = Math.max(1, highest - lowest);
+
+        part('days').replaceChildren(
+            ...weather.days.map((day, index) => {
+                const row = dayTemplate.content.firstElementChild!.cloneNode(
+                    true,
+                ) as HTMLElement;
+                const condition = describeWeather(day.code);
+                const cell = (name: string) =>
+                    row.querySelector<HTMLElement>(`[data-day-${name}]`)!;
+
+                cell('name').textContent = dayName(day.date, index);
+                cell('icon').textContent = condition.icon;
+                cell('icon').title = condition.label;
+                cell('label').textContent = condition.label;
+                cell('rain').textContent = day.rainChance
+                    ? `${day.rainChance}%`
+                    : '';
+                cell('low').textContent = temperatureIn(day.low, unit);
+                cell('high').textContent = temperatureIn(day.high, unit);
+                cell('bar').style.left =
+                    `${((day.low - lowest) / span) * 100}%`;
+                cell('bar').style.right =
+                    `${((highest - day.high) / span) * 100}%`;
+
+                return row;
+            }),
+        );
+
         show('ready');
     };
 
@@ -260,7 +349,7 @@ export function startWeather(card: HTMLElement) {
             store(CACHE_KEY, { at: Date.now(), place: key, weather });
             render();
         } catch {
-            show('error', "Couldn't get the weather right now.");
+            show('error', "Couldn't get the weather.");
         }
     };
 
@@ -275,7 +364,7 @@ export function startWeather(card: HTMLElement) {
             show(
                 'error',
                 (error as GeolocationPositionError).code === 1
-                    ? 'Location access is blocked. Allow it in your browser’s settings for this site to see the weather.'
+                    ? 'Location is blocked for this site.'
                     : "Couldn't find where you are.",
             );
 
@@ -294,13 +383,30 @@ export function startWeather(card: HTMLElement) {
         await refresh(place);
     };
 
-    card.querySelectorAll('[data-weather-locate]').forEach((button) =>
+    all('locate').forEach((button) =>
         button.addEventListener('click', () => void findPlace()),
     );
 
     part('retry').addEventListener('click', () => {
         const place = load<Place>(PLACE_KEY);
         void (place ? refresh(place) : findPlace());
+    });
+
+    part('open').addEventListener('click', () => dialog.showModal());
+    part('close').addEventListener('click', () => dialog.close());
+
+    // A click on the backdrop, outside the dialog's box, closes it too.
+    dialog.addEventListener('click', (event) => {
+        const box = dialog.getBoundingClientRect();
+        const outside =
+            event.clientX < box.left ||
+            event.clientX > box.right ||
+            event.clientY < box.top ||
+            event.clientY > box.bottom;
+
+        if (event.target === dialog && outside) {
+            dialog.close();
+        }
     });
 
     part('forget').addEventListener('click', () => {
@@ -310,8 +416,8 @@ export function startWeather(card: HTMLElement) {
         show('empty');
     });
 
-    // Tapping the temperature swaps °C and °F, here and in the {{ temp }} widgets.
-    part('temperature').addEventListener('click', () => {
+    // Swaps °C and °F, here and in the {{ temp }} widgets.
+    part('unit').addEventListener('click', () => {
         const next = preferredUnit() === 'c' ? 'f' : 'c';
 
         document.documentElement.dataset.temperature = next;
