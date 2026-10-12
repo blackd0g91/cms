@@ -48,6 +48,7 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'site_name' => ['required', 'string', 'max:255'],
+            'show_site_name' => ['sometimes', 'boolean'],
             'tagline' => ['nullable', 'string', 'max:255'],
             'home_intro' => ['nullable', 'string', 'max:20000'],
             'footer_text' => ['nullable', 'string', 'max:500'],
@@ -69,6 +70,10 @@ class SettingsController extends Controller
         ], [
             'logo_background.*.regex' => 'Colors must be hex colors like #c2410c.',
         ]);
+
+        if (array_key_exists('show_site_name', $validated)) {
+            $validated['show_site_name'] = (bool) $validated['show_site_name'];
+        }
 
         $validated['logo_background'] = $this->logoBackground($validated['logo_background'] ?? null);
 

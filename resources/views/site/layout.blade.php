@@ -85,8 +85,13 @@
                             {{ Str::upper(Str::substr($siteName, 0, 1)) }}
                         </span>
                     @endif
+                    {{-- The name can be hidden (for a logo that says it), but stays
+                         for screen readers, as the link's name. --}}
                     <span class="min-w-0">
-                        <span class="block truncate font-display text-2xl leading-tight font-semibold tracking-tight">{{ $siteName }}</span>
+                        <span @class([
+                            'block truncate font-display text-2xl leading-tight font-semibold tracking-tight',
+                            'sr-only' => ! $settings->showSiteName(),
+                        ])>{{ $siteName }}</span>
                         @if ($settings->get('tagline'))
                             <span class="block truncate font-mono text-xs text-muted">{{ $settings->get('tagline') }}</span>
                         @endif

@@ -24,12 +24,15 @@ class Settings
     /**
      * Every setting with its default value.
      *
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string, profiles: array<string, string>}
+     * @return array{site_name: string, show_site_name: bool, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string, profiles: array<string, string>}
      */
     public function defaults(): array
     {
         return [
             'site_name' => (string) config('app.name'),
+            // Off for a logo that already says it: the header then shows the
+            // logo (and the tagline) alone.
+            'show_site_name' => true,
             'tagline' => null,
             'home_intro' => null,
             'footer_text' => null,
@@ -44,7 +47,7 @@ class Settings
     }
 
     /**
-     * @return array{site_name: string, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string, profiles: array<string, string>}
+     * @return array{site_name: string, show_site_name: bool, tagline: string|null, home_intro: string|null, footer_text: string|null, logo_id: int|null, logo_background: array{type: string, from: string, to: string, angle: int}|null, favicon_id: int|null, links_heading: string, profiles: array<string, string>}
      */
     public function all(): array
     {
@@ -70,6 +73,14 @@ class Settings
     public function siteName(): string
     {
         return $this->all()['site_name'];
+    }
+
+    /**
+     * Whether the header shows the site name beside the logo.
+     */
+    public function showSiteName(): bool
+    {
+        return $this->all()['show_site_name'] !== false;
     }
 
     /**

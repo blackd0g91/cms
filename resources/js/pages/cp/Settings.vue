@@ -23,6 +23,7 @@ defineOptions({ layout: CpLayout });
 const props = defineProps<{
     settings: {
         site_name: string;
+        show_site_name: boolean;
         tagline: string | null;
         home_intro: string | null;
         footer_text: string | null;
@@ -53,6 +54,7 @@ const profilesFromProps = () =>
 
 const form = useForm({
     site_name: props.settings.site_name,
+    show_site_name: props.settings.show_site_name,
     tagline: props.settings.tagline ?? '',
     home_intro: props.settings.home_intro ?? '',
     footer_text: props.settings.footer_text ?? '',
@@ -144,6 +146,18 @@ useUnsavedChanges({
                 <p v-if="form.errors.site_name" class="cp-error">
                     {{ form.errors.site_name }}
                 </p>
+                <label class="flex items-center gap-2 pt-1 text-sm">
+                    <input
+                        v-model="form.show_site_name"
+                        type="checkbox"
+                        class="rounded border-neutral-300 dark:border-neutral-700"
+                    />
+                    Show the site name in the header
+                </label>
+                <p class="text-xs text-neutral-500">
+                    Turn off when the logo already says it. The name is still
+                    used for the page titles and the footer.
+                </p>
             </div>
 
             <div class="space-y-1.5">
@@ -156,7 +170,9 @@ useUnsavedChanges({
                     class="cp-input"
                 />
                 <p class="text-xs text-neutral-500">
-                    Shown under the site name in the header.
+                    Optional. Shown under the site name in the header, beside
+                    the logo, and used as the site's description in search
+                    results and the feed.
                 </p>
                 <p v-if="form.errors.tagline" class="cp-error">
                     {{ form.errors.tagline }}

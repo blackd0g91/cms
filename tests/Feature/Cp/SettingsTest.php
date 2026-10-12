@@ -221,3 +221,33 @@ test('logo background colors are validated', function (array $background, string
     'unknown type' => [['type' => 'pattern', 'from' => '#000000'], 'logo_background.type'],
     'angle out of range' => [['type' => 'gradient', 'from' => '#000000', 'to' => '#ffffff', 'angle' => 720], 'logo_background.angle'],
 ]);
+
+test('the site name can be hidden from the header, keeping the tagline', function () {
+    $this->actingAs(User::factory()->create())
+        ->put(route('cp.settings.update'), [
+            'site_name' => 'Garmr',
+            'show_site_name' => false,
+            'tagline' => 'Notes and recipes',
+        ])
+        ->assertRedirect(route('cp.settings.edit'));
+
+    expect(app(Settings::class)->showSiteName())->toBeFalse();
+
+    auth()->logout();
+
+    $this->get(route('home'))
+        // Still the link's name for screen readers, and in the page title.
+        ->assertSee('sr-only">Garmr</span>', false)
+        ->assertSee('<title>Garmr</title>', false)
+        ->assertSee('Notes and recipes');
+});
+
+test('the site name shows in the header by default', function () {
+    app(Settings::class)->update(['site_name' => 'Garmr']);
+
+    expect(app(Settings::class)->showSiteName())->toBeTrue();
+
+    $this->get(route('home'))
+        ->assertDontSee('sr-only">Garmr</span>', false)
+        ->assertSee('Garmr</span>', false);
+});
