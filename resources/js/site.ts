@@ -1,5 +1,6 @@
 import { startContours } from './backdrop';
 import { startDialogs } from './dialogs';
+import { startFilters } from './filters';
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
 import { startWeather } from './weather';
@@ -261,8 +262,10 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
     });
 });
 
-// Cards that open into dialogs, like the picture of the day (see dialogs.ts).
+// Cards that open into dialogs, like the picture of the day (see dialogs.ts),
+// and lists narrowed down by buttons, like the free games (see filters.ts).
 startDialogs();
+startFilters();
 
 // The weather card on the home page (see weather.ts).
 const weather = document.querySelector<HTMLElement>('[data-weather]');

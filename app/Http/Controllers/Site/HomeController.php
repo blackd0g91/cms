@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Site;
 
+use App\Cms\FreeGames;
 use App\Cms\Markdown;
 use App\Cms\PictureOfTheDay;
 use App\Cms\Settings;
@@ -18,7 +19,7 @@ class HomeController extends Controller
     /**
      * Show the most recently published posts across all templates.
      */
-    public function __invoke(Settings $settings, Markdown $markdown, PictureOfTheDay $picture): View
+    public function __invoke(Settings $settings, Markdown $markdown, PictureOfTheDay $picture, FreeGames $games): View
     {
         $intro = $settings->get('home_intro');
 
@@ -31,6 +32,7 @@ class HomeController extends Controller
                 ->limit(20)
                 ->get(),
             'picture' => $picture->today(),
+            'games' => $games->current(),
             // Their colors are behind the intro.
             'templates' => Template::query()
                 ->whereHas('posts', fn (Builder $query) => $query->where('status', PostStatus::Published))
