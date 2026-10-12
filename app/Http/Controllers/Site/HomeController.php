@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Cms\Markdown;
+use App\Cms\PictureOfTheDay;
 use App\Cms\Settings;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
@@ -17,7 +18,7 @@ class HomeController extends Controller
     /**
      * Show the most recently published posts across all templates.
      */
-    public function __invoke(Settings $settings, Markdown $markdown): View
+    public function __invoke(Settings $settings, Markdown $markdown, PictureOfTheDay $picture): View
     {
         $intro = $settings->get('home_intro');
 
@@ -29,6 +30,7 @@ class HomeController extends Controller
                 ->pinnedFirst()
                 ->limit(20)
                 ->get(),
+            'picture' => $picture->today(),
             // Their colors are behind the intro.
             'templates' => Template::query()
                 ->whereHas('posts', fn (Builder $query) => $query->where('status', PostStatus::Published))

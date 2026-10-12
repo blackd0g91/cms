@@ -1,7 +1,13 @@
 @extends('site.layout')
 
 @section('content')
-    @include('site.partials.weather')
+    {{-- A row of small cards that open into dialogs: two of three columns for now. --}}
+    <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @include('site.partials.weather')
+        @if ($picture)
+            @include('site.partials.picture-of-the-day', ['picture' => $picture])
+        @endif
+    </div>
 
     @if ($intro)
         @php

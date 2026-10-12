@@ -1,4 +1,5 @@
 import { startContours } from './backdrop';
+import { startDialogs } from './dialogs';
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
 import { startWeather } from './weather';
@@ -259,6 +260,9 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
         card.style.removeProperty('--tilt-y');
     });
 });
+
+// Cards that open into dialogs, like the picture of the day (see dialogs.ts).
+startDialogs();
 
 // The weather card on the home page (see weather.ts).
 const weather = document.querySelector<HTMLElement>('[data-weather]');

@@ -4,7 +4,7 @@
     A small card with the weather now, opening a dialog with the details and
     the week ahead. Their location stays in their browser.
 --}}
-<section data-weather hidden aria-label="Weather" class="mb-8 sm:w-1/3 sm:min-w-64">
+<section data-weather hidden aria-label="Weather" class="grid">
     <div data-weather-state="empty" class="flex items-center gap-3 rounded-2xl border border-line bg-card p-3 shadow-sm">
         <span class="text-2xl leading-none" aria-hidden="true">🌤️</span>
         <button type="button" data-weather-locate class="min-w-0 flex-1 text-left text-sm font-medium transition hover:text-accent">
