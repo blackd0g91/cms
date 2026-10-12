@@ -1,6 +1,8 @@
 @extends('site.layout')
 
 @section('content')
+    @include('site.partials.weather')
+
     @if ($intro)
         @php
             // A wash of the templates' colors, one from each corner (see .home-hero).

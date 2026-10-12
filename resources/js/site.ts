@@ -1,6 +1,7 @@
 import { startContours } from './backdrop';
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
+import { startWeather } from './weather';
 import { startWidgets } from './widgets';
 import { clicks } from '@/routes';
 
@@ -258,6 +259,13 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
         card.style.removeProperty('--tilt-y');
     });
 });
+
+// The weather card on the home page (see weather.ts).
+const weather = document.querySelector<HTMLElement>('[data-weather]');
+
+if (weather) {
+    startWeather(weather);
+}
 
 // The contour lines behind the page (see backdrop.ts).
 const contours = document.querySelector<HTMLCanvasElement>('[data-contours]');
