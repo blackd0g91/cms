@@ -820,9 +820,13 @@ body {
 /*
  * The header, set apart from the page by a faint wash of the card color
  * (light or dark with the theme) over the aurora and contour lines, which
- * it blurs a little.
+ * it blurs a little. The blur makes the header a layer of its own, so it is
+ * lifted above the page: otherwise the page's sticky panels, like "Your
+ * space", would cover the menus that open from it.
  */
 .site-header {
+    position: relative;
+    z-index: 30;
     background: color-mix(in oklch, var(--card) 45%, transparent);
     backdrop-filter: blur(6px);
 }
