@@ -33,7 +33,7 @@ class Template extends Model
     /**
      * Handles that would collide with application routes.
      */
-    public const array RESERVED_HANDLES = ['cp', 'up', 'build', 'storage', 'api', 'login', 'logout', 'register', 'forgot-password', 'reset-password', 'verify-email', 'account', 'search', 'tags', 'feed.xml', 'sitemap.xml', 'robots.txt'];
+    public const array RESERVED_HANDLES = ['cp', 'up', 'build', 'storage', 'api', 'login', 'logout', 'register', 'forgot-password', 'reset-password', 'verify-email', 'account', 'privacy', 'search', 'tags', 'feed.xml', 'sitemap.xml', 'robots.txt'];
 
     /**
      * Field handles that collide with the variables every layout receives.

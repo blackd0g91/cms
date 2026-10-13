@@ -17,6 +17,7 @@
         </div>
 
         @include('site.auth.button', ['label' => 'Create account'])
+        <p class="text-center text-xs text-muted">What is kept, and how to delete it: <a href="{{ route('privacy') }}" class="underline underline-offset-4 hover:text-ink">privacy</a>.</p>
     </form>
 @endsection
 

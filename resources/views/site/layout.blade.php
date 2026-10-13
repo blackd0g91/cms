@@ -165,7 +165,10 @@
         <footer class="border-t border-line">
             <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 font-mono text-xs text-muted">
                 <span>{{ $settings->footer() }}</span>
-                <a href="#" class="hover:text-ink">Back to top ↑</a>
+                <span class="flex gap-4">
+                    <a href="{{ route('privacy') }}" class="hover:text-ink">Privacy</a>
+                    <a href="#" class="hover:text-ink">Back to top ↑</a>
+                </span>
             </div>
         </footer>
     </body>

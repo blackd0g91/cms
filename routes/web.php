@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Site\AccountController;
 use App\Http\Controllers\Site\Auth\EmailVerificationController;
 use App\Http\Controllers\Site\Auth\LoginController;
 use App\Http\Controllers\Site\Auth\PasswordResetController;
@@ -38,8 +39,14 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.store');
 });
 
+Route::view('privacy', 'site.privacy')->name('privacy');
+
 Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::get('account', [AccountController::class, 'edit'])->name('account.edit');
+    Route::put('account', [AccountController::class, 'update'])->name('account.update');
+    Route::put('account/password', [AccountController::class, 'updatePassword'])->name('account.password');
+    Route::delete('account', [AccountController::class, 'destroy'])->name('account.destroy');
     Route::get('verify-email', [EmailVerificationController::class, 'notice'])->name('verification.notice');
     Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
     Route::post('verify-email', [EmailVerificationController::class, 'send'])->middleware('throttle:6,1')->name('verification.send');
