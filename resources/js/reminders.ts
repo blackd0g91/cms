@@ -359,33 +359,37 @@ export function startNotifyToggle(root: ParentNode = document) {
             const key = toggle.dataset.pushKey ?? '';
             const url = toggle.dataset.pushUrl ?? '';
 
-            toggle
-                .querySelector('[data-notify-on]')
-                ?.addEventListener('click', async () => {
-                    const permission = await Notification.requestPermission();
+            const turnOn = async () => {
+                const permission = await Notification.requestPermission();
 
-                    setNotify(permission === 'granted');
+                setNotify(permission === 'granted');
+                show();
+
+                // Then for the site closed too, which takes a moment.
+                if (permission === 'granted' && pushSupported(key)) {
+                    setPush(await subscribePush(key, url));
                     show();
+                }
+            };
 
-                    // Then for the site closed too, which takes a moment.
-                    if (permission === 'granted' && pushSupported(key)) {
-                        setPush(await subscribePush(key, url));
-                        show();
-                    }
-                });
+            const turnOff = async () => {
+                setNotify(false);
 
+                if (pushOn()) {
+                    setPush(false);
+                    await unsubscribePush(url);
+                }
+
+                show();
+            };
+
+            // There may be more than one of each, like one per mode.
             toggle
-                .querySelector('[data-notify-off]')
-                ?.addEventListener('click', async () => {
-                    setNotify(false);
-
-                    if (pushOn()) {
-                        setPush(false);
-                        await unsubscribePush(url);
-                    }
-
-                    show();
-                });
+                .querySelectorAll('[data-notify-on]')
+                .forEach((button) => button.addEventListener('click', turnOn));
+            toggle
+                .querySelectorAll('[data-notify-off]')
+                .forEach((button) => button.addEventListener('click', turnOff));
 
             show();
         },

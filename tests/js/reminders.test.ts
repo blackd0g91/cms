@@ -193,6 +193,31 @@ describe('system notifications', () => {
         expect(localStorage.getItem('site.reminders.notify')).toBeNull();
     });
 
+    it('works as a bell button too, with one button per mode when on', async () => {
+        document.body.innerHTML = `
+            <div data-reminder-notify hidden>
+                <button data-notify-state="off" data-notify-on hidden>Bell</button>
+                <span data-notify-state="on" hidden>
+                    <button data-notify-mode="push" data-notify-off hidden>On, closed</button>
+                    <button data-notify-mode="page" data-notify-off>On, open</button>
+                </span>
+                <button data-notify-state="blocked" hidden>Blocked</button>
+            </div>`;
+        permission = 'granted';
+        startNotifyToggle();
+
+        document.querySelector<HTMLButtonElement>('[data-notify-on]')!.click();
+        await vi.waitFor(() => expect(state()).toBe('on'));
+
+        const page = document.querySelector<HTMLButtonElement>(
+            '[data-notify-mode="page"]',
+        )!;
+        expect(page.hidden).toBe(false);
+
+        page.click();
+        await vi.waitFor(() => expect(state()).toBe('off'));
+    });
+
     it('says when the browser blocks them', () => {
         permission = 'denied';
         startNotifyToggle();

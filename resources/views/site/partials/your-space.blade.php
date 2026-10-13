@@ -33,17 +33,20 @@
                 <h2 id="your-reminders" class="font-display text-xl font-semibold tracking-tight">
                     <a href="{{ route('reminders.index') }}" class="decoration-2 underline-offset-4 hover:underline">Reminders</a>
                 </h2>
-                {{-- Opens the form in a dialog; without the script, the reminders page. --}}
-                <a
-                    href="{{ route('reminders.index') }}"
-                    data-dialog-open="new-reminder"
-                    aria-haspopup="dialog"
-                    title="Add a reminder"
-                    class="grid size-8 shrink-0 place-items-center rounded-full border border-line text-muted transition hover:border-accent hover:text-ink"
-                >
-                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                    <span class="sr-only">Add a reminder</span>
-                </a>
+                <div class="flex shrink-0 items-center gap-1.5">
+                    @include('site.reminders.notify-button')
+                    {{-- Opens the form in a dialog; without the script, the reminders page. --}}
+                    <a
+                        href="{{ route('reminders.index') }}"
+                        data-dialog-open="new-reminder"
+                        aria-haspopup="dialog"
+                        title="Add a reminder"
+                        class="grid size-8 shrink-0 place-items-center rounded-full border border-line text-muted transition hover:border-accent hover:text-ink"
+                    >
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                        <span class="sr-only">Add a reminder</span>
+                    </a>
+                </div>
             </div>
 
             <div class="mt-2">
@@ -52,10 +55,6 @@
                 @else
                     @include('site.reminders.groups', ['groups' => $soon, 'compact' => true])
                 @endif
-            </div>
-
-            <div class="mt-3">
-                @include('site.reminders.notify')
             </div>
         </section>
 
