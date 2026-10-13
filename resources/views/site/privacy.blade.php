@@ -3,7 +3,8 @@
     the code does: accounts (Site\AccountController), the stats (app/Cms:
     PostViews, SiteSearches, LinkClicks, Referrers, DailyVisitor) and the home
     page cards (weather.ts, PictureOfTheDay, FreeGames), and the weather location
-    kept in accounts, and reminders (Site\ReminderController).
+    kept in accounts, reminders (Site\ReminderController) and push
+    notifications (Site\PushSubscriptionController).
 --}}
 @extends('site.layout', ['title' => 'Privacy'])
 
@@ -23,6 +24,7 @@
         <ul>
             <li>With an account, the site keeps your name, your email address, whether you confirmed it, and your password, scrambled so that nobody can read it. If you show your weather while logged in, it also keeps that place, rounded to about a kilometer.</li>
             <li>Your reminders are kept with your account, with your time zone (from your browser) so they come at your time. Only you can see them.</li>
+            <li>If you turn on notifications in a browser, the site keeps the address that browser's push service (Google's, Mozilla's or Apple's, depending on the browser) gave it, to send your reminders there. The messages are encrypted so that only your browser can read them. Turning notifications off, or deleting your account, removes it.</li>
             <li>Your email address is used only for your account: to confirm it, and to send a link when you forget your password. Those emails go out through a mail service, which sees the address and the email.</li>
             <li>Logging in keeps a cookie in your browser, so the site knows it is you.</li>
             <li>You can change your name, address and password, or <a href="{{ route('account.edit') }}">delete your account</a>, at any time. Deleting it deletes everything in it, straight away.</li>

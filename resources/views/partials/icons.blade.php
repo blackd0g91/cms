@@ -9,3 +9,5 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 @endif
+{{-- The site as an app, for phones' home screens (see ManifestController). --}}
+<link rel="manifest" href="/manifest.webmanifest">

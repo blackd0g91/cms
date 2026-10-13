@@ -220,11 +220,114 @@ export function startReminders(root: ParentNode = document) {
     });
 }
 
+// Whether push notifications are on in this browser too (see push-worker.js).
+const PUSH_KEY = 'site.reminders.push';
+
+const pushOn = () => {
+    try {
+        return localStorage.getItem(PUSH_KEY) === '1';
+    } catch {
+        return false;
+    }
+};
+
+const setPush = (on: boolean) => {
+    try {
+        if (on) {
+            localStorage.setItem(PUSH_KEY, '1');
+        } else {
+            localStorage.removeItem(PUSH_KEY);
+        }
+    } catch {
+        // Not remembered: the next visit shows them as on for open pages only.
+    }
+};
+
+const pushSupported = (key: string) =>
+    key !== '' && 'serviceWorker' in navigator && 'PushManager' in window;
+
+/** The site's public push key, as the browser takes it. */
+export const keyBytes = (key: string) => {
+    const base64 = (key + '='.repeat((4 - (key.length % 4)) % 4))
+        .replaceAll('-', '+')
+        .replaceAll('_', '/');
+
+    return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+};
+
+const sendSubscription = (
+    url: string,
+    method: 'POST' | 'DELETE',
+    body: unknown,
+) =>
+    fetch(url, {
+        method,
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.body.dataset.csrfToken ?? '',
+        },
+        body: JSON.stringify(body),
+    });
+
+/**
+ * Sign this browser up with its push service, through the site's service
+ * worker, and tell the site where to push. Whether it worked.
+ */
+const subscribePush = async (key: string, url: string) => {
+    try {
+        const registration =
+            await navigator.serviceWorker.register('/push-worker.js');
+        await navigator.serviceWorker.ready;
+
+        const subscription =
+            (await registration.pushManager.getSubscription()) ??
+            (await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: keyBytes(key),
+            }));
+        const { endpoint, keys } = subscription.toJSON();
+        const encodings = PushManager.supportedContentEncodings ?? [];
+
+        const response = await sendSubscription(url, 'POST', {
+            endpoint,
+            keys,
+            contentEncoding: encodings.includes('aes128gcm')
+                ? 'aes128gcm'
+                : 'aesgcm',
+        });
+
+        return response.ok;
+    } catch {
+        return false;
+    }
+};
+
+const unsubscribePush = async (url: string) => {
+    try {
+        const registration =
+            await navigator.serviceWorker.getRegistration('/push-worker.js');
+        const subscription = await registration?.pushManager.getSubscription();
+
+        if (subscription) {
+            await sendSubscription(url, 'DELETE', {
+                endpoint: subscription.endpoint,
+            });
+            await subscription.unsubscribe();
+        }
+    } catch {
+        // Already gone, or the browser can not tell: the site forgets it
+        // once its push service says so.
+    }
+};
+
 /**
  * The switch for system notifications in this browser (see
  * site/reminders/notify.blade.php), with a state for each case: they can be
  * turned on (asking the browser, only on a click), they are on (and can be
- * turned off), the browser blocks them, or it has none.
+ * turned off), the browser blocks them, or it has none. Where the site and
+ * the browser can do push notifications, turning them on signs the browser
+ * up for those too, so they come even with the site closed.
  */
 export function startNotifyToggle(root: ParentNode = document) {
     root.querySelectorAll<HTMLElement>('[data-reminder-notify]').forEach(
@@ -243,8 +346,18 @@ export function startNotifyToggle(root: ParentNode = document) {
                     .forEach((part) => {
                         part.hidden = part.dataset.notifyState !== state;
                     });
+                toggle
+                    .querySelectorAll<HTMLElement>('[data-notify-mode]')
+                    .forEach((part) => {
+                        part.hidden =
+                            part.dataset.notifyMode !==
+                            (pushOn() ? 'push' : 'page');
+                    });
                 toggle.hidden = state === 'unsupported';
             };
+
+            const key = toggle.dataset.pushKey ?? '';
+            const url = toggle.dataset.pushUrl ?? '';
 
             toggle
                 .querySelector('[data-notify-on]')
@@ -253,12 +366,24 @@ export function startNotifyToggle(root: ParentNode = document) {
 
                     setNotify(permission === 'granted');
                     show();
+
+                    // Then for the site closed too, which takes a moment.
+                    if (permission === 'granted' && pushSupported(key)) {
+                        setPush(await subscribePush(key, url));
+                        show();
+                    }
                 });
 
             toggle
                 .querySelector('[data-notify-off]')
-                ?.addEventListener('click', () => {
+                ?.addEventListener('click', async () => {
                     setNotify(false);
+
+                    if (pushOn()) {
+                        setPush(false);
+                        await unsubscribePush(url);
+                    }
+
                     show();
                 });
 

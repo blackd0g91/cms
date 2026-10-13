@@ -210,4 +210,3 @@ test('the panel and the reminders page offer system notifications', function () 
     $this->get(route('home'))->assertSee('data-reminder-notify', false)->assertSee('Notify me in this browser');
     $this->get(route('reminders.index'))->assertSee('data-reminder-notify', false);
 });
-

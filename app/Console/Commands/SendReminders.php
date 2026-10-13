@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Cms\PushNotifications;
 use App\Mail\ReminderEmail;
 use App\Models\Reminder;
 use Illuminate\Console\Attributes\Description;
@@ -13,18 +14,20 @@ use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 /**
- * Emails the reminders that are due, for those who asked for it. Runs every
- * minute (see routes/console.php). Within the daily limits in
- * config/reminders.php: past them, a reminder is not emailed, but still shows
- * on the site. So are reminders it comes to too late, like after the server
- * was down.
+ * Sends the reminders that are due: as push notifications to the browsers
+ * members turned them on in, and as emails for the reminders they asked
+ * that for. Runs every minute (see routes/console.php). Emails stay within
+ * the daily limits in config/reminders.php: past them, a reminder is not
+ * emailed, but still shows on the site. Reminders it comes to too late,
+ * like after the server was down, are not sent at all.
  */
 #[Signature('app:send-reminders')]
-#[Description('Email the reminders that are due')]
+#[Description('Send the reminders that are due, as push notifications and emails')]
 class SendReminders extends Command
 {
-    public function handle(): int
+    public function handle(PushNotifications $push): int
     {
+        $pushed = $push->enabled() ? $this->push($push) : 0;
         $sent = 0;
 
         Reminder::query()->toEmail()->with('user')->orderBy('due_at')->limit(200)->get()
@@ -44,6 +47,10 @@ class SendReminders extends Command
                 }
             });
 
+        if ($pushed > 0) {
+            $this->components->info("Pushed {$pushed} ".($pushed === 1 ? 'reminder' : 'reminders').'.');
+        }
+
         if ($sent > 0) {
             $this->components->info("Emailed {$sent} ".($sent === 1 ? 'reminder' : 'reminders').'.');
         }
@@ -51,13 +58,47 @@ class SendReminders extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Push the reminders that are due to the members' browsers. How many
+     * reached at least one.
+     */
+    private function push(PushNotifications $push): int
+    {
+        $pushed = 0;
+
+        Reminder::query()->toPush()->with('user')->orderBy('due_at')->limit(200)->get()
+            ->each(function (Reminder $reminder) use ($push, &$pushed) {
+                $reminder->update(['pushed_at' => now()]);
+
+                if (! $this->inTime($reminder)) {
+                    return;
+                }
+
+                $reached = $push->send($reminder->user, [
+                    'title' => 'Reminder',
+                    'body' => $reminder->text,
+                    'tag' => "reminder-{$reminder->id}",
+                    'url' => route('reminders.index', absolute: false),
+                ]);
+
+                $pushed += $reached > 0 ? 1 : 0;
+            });
+
+        return $pushed;
+    }
+
+    /**
+     * For a confirmed account, and not too late: like after the server was down.
+     */
+    private function inTime(Reminder $reminder): bool
+    {
+        return $reminder->user->hasVerifiedEmail()
+            && $reminder->due_at->gte(now()->subMinutes(config('reminders.too_late_after_minutes')));
+    }
+
     private function shouldSend(Reminder $reminder): bool
     {
-        if (! $reminder->user->hasVerifiedEmail()) {
-            return false;
-        }
-
-        if ($reminder->due_at->lt(now()->subMinutes(config('reminders.too_late_after_minutes')))) {
+        if (! $this->inTime($reminder)) {
             return false;
         }
 

@@ -92,6 +92,8 @@ The site runs on a single server, with SQLite and files on disk.
 
 There is no queue worker to run. Expired items in the trash are deleted when the dashboard or the trash is opened.
 
+**Push notifications** for reminders need a pair of keys: run `php artisan app:push-keys` once, put the two lines it prints in `.env`, and run `php artisan config:cache`. Keep the keys: new ones stop the browsers already signed up from getting pushes. Without keys, the notification switch on the site only notifies while a page is open. The server needs to reach the browsers' push services (`fcm.googleapis.com`, `updates.push.services.mozilla.com`, `web.push.apple.com`).
+
 **Reminder emails** are only sent for reminders where the member asked for them, within daily limits that leave room in the mail service's free allowance: `REMINDER_EMAILS_PER_MEMBER` (10) and `REMINDER_EMAILS_PER_DAY` (80, for the whole site), see `config/reminders.php`.
 
 **Email:** the server sends email through a mail service over SMTP (Oracle Cloud, for one, blocks sending directly). With [Resend](https://resend.com)'s free tier: add a domain there (a subdomain like `mail.example.com` keeps it apart from any mailbox), add the DNS records it lists, create an API key with sending access, and set the `MAIL_*` settings shown in `.env.example`. Then run `php artisan config:cache` and `php artisan app:test-email you@example.com`. Locally, `MAIL_MAILER=log` writes emails to `storage/logs/laravel.log` instead.

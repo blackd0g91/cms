@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+    keyBytes,
     readReminders,
     startNotifyToggle,
     startReminders,
@@ -249,5 +250,131 @@ describe('system notifications', () => {
 
             expect(created).toHaveLength(0);
         });
+    });
+});
+
+describe('push notifications', () => {
+    const fetchCalls: { url: string; init: RequestInit }[] = [];
+    const unsubscribe = vi.fn(async () => true);
+    const subscription = {
+        endpoint: 'https://push.example/abc',
+        toJSON: () => ({
+            endpoint: 'https://push.example/abc',
+            keys: { p256dh: 'p', auth: 'a' },
+        }),
+        unsubscribe,
+    };
+    const subscribe = vi.fn(async (_options: unknown) => subscription);
+    let current: typeof subscription | null = null;
+    const registration = {
+        pushManager: {
+            getSubscription: async () => current,
+            subscribe: async (options: unknown) => {
+                current = await subscribe(options);
+
+                return current;
+            },
+        },
+    };
+
+    beforeEach(() => {
+        current = null;
+        fetchCalls.length = 0;
+        subscribe.mockClear();
+        unsubscribe.mockClear();
+        localStorage.clear();
+        vi.stubGlobal('Notification', {
+            permission: 'default',
+            requestPermission: async () => 'granted',
+        });
+        vi.stubGlobal('PushManager', {
+            supportedContentEncodings: ['aes128gcm'],
+        });
+        Object.defineProperty(navigator, 'serviceWorker', {
+            configurable: true,
+            value: {
+                register: vi.fn(async () => registration),
+                ready: Promise.resolve(registration),
+                getRegistration: async () => registration,
+            },
+        });
+        vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {
+            fetchCalls.push({ url, init });
+
+            return { ok: true };
+        });
+        document.body.dataset.csrfToken = 'the-token';
+        document.body.innerHTML = `
+            <div data-reminder-notify data-push-key="AQID" data-push-url="/me/push-subscriptions" hidden>
+                <p data-notify-state="off" hidden><button data-notify-on>On</button></p>
+                <p data-notify-state="on" hidden>
+                    <span data-notify-mode="push" hidden>closed</span><span data-notify-mode="page">open</span>
+                    <button data-notify-off>Off</button>
+                </p>
+                <p data-notify-state="blocked" hidden>Blocked</p>
+            </div>`;
+    });
+
+    afterEach(() => {
+        Reflect.deleteProperty(navigator, 'serviceWorker');
+        document.body.innerHTML = '';
+        localStorage.clear();
+    });
+
+    const mode = () =>
+        document.querySelector<HTMLElement>('[data-notify-mode]:not([hidden])')
+            ?.dataset.notifyMode;
+
+    it("decodes the site's public key for the browser", () => {
+        expect([...keyBytes('AQID')]).toEqual([1, 2, 3]);
+        expect([...keyBytes('-_8')]).toEqual([251, 255]);
+    });
+
+    it('signs the browser up, and tells the site where to push', async () => {
+        startNotifyToggle();
+        document.querySelector<HTMLButtonElement>('[data-notify-on]')!.click();
+
+        await vi.waitFor(() => expect(fetchCalls).toHaveLength(1));
+        await vi.waitFor(() => expect(mode()).toBe('push'));
+
+        expect(subscribe).toHaveBeenCalledWith({
+            userVisibleOnly: true,
+            applicationServerKey: new Uint8Array([1, 2, 3]),
+        });
+        expect(fetchCalls[0].url).toBe('/me/push-subscriptions');
+        expect(fetchCalls[0].init.method).toBe('POST');
+        expect(JSON.parse(fetchCalls[0].init.body as string)).toEqual({
+            endpoint: 'https://push.example/abc',
+            keys: { p256dh: 'p', auth: 'a' },
+            contentEncoding: 'aes128gcm',
+        });
+    });
+
+    it('takes the browser off again when turned off', async () => {
+        localStorage.setItem('site.reminders.notify', '1');
+        localStorage.setItem('site.reminders.push', '1');
+        current = subscription;
+        vi.stubGlobal('Notification', { permission: 'granted' });
+        startNotifyToggle();
+
+        document.querySelector<HTMLButtonElement>('[data-notify-off]')!.click();
+
+        await vi.waitFor(() => expect(unsubscribe).toHaveBeenCalledOnce());
+        expect(fetchCalls[0].init.method).toBe('DELETE');
+        expect(localStorage.getItem('site.reminders.push')).toBeNull();
+    });
+
+    it('notifies only while a page is open where the site has no push keys', async () => {
+        document
+            .querySelector<HTMLElement>('[data-reminder-notify]')!
+            .setAttribute('data-push-key', '');
+        startNotifyToggle();
+        document.querySelector<HTMLButtonElement>('[data-notify-on]')!.click();
+
+        await vi.waitFor(() =>
+            expect(localStorage.getItem('site.reminders.notify')).toBe('1'),
+        );
+        expect(fetchCalls).toHaveLength(0);
+        expect(mode()).toBe('page');
     });
 });

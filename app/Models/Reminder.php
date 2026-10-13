@@ -22,12 +22,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ReminderRepeat|null $repeat
  * @property bool $email Whether to email it when it is due
  * @property CarbonImmutable|null $emailed_at When it was last emailed, or passed over
+ * @property CarbonImmutable|null $pushed_at When it was last pushed, or passed over
  * @property CarbonImmutable|null $completed_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read User $user
  */
-#[Fillable(['text', 'due_at', 'repeat', 'email', 'emailed_at', 'completed_at'])]
+#[Fillable(['text', 'due_at', 'repeat', 'email', 'emailed_at', 'pushed_at', 'completed_at'])]
 class Reminder extends Model
 {
     /** @use HasFactory<ReminderFactory> */
@@ -71,6 +72,20 @@ class Reminder extends Model
     }
 
     /**
+     * Due, with a device to push it to, and not pushed yet for this time.
+     * Every reminder is pushed: unlike emails, pushes cost nothing.
+     *
+     * @param  Builder<Reminder>  $query
+     */
+    public function scopeToPush(Builder $query): void
+    {
+        $query->whereNull('completed_at')
+            ->where('due_at', '<=', now())
+            ->where(fn (Builder $query) => $query->whereNull('pushed_at')->orWhereColumn('pushed_at', '<', 'due_at'))
+            ->whereHas('user.pushSubscriptions');
+    }
+
+    /**
      * Mark it done. A repeating one comes back instead, at its next time
      * after now (skipping the times missed while it was overdue).
      */
@@ -103,6 +118,7 @@ class Reminder extends Model
             'due_at' => 'immutable_datetime',
             'completed_at' => 'immutable_datetime',
             'emailed_at' => 'immutable_datetime',
+            'pushed_at' => 'immutable_datetime',
             'email' => 'boolean',
             'repeat' => ReminderRepeat::class,
         ];

@@ -8,6 +8,8 @@ use App\Http\Controllers\Site\Auth\RegisterController;
 use App\Http\Controllers\Site\ClickController;
 use App\Http\Controllers\Site\FeedController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\ManifestController;
+use App\Http\Controllers\Site\PushSubscriptionController;
 use App\Http\Controllers\Site\ReminderController;
 use App\Http\Controllers\Site\ReminderEmailController;
 use App\Http\Controllers\Site\SearchController;
@@ -27,6 +29,7 @@ Route::get('feed.xml', [FeedController::class, 'index'])->name('feed');
 Route::get('{template:handle}/feed.xml', [FeedController::class, 'template'])->name('site.template.feed');
 Route::get('sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
 Route::get('robots.txt', [SitemapController::class, 'robots'])->name('robots');
+Route::get('manifest.webmanifest', ManifestController::class)->name('manifest');
 
 // Accounts on the site: members sign up here, and anyone with an account
 // logs in here. The names are the ones Laravel's emails link to.
@@ -64,6 +67,8 @@ Route::middleware(['auth', 'verified'])->prefix('me')->group(function () {
     Route::post('reminders/{reminder}/done', [ReminderController::class, 'complete'])->name('reminders.complete');
     Route::post('reminders/{reminder}/snooze', [ReminderController::class, 'snooze'])->name('reminders.snooze');
     Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
+    Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->middleware('throttle:20,1')->name('push-subscriptions.store');
+    Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
 });
 
 // The links in a reminder's email, which work without logging in.
