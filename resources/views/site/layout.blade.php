@@ -37,7 +37,7 @@
             @include('site.partials.backdrop', ['colors' => $backdropColors])
         @endif
 
-        <header class="border-b border-line">
+        <header class="site-header border-b border-line">
             {{--
                 The site's name in the middle, the profiles on the left and
                 search on the right. On small screens: the menu, the name and

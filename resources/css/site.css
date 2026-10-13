@@ -809,3 +809,13 @@ body {
     color: var(--accent);
     font-weight: 600;
 }
+
+/*
+ * The header, set apart from the page by a faint wash of the card color
+ * (light or dark with the theme) over the aurora and contour lines, which
+ * it blurs a little.
+ */
+.site-header {
+    background: color-mix(in oklch, var(--card) 45%, transparent);
+    backdrop-filter: blur(6px);
+}
