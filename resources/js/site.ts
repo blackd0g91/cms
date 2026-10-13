@@ -2,6 +2,7 @@ import { startContours } from './backdrop';
 import { startDialogs } from './dialogs';
 import { startFilters } from './filters';
 import { startNotifyToggle, startReminders } from './reminders';
+import { startSortables } from './sortable';
 import { startToasts } from './toasts';
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
@@ -268,6 +269,10 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
 // and lists narrowed down by buttons, like the free games (see filters.ts).
 startDialogs();
 startFilters();
+
+// Lists put in order with buttons, like the home page cards on the account
+// page (see sortable.ts).
+startSortables();
 
 // Toasts in the corner, and reminders that come due while the page is open,
 // which show as toasts too (see toasts.ts and reminders.ts).

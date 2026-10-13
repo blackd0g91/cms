@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::put('account', [AccountController::class, 'update'])->name('account.update');
     Route::put('account/password', [AccountController::class, 'updatePassword'])->name('account.password');
     Route::delete('account', [AccountController::class, 'destroy'])->name('account.destroy');
+    Route::put('account/widgets', [AccountController::class, 'updateWidgets'])->name('account.widgets');
     Route::put('account/location', [AccountController::class, 'updateLocation'])->middleware('throttle:30,1')->name('account.location');
     Route::delete('account/location', [AccountController::class, 'destroyLocation'])->name('account.location.destroy');
     Route::get('verify-email', [EmailVerificationController::class, 'notice'])->name('verification.notice');

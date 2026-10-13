@@ -1,6 +1,7 @@
 <?php
 
 use App\Cms\FreeGames;
+use App\Models\User;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Http;
 
@@ -24,6 +25,9 @@ function giveaway(array $overrides = []): array
 
 beforeEach(function () {
     Date::setTestNow('2026-10-11 15:00:00');
+
+    // Not one of the usual cards: shown to a member who chose it.
+    $this->actingAs(User::factory()->member()->create(['home_widgets' => ['games']]));
 });
 
 test('the home page shows the free games, opening into a dialog', function () {

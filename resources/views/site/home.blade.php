@@ -7,16 +7,32 @@
     --}}
     <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_16rem] xl:gap-10">
         <div class="min-w-0">
-            {{-- A row of small cards that open into dialogs. --}}
-            <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2">
-                @include('site.partials.weather')
-                @if ($picture)
-                    @include('site.partials.picture-of-the-day', ['picture' => $picture])
-                @endif
-                @if ($games)
-                    @include('site.partials.free-games', ['games' => $games])
-                @endif
-            </div>
+            {{--
+                A row of small cards that open into dialogs, the ones the
+                member chose in their order (see HomeWidget). Those with
+                nothing to show today are left out.
+            --}}
+            @if ($widgets !== [])
+                <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2">
+                    @foreach ($widgets as $widget)
+                        @switch($widget)
+                            @case(\App\Enums\HomeWidget::Weather)
+                                @include('site.partials.weather')
+                                @break
+                            @case(\App\Enums\HomeWidget::PictureOfTheDay)
+                                @if ($picture)
+                                    @include('site.partials.picture-of-the-day', ['picture' => $picture])
+                                @endif
+                                @break
+                            @case(\App\Enums\HomeWidget::FreeGames)
+                                @if ($games)
+                                    @include('site.partials.free-games', ['games' => $games])
+                                @endif
+                                @break
+                        @endswitch
+                    @endforeach
+                </div>
+            @endif
 
             @if ($intro)
                 @php
