@@ -5,6 +5,8 @@
 @section('form')
     <form method="post" action="{{ route('login.store') }}" class="space-y-4">
         @csrf
+        {{-- The browser's time zone, for reminders (see site.ts). --}}
+        <input type="hidden" name="timezone" data-timezone>
         @include('site.auth.field', ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'value' => old('email'), 'autocomplete' => 'email', 'autofocus' => true])
         @include('site.auth.field', ['name' => 'password', 'label' => 'Password', 'type' => 'password', 'autocomplete' => 'current-password'])
 

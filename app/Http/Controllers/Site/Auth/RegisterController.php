@@ -37,6 +37,7 @@ class RegisterController extends Controller
             // Hidden from people (see register.blade.php): bots that fill in
             // every field give themselves away.
             'website' => ['prohibited'],
+            'timezone' => ['nullable', 'timezone:all'],
         ]);
 
         $user = User::create([
@@ -44,6 +45,7 @@ class RegisterController extends Controller
             'email' => $validated['email'],
             'password' => $validated['password'],
             'role' => UserRole::Member,
+            'timezone' => $validated['timezone'] ?? null,
         ]);
 
         // Sends the email to confirm the address.

@@ -21,13 +21,14 @@ use Illuminate\Support\Carbon;
  * @property string $email
  * @property UserRole $role
  * @property array{latitude: float, longitude: float, name: string|null}|null $location Where they last asked for the weather
+ * @property string|null $timezone Their own, from their browser, for their reminders
  * @property Carbon|null $email_verified_at
  * @property string|null $password
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'role', 'password', 'location'])]
+#[Fillable(['name', 'email', 'role', 'password', 'location', 'timezone'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -88,6 +89,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isInvited(): bool
     {
         return $this->password === null;
+    }
+
+    /**
+     * Their time zone, or the site's until their browser has told it.
+     */
+    public function localTimezone(): string
+    {
+        return $this->timezone ?? config('app.timezone');
+    }
+
+    /**
+     * @return HasMany<Reminder, $this>
+     */
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(Reminder::class);
     }
 
     /**

@@ -274,6 +274,25 @@ if (weather) {
     startWeather(weather);
 }
 
+// Reminder forms send the visitor's time zone, so times are theirs, and
+// start at the next full hour when the site does not know it yet (see
+// site/reminders/form.blade.php).
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+document
+    .querySelectorAll<HTMLInputElement>('input[data-timezone]')
+    .forEach((input) => (input.value = timezone));
+
+document
+    .querySelectorAll<HTMLInputElement>('input[data-next-hour]')
+    .forEach((input) => {
+        const next = new Date();
+        next.setHours(next.getHours() + 1, 0, 0, 0);
+        // As local time, the way datetime-local inputs take it.
+        const pad = (value: number) => String(value).padStart(2, '0');
+        input.value = `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}T${pad(next.getHours())}:00`;
+    });
+
 // The contour lines behind the page (see backdrop.ts).
 const contours = document.querySelector<HTMLCanvasElement>('[data-contours]');
 

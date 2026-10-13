@@ -26,6 +26,13 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
+        // The browser's time zone, for reminders: where they are now.
+        $timezone = $request->input('timezone');
+
+        if (is_string($timezone) && in_array($timezone, timezone_identifiers_list(\DateTimeZone::ALL), true)) {
+            $request->user()?->update(['timezone' => $timezone]);
+        }
+
         return redirect()->intended(route('home', absolute: false));
     }
 

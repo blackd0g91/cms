@@ -8,6 +8,7 @@ use App\Http\Controllers\Site\Auth\RegisterController;
 use App\Http\Controllers\Site\ClickController;
 use App\Http\Controllers\Site\FeedController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\ReminderController;
 use App\Http\Controllers\Site\SearchController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Http\Controllers\Site\TagController;
@@ -52,4 +53,14 @@ Route::middleware('auth')->group(function () {
     Route::get('verify-email', [EmailVerificationController::class, 'notice'])->name('verification.notice');
     Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
     Route::post('verify-email', [EmailVerificationController::class, 'send'])->middleware('throttle:6,1')->name('verification.send');
+});
+
+// A member's own things, under /me. They need a confirmed address.
+Route::middleware(['auth', 'verified'])->prefix('me')->group(function () {
+    Route::get('reminders', [ReminderController::class, 'index'])->name('reminders.index');
+    Route::post('reminders', [ReminderController::class, 'store'])->middleware('throttle:60,1')->name('reminders.store');
+    Route::put('reminders/{reminder}', [ReminderController::class, 'update'])->name('reminders.update');
+    Route::post('reminders/{reminder}/done', [ReminderController::class, 'complete'])->name('reminders.complete');
+    Route::post('reminders/{reminder}/snooze', [ReminderController::class, 'snooze'])->name('reminders.snooze');
+    Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
 });
