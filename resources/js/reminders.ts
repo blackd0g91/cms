@@ -157,6 +157,7 @@ export function startReminders(root: ParentNode = document) {
             text: reminder.text,
             actions: [done, snooze],
             onClose: () => count(-1),
+            stay: true,
         });
         count(1);
 

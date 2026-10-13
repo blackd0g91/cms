@@ -746,6 +746,12 @@ body {
     }
 }
 
+/* Closing by itself (see toasts.ts), fading out. */
+.toast-leaving {
+    opacity: 0;
+    transition: opacity 0.2s ease-in;
+}
+
 .toast-label {
     margin-bottom: 0.25rem;
     font-family: var(--font-mono);
