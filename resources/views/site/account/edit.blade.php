@@ -42,6 +42,27 @@
             </form>
         </section>
 
+        <section aria-labelledby="account-location" class="rounded-3xl border border-line bg-card p-6 shadow-sm sm:p-8">
+            <h2 id="account-location" class="font-display text-2xl font-semibold tracking-tight">Weather location</h2>
+
+            @if ($user->location)
+                <p class="mt-3 text-muted">
+                    <strong class="font-medium text-ink">{{ $user->location['name'] ?? 'A place without a name' }}</strong>,
+                    from the weather card on the home page, rounded to about a kilometer. Your other devices start from it.
+                </p>
+                <form method="post" action="{{ route('account.location.destroy') }}" class="mt-5">
+                    @csrf
+                    @method('delete')
+                    <button type="submit" class="rounded-full border border-line px-5 py-2.5 text-sm font-medium transition hover:border-accent">Forget it</button>
+                </form>
+            @else
+                <p class="mt-3 text-muted">
+                    None kept. When you show your weather on the home page while logged in, the place is kept here,
+                    rounded to about a kilometer, so your other devices can start from it.
+                </p>
+            @endif
+        </section>
+
         <section aria-labelledby="account-delete" class="rounded-3xl border border-red-300/60 bg-card p-6 shadow-sm sm:p-8 dark:border-red-900/60">
             <h2 id="account-delete" class="font-display text-2xl font-semibold tracking-tight">Delete your account</h2>
 

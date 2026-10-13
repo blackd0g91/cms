@@ -2,7 +2,8 @@
     What the site keeps about visitors and members. Keep it in step with what
     the code does: accounts (Site\AccountController), the stats (app/Cms:
     PostViews, SiteSearches, LinkClicks, Referrers, DailyVisitor) and the home
-    page cards (weather.ts, PictureOfTheDay, FreeGames).
+    page cards (weather.ts, PictureOfTheDay, FreeGames), and the weather location
+    kept in accounts.
 --}}
 @extends('site.layout', ['title' => 'Privacy'])
 
@@ -20,7 +21,7 @@
 
         <h2>Your account</h2>
         <ul>
-            <li>With an account, the site keeps your name, your email address, whether you confirmed it, and your password, scrambled so that nobody can read it.</li>
+            <li>With an account, the site keeps your name, your email address, whether you confirmed it, and your password, scrambled so that nobody can read it. If you show your weather while logged in, it also keeps that place, rounded to about a kilometer.</li>
             <li>Your email address is used only for your account: to confirm it, and to send a link when you forget your password. Those emails go out through a mail service, which sees the address and the email.</li>
             <li>Logging in keeps a cookie in your browser, so the site knows it is you.</li>
             <li>You can change your name, address and password, or <a href="{{ route('account.edit') }}">delete your account</a>, at any time. Deleting it deletes everything in it, straight away.</li>
@@ -28,7 +29,7 @@
 
         <h2>The cards on the home page</h2>
         <ul>
-            <li><strong>Weather:</strong> only when you ask for it, your browser finds your location, rounds it to about a kilometer, and asks Open-Meteo for the weather and BigDataCloud for the place's name. The location stays in your browser.</li>
+            <li><strong>Weather:</strong> only when you ask for it, your browser finds your location, rounds it to about a kilometer, and asks Open-Meteo for the weather and BigDataCloud for the place's name. The location stays in your browser, and when you are logged in, in your account too, so your other devices can start from it. You can forget it from the weather card or your account page.</li>
             <li><strong>Picture of the day</strong> and <strong>free games:</strong> the pictures are loaded from Wikimedia and GamerPower, so those sites see that your browser asked for them, as with any picture from another site.</li>
         </ul>
 

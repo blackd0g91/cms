@@ -68,5 +68,5 @@ test('pages have the aurora and contour lines behind them, in the templates\' co
 });
 
 test('the home page has the weather card, hidden until the script shows it', function () {
-    $this->get(route('home'))->assertSee('<section data-weather hidden', false);
+    $this->get(route('home'))->assertSeeInOrder(['<section', 'data-weather', 'hidden', 'aria-label="Weather"'], false);
 });

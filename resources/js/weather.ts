@@ -353,6 +353,27 @@ export function startWeather(card: HTMLElement) {
         }
     };
 
+    // Logged in, the place is kept in the account too (see the card's
+    // data-location-url), so other devices can start from it. Best effort:
+    // the card works the same if it can not be saved.
+    const accountUrl = card.dataset.locationUrl;
+
+    const saveToAccount = (place: Place | null) => {
+        if (!accountUrl) {
+            return;
+        }
+
+        void fetch(accountUrl, {
+            method: place ? 'PUT' : 'DELETE',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': card.dataset.locationToken ?? '',
+            },
+            body: place ? JSON.stringify(place) : undefined,
+        }).catch(() => {});
+    };
+
     const findPlace = async () => {
         show('loading', 'Finding where you are…');
 
@@ -380,6 +401,7 @@ export function startWeather(card: HTMLElement) {
         };
 
         store(PLACE_KEY, place);
+        saveToAccount(place);
         await refresh(place);
     };
 
@@ -411,6 +433,7 @@ export function startWeather(card: HTMLElement) {
 
     part('forget').addEventListener('click', () => {
         store(PLACE_KEY, null);
+        saveToAccount(null);
         store(CACHE_KEY, null);
         weather = null;
         show('empty');
@@ -431,7 +454,21 @@ export function startWeather(card: HTMLElement) {
         render();
     });
 
-    const saved = load<Place>(PLACE_KEY);
+    // This browser's place first, as it follows the visitor around; on a
+    // new device, the one kept in their account.
+    let saved = load<Place>(PLACE_KEY);
+
+    if (!saved && card.dataset.accountLocation) {
+        try {
+            saved = JSON.parse(card.dataset.accountLocation) as Place | null;
+        } catch {
+            saved = null;
+        }
+
+        if (saved) {
+            store(PLACE_KEY, saved);
+        }
+    }
 
     card.hidden = false;
 

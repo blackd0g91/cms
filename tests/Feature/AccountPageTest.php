@@ -113,3 +113,45 @@ test('the account menu links to the account page', function () {
         ->get(route('home'))
         ->assertSee('href="'.route('account.edit').'"', false);
 });
+
+test('the weather card keeps the place in the account, rounded', function () {
+    $user = User::factory()->member()->create();
+
+    $this->actingAs($user)
+        ->putJson(route('account.location'), ['latitude' => -23.5505199, 'longitude' => -46.6333094, 'name' => 'São Paulo'])
+        ->assertNoContent();
+
+    expect($user->fresh()->location)->toBe(['latitude' => -23.55, 'longitude' => -46.63, 'name' => 'São Paulo']);
+
+    $this->putJson(route('account.location'), ['latitude' => 120, 'longitude' => 0])->assertUnprocessable();
+    $this->deleteJson(route('account.location.destroy'))->assertNoContent();
+
+    expect($user->fresh()->location)->toBeNull();
+});
+
+test('only logged in visitors can keep a place', function () {
+    $this->putJson(route('account.location'), ['latitude' => 1, 'longitude' => 2])->assertUnauthorized();
+});
+
+test('the weather card starts from the place in the account', function () {
+    $user = User::factory()->member()->create(['location' => ['latitude' => -23.55, 'longitude' => -46.63, 'name' => 'São Paulo']]);
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertSee('data-location-url="'.route('account.location').'"', false)
+        ->assertSee('data-account-location="'.e(json_encode($user->location)).'"', false);
+
+    auth()->logout();
+    $this->get(route('home'))->assertDontSee('data-location-url', false);
+});
+
+test('the account page shows the place, and can forget it', function () {
+    $user = User::factory()->member()->create(['location' => ['latitude' => -23.55, 'longitude' => -46.63, 'name' => 'São Paulo']]);
+
+    $this->actingAs($user)->get(route('account.edit'))->assertSee('São Paulo')->assertSee('Forget it');
+
+    $this->delete(route('account.location.destroy'))->assertRedirect(route('account.edit'));
+
+    expect($user->fresh()->location)->toBeNull();
+    $this->get(route('account.edit'))->assertSee('None kept');
+});

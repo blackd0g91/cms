@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -14,8 +15,8 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 /**
- * Your account on the site: name, email address and password, and deleting
- * it with everything in it. Staff can change theirs here too, but not delete
+ * Your account on the site: name, email address and password, the weather
+ * location, and deleting it with everything in it. Staff can change theirs here too, but not delete
  * it: an admin removes them from the control panel.
  */
 class AccountController extends Controller
@@ -70,6 +71,38 @@ class AccountController extends Controller
         $user->update(['password' => $validated['password']]);
 
         return redirect()->route('account.edit')->with('status', 'Your new password is set.');
+    }
+
+    /**
+     * Where they last asked for the weather, from the weather card (see
+     * weather.ts), so their other devices can start from it. Rounded again
+     * here: never more exact than about a kilometer.
+     */
+    public function updateLocation(Request $request): Response
+    {
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'name' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $request->user()?->update(['location' => [
+            'latitude' => round((float) $validated['latitude'], 2),
+            'longitude' => round((float) $validated['longitude'], 2),
+            'name' => $validated['name'] ?? null,
+        ]]);
+
+        return response()->noContent();
+    }
+
+    public function destroyLocation(Request $request): Response|RedirectResponse
+    {
+        $request->user()?->update(['location' => null]);
+
+        // From the account page, rather than the weather card.
+        return $request->expectsJson()
+            ? response()->noContent()
+            : redirect()->route('account.edit')->with('status', 'Your weather location is forgotten.');
     }
 
     /**

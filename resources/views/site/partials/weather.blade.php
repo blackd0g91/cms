@@ -2,14 +2,26 @@
     The weather where the visitor is, once they ask for it (see
     resources/js/weather.ts, which also shows the card: it needs the script).
     A small card with the weather now, opening a dialog with the details and
-    the week ahead. Their location stays in their browser.
+    the week ahead. Their location stays in their browser, and logged in, in
+    their account too, so their other devices can start from it.
 --}}
-<section data-weather hidden aria-label="Weather" class="grid">
+@php($member = auth()->user())
+<section
+    data-weather
+    @if ($member)
+        data-location-url="{{ route('account.location') }}"
+        data-location-token="{{ csrf_token() }}"
+        data-account-location="{{ json_encode($member->location) }}"
+    @endif
+    hidden
+    aria-label="Weather"
+    class="grid"
+>
     <div data-weather-state="empty" class="flex items-center gap-3 rounded-2xl border border-line bg-card p-3 shadow-sm">
         <span class="text-2xl leading-none" aria-hidden="true">🌤️</span>
         <button type="button" data-weather-locate class="min-w-0 flex-1 text-left text-sm font-medium transition hover:text-accent">
             Show my weather
-            <span class="block text-xs font-normal text-muted">Your location stays in this browser</span>
+            <span class="block text-xs font-normal text-muted">{{ $member ? 'Kept in this browser and your account' : 'Your location stays in this browser' }}</span>
         </button>
     </div>
 

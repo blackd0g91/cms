@@ -20,13 +20,14 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $email
  * @property UserRole $role
+ * @property array{latitude: float, longitude: float, name: string|null}|null $location Where they last asked for the weather
  * @property Carbon|null $email_verified_at
  * @property string|null $password
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'role', 'password'])]
+#[Fillable(['name', 'email', 'role', 'password', 'location'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -54,6 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'location' => 'array',
         ];
     }
 

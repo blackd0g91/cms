@@ -280,6 +280,104 @@ describe('startWeather', () => {
         ).toBe('São Paulo');
     });
 
+    describe('logged in', () => {
+        const calls: { url: string; init?: RequestInit }[] = [];
+
+        beforeEach(() => {
+            card.dataset.locationUrl = '/account/location';
+            card.dataset.locationToken = 'the-token';
+            calls.length = 0;
+            vi.stubGlobal('fetch', (url: string, init?: RequestInit) => {
+                calls.push({ url, init });
+
+                return respond(
+                    url.includes('open-meteo')
+                        ? forecast
+                        : { locality: 'São Paulo' },
+                );
+            });
+        });
+
+        const accountCalls = () =>
+            calls.filter((call) => call.url === '/account/location');
+
+        it('keeps the place in the account too', async () => {
+            getCurrentPosition.mockImplementation((resolve) =>
+                resolve({
+                    coords: { latitude: -23.550519, longitude: -46.633309 },
+                }),
+            );
+            startWeather(card);
+
+            card.querySelector<HTMLButtonElement>(
+                '[data-weather-locate]',
+            )!.click();
+            await settle();
+
+            expect(accountCalls()).toHaveLength(1);
+            expect(accountCalls()[0].init?.method).toBe('PUT');
+            const headers = accountCalls()[0].init!.headers as Record<
+                string,
+                string
+            >;
+            expect(headers['X-CSRF-TOKEN']).toBe('the-token');
+            expect(JSON.parse(accountCalls()[0].init?.body as string)).toEqual({
+                latitude: -23.55,
+                longitude: -46.63,
+                name: 'São Paulo',
+            });
+        });
+
+        it('starts from the place in the account on a new device', async () => {
+            card.dataset.accountLocation = JSON.stringify({
+                latitude: 1,
+                longitude: 2,
+                name: 'Home',
+            });
+            startWeather(card);
+            await settle();
+
+            expect(visible()).toBe('ready');
+            expect(text('place')).toBe('Home');
+            expect(getCurrentPosition).not.toHaveBeenCalled();
+            expect(
+                JSON.parse(localStorage.getItem('site.weather.place')!).name,
+            ).toBe('Home');
+        });
+
+        it("prefers this browser's place, which follows the visitor", async () => {
+            card.dataset.accountLocation = JSON.stringify({
+                latitude: 1,
+                longitude: 2,
+                name: 'Home',
+            });
+            localStorage.setItem(
+                'site.weather.place',
+                JSON.stringify({ latitude: 3, longitude: 4, name: 'Away' }),
+            );
+            startWeather(card);
+            await settle();
+
+            expect(text('place')).toBe('Away');
+        });
+
+        it('forgets the place in the account too', async () => {
+            card.dataset.accountLocation = JSON.stringify({
+                latitude: 1,
+                longitude: 2,
+                name: 'Home',
+            });
+            startWeather(card);
+            await settle();
+
+            card.querySelector<HTMLButtonElement>(
+                '[data-weather-forget]',
+            )!.click();
+
+            expect(accountCalls().at(-1)?.init?.method).toBe('DELETE');
+        });
+    });
+
     it('swaps °C and °F from the dialog, for the whole site', async () => {
         localStorage.setItem(
             'site.weather.place',
