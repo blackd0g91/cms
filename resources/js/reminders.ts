@@ -4,8 +4,55 @@
  * site/reminders/item.blade.php). When one comes due, a notice shows in the
  * corner with Done and Snooze, the reminder is marked as due in the list,
  * and the tab's title counts the notices waiting, so they show from other
- * tabs too.
+ * tabs too. Where the member turned them on, a system notification shows as
+ * well while the tab is out of sight (see startNotifyToggle).
  */
+
+// Whether system notifications are on in this browser: the member chose so
+// here, and the browser allows them.
+const NOTIFY_KEY = 'site.reminders.notify';
+
+const supported = () => typeof Notification !== 'undefined';
+
+export const notifyOn = () => {
+    try {
+        return (
+            supported() &&
+            Notification.permission === 'granted' &&
+            localStorage.getItem(NOTIFY_KEY) === '1'
+        );
+    } catch {
+        return false;
+    }
+};
+
+const setNotify = (on: boolean) => {
+    try {
+        if (on) {
+            localStorage.setItem(NOTIFY_KEY, '1');
+        } else {
+            localStorage.removeItem(NOTIFY_KEY);
+        }
+    } catch {
+        // Not remembered (private windows): on for this visit only.
+    }
+};
+
+/** A system notification for a reminder, which brings the tab back when clicked. */
+const notifySystem = (text: string, tag: string) => {
+    const icon =
+        document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.href;
+    const notification = new Notification('Reminder', {
+        body: text,
+        tag,
+        icon,
+    });
+
+    notification.addEventListener('click', () => {
+        window.focus();
+        notification.close();
+    });
+};
 
 type Due = {
     id: string;
@@ -135,6 +182,11 @@ export function startReminders(root: ParentNode = document) {
         box.append(close, heading, text, actions);
         region.append(box);
         count(1);
+
+        // Out of sight, the notice alone would go unseen.
+        if (document.visibilityState !== 'visible' && notifyOn()) {
+            notifySystem(reminder.text, `reminder-${reminder.id}`);
+        }
     };
 
     const check = () => {
@@ -166,4 +218,51 @@ export function startReminders(root: ParentNode = document) {
             check();
         }
     });
+}
+
+/**
+ * The switch for system notifications in this browser (see
+ * site/reminders/notify.blade.php), with a state for each case: they can be
+ * turned on (asking the browser, only on a click), they are on (and can be
+ * turned off), the browser blocks them, or it has none.
+ */
+export function startNotifyToggle(root: ParentNode = document) {
+    root.querySelectorAll<HTMLElement>('[data-reminder-notify]').forEach(
+        (toggle) => {
+            const show = () => {
+                const state = !supported()
+                    ? 'unsupported'
+                    : Notification.permission === 'denied'
+                      ? 'blocked'
+                      : notifyOn()
+                        ? 'on'
+                        : 'off';
+
+                toggle
+                    .querySelectorAll<HTMLElement>('[data-notify-state]')
+                    .forEach((part) => {
+                        part.hidden = part.dataset.notifyState !== state;
+                    });
+                toggle.hidden = state === 'unsupported';
+            };
+
+            toggle
+                .querySelector('[data-notify-on]')
+                ?.addEventListener('click', async () => {
+                    const permission = await Notification.requestPermission();
+
+                    setNotify(permission === 'granted');
+                    show();
+                });
+
+            toggle
+                .querySelector('[data-notify-off]')
+                ?.addEventListener('click', () => {
+                    setNotify(false);
+                    show();
+                });
+
+            show();
+        },
+    );
 }

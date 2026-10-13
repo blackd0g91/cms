@@ -5,6 +5,9 @@
         <div>
             <h1 class="font-display text-4xl font-semibold tracking-tight">Reminders</h1>
             <p class="mt-2 text-muted">What to remember, and when. The ones due soon show on the home page too.</p>
+            <div class="mt-2">
+                @include('site.reminders.notify')
+            </div>
         </div>
 
         <section aria-label="Add a reminder" class="rounded-3xl border border-line bg-card p-5 shadow-sm sm:p-6">

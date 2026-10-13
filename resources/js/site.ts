@@ -1,7 +1,7 @@
 import { startContours } from './backdrop';
 import { startDialogs } from './dialogs';
 import { startFilters } from './filters';
-import { startReminders } from './reminders';
+import { startNotifyToggle, startReminders } from './reminders';
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
 import { startWeather } from './weather';
@@ -270,6 +270,7 @@ startFilters();
 
 // Reminders that come due while the page is open (see reminders.ts).
 startReminders();
+startNotifyToggle();
 
 // The weather card on the home page (see weather.ts).
 const weather = document.querySelector<HTMLElement>('[data-weather]');

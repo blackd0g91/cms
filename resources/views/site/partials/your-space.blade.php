@@ -41,6 +41,10 @@
                 @endif
             </div>
 
+            <div class="mt-3">
+                @include('site.reminders.notify')
+            </div>
+
             <div class="mt-4 border-t border-line pt-4">
                 @include('site.reminders.form', ['compact' => true, 'idPrefix' => 'quick-reminder'])
                 @if ($errors->any())

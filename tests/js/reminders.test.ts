@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { readReminders, startReminders } from '../../resources/js/reminders';
+import {
+    readReminders,
+    startNotifyToggle,
+    startReminders,
+} from '../../resources/js/reminders';
 
 const item = (id: number, due: Date, text: string) => `
     <li data-reminder="${id}" data-reminder-due="${due.toISOString()}" data-reminder-text="${text}"
@@ -109,5 +113,141 @@ describe('reminders', () => {
         startReminders();
 
         expect(document.querySelector('.reminder-notices')).toBeNull();
+    });
+});
+
+describe('system notifications', () => {
+    const created: { title: string; options: NotificationOptions }[] = [];
+    let permission: NotificationPermission = 'default';
+    const requestPermission = vi.fn(async () => permission);
+
+    class FakeNotification {
+        static get permission() {
+            return permission;
+        }
+
+        static requestPermission = requestPermission;
+
+        constructor(title: string, options: NotificationOptions) {
+            created.push({ title, options });
+        }
+
+        addEventListener() {}
+
+        close() {}
+    }
+
+    const toggleHtml = `
+        <div data-reminder-notify hidden>
+            <p data-notify-state="off" hidden><button data-notify-on>On</button></p>
+            <p data-notify-state="on" hidden><button data-notify-off>Off</button></p>
+            <p data-notify-state="blocked" hidden>Blocked</p>
+        </div>`;
+    const state = () =>
+        document.querySelector<HTMLElement>('[data-notify-state]:not([hidden])')
+            ?.dataset.notifyState;
+    const setVisibility = (value: DocumentVisibilityState) =>
+        Object.defineProperty(document, 'visibilityState', {
+            value,
+            configurable: true,
+        });
+
+    beforeEach(() => {
+        vi.stubGlobal('Notification', FakeNotification);
+        permission = 'default';
+        created.length = 0;
+        requestPermission.mockClear();
+        localStorage.clear();
+        document.body.innerHTML = toggleHtml;
+    });
+
+    afterEach(() => {
+        setVisibility('visible');
+        document.body.innerHTML = '';
+        localStorage.clear();
+    });
+
+    it('asks the browser only when the switch is clicked', async () => {
+        startNotifyToggle();
+
+        expect(state()).toBe('off');
+        expect(requestPermission).not.toHaveBeenCalled();
+
+        permission = 'granted';
+        document.querySelector<HTMLButtonElement>('[data-notify-on]')!.click();
+        await vi.waitFor(() => expect(state()).toBe('on'));
+
+        expect(requestPermission).toHaveBeenCalledOnce();
+        expect(localStorage.getItem('site.reminders.notify')).toBe('1');
+
+        document.querySelector<HTMLButtonElement>('[data-notify-off]')!.click();
+        expect(state()).toBe('off');
+        expect(localStorage.getItem('site.reminders.notify')).toBeNull();
+    });
+
+    it('says when the browser blocks them', () => {
+        permission = 'denied';
+        startNotifyToggle();
+
+        expect(state()).toBe('blocked');
+    });
+
+    it('stays hidden in browsers without notifications', () => {
+        vi.stubGlobal('Notification', undefined);
+        startNotifyToggle();
+
+        expect(
+            document.querySelector<HTMLElement>('[data-reminder-notify]')!
+                .hidden,
+        ).toBe(true);
+    });
+
+    describe('when a reminder comes due', () => {
+        const now = new Date('2026-10-12T15:00:00Z');
+
+        beforeEach(() => {
+            vi.useFakeTimers();
+            vi.setSystemTime(now);
+            document.body.innerHTML = `<ul>${item(1, new Date(now.getTime() + 60_000), 'Call the dentist')}</ul>`;
+        });
+
+        afterEach(() => vi.useRealTimers());
+
+        it('notifies while the tab is out of sight, when turned on', () => {
+            permission = 'granted';
+            localStorage.setItem('site.reminders.notify', '1');
+            setVisibility('hidden');
+            startReminders();
+            vi.advanceTimersByTime(65_000);
+
+            expect(created).toEqual([
+                {
+                    title: 'Reminder',
+                    options: expect.objectContaining({
+                        body: 'Call the dentist',
+                        tag: 'reminder-1',
+                    }),
+                },
+            ]);
+        });
+
+        it('does not notify while the tab is in sight, where the notice shows', () => {
+            permission = 'granted';
+            localStorage.setItem('site.reminders.notify', '1');
+            startReminders();
+            vi.advanceTimersByTime(65_000);
+
+            expect(created).toHaveLength(0);
+            expect(document.querySelector('.reminder-notice')).not.toBeNull();
+        });
+
+        it('does not notify unless turned on in this browser', () => {
+            permission = 'granted';
+            setVisibility('hidden');
+            startReminders();
+            vi.advanceTimersByTime(65_000);
+
+            expect(created).toHaveLength(0);
+        });
     });
 });

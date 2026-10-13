@@ -203,3 +203,11 @@ test('the lists tell the page when each reminder comes due', function () {
     auth()->logout();
     $this->get(route('home'))->assertDontSee('data-csrf-token', false);
 });
+
+test('the panel and the reminders page offer system notifications', function () {
+    $this->actingAs($this->member);
+
+    $this->get(route('home'))->assertSee('data-reminder-notify', false)->assertSee('Notify me in this browser');
+    $this->get(route('reminders.index'))->assertSee('data-reminder-notify', false);
+});
+
