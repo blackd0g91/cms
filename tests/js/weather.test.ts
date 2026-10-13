@@ -58,10 +58,13 @@ const cardHtml = `
     <div data-weather-state="empty"><button data-weather-locate>Show my weather</button></div>
     <p data-weather-state="loading" hidden><span data-weather-loading></span></p>
     <div data-weather-state="error" hidden><p data-weather-error></p><button data-weather-retry>Try again</button></div>
-    <button data-weather-state="ready" data-weather-open hidden>
-        <span data-weather-icon></span><span data-weather-temperature></span>
-        <span data-weather-label></span><span data-weather-place></span>
-    </button>
+    <div data-weather-state="ready" hidden>
+        <button data-weather-open>
+            <span data-weather-icon></span><span data-weather-temperature></span>
+            <span data-weather-label></span><span data-weather-place></span>
+        </button>
+        <button data-weather-locate data-card-locate>Update my location</button>
+    </div>
     <dialog data-weather-dialog>
         <span data-weather-place></span><button data-weather-close>Close</button>
         <span data-weather-temperature></span><span data-weather-feels></span>
@@ -249,6 +252,32 @@ describe('startWeather', () => {
         expect(visible()).toBe('ready');
         expect(text('place')).toBe('Here');
         expect(getCurrentPosition).not.toHaveBeenCalled();
+    });
+
+    it('looks the location up again from the card, like when travelling', async () => {
+        localStorage.setItem(
+            'site.weather.place',
+            JSON.stringify({ latitude: 1, longitude: 2, name: 'Home' }),
+        );
+        getCurrentPosition.mockImplementation((resolve) =>
+            resolve({
+                coords: { latitude: -23.550519, longitude: -46.633309 },
+            }),
+        );
+        startWeather(card);
+        await settle();
+
+        expect(text('place')).toBe('Home');
+
+        card.querySelector<HTMLButtonElement>('[data-card-locate]')!.click();
+        await settle();
+
+        expect(getCurrentPosition).toHaveBeenCalledOnce();
+        expect(visible()).toBe('ready');
+        expect(text('place')).toBe('São Paulo');
+        expect(
+            JSON.parse(localStorage.getItem('site.weather.place')!).name,
+        ).toBe('São Paulo');
     });
 
     it('swaps °C and °F from the dialog, for the whole site', async () => {
