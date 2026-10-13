@@ -105,6 +105,8 @@ test('the sidebar shows the links in order under their heading', function () {
     $this->get('/')
         ->assertOk()
         ->assertSeeInOrder(['Links', 'About me', '🐙', 'GitHub', '↗', 'All tags'])
+        // Without an emoji, the first letter stands in.
+        ->assertSee('aria-hidden="true">A</span>', false)
         ->assertSee('href="'.url('/recipes/about').'"', false)
         ->assertSee('href="https://github.com/me"', false)
         ->assertSee('href="/tags"', false);
@@ -138,7 +140,7 @@ test('links go away with their post', function () {
 test('without links there is no links section, and an empty heading shows none', function () {
     // The classes of the section and of its heading, only used there.
     $section = 'mt-auto pt-6';
-    $heading = 'mb-1 px-3 font-mono';
+    $heading = 'mb-2 px-3 font-mono';
 
     $this->get('/')->assertDontSee($section, false);
 

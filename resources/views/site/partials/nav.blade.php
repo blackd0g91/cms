@@ -22,33 +22,39 @@
         @endforeach
     </ul>
 
-    {{-- The links set in the control panel: at the bottom of the sidebar, and
-         right below the rest in the menu on phones. --}}
+    {{-- The links set in the control panel, as small square tiles two to a
+         row with the emoji (or the first letter) above the name: at the
+         bottom of the sidebar, and right below the rest in the menu on
+         phones. --}}
     @if ($navLinks->isNotEmpty())
         <div class="mt-auto pt-6">
             <div class="border-t border-line pt-4">
                 @if ($settings->get('links_heading') !== '')
-                    <p class="mb-1 px-3 font-mono text-xs tracking-wider text-muted uppercase">{{ $settings->get('links_heading') }}</p>
+                    <p class="mb-2 px-3 font-mono text-xs tracking-wider text-muted uppercase">{{ $settings->get('links_heading') }}</p>
                 @endif
-                <ul class="space-y-0.5">
+                <ul class="grid grid-cols-2 gap-2">
                     @foreach ($navLinks as $navLink)
-                        @php($isCurrent = url()->current() === url((string) $navLink->href()))
+                        @php
+                            $isCurrent = url()->current() === url((string) $navLink->href());
+                            $tileClass = $isCurrent
+                                ? 'border-accent bg-paper font-medium text-ink ring-1 ring-accent'
+                                : 'border-line bg-paper/60 text-muted hover:-translate-y-0.5 hover:border-accent hover:bg-paper hover:text-ink';
+                        @endphp
                         <li>
                             <a
                                 href="{{ $navLink->href() }}"
                                 data-click="link:{{ $navLink->id }}"
-                                @class([
-                                    'flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-paper hover:text-ink',
-                                    'bg-paper font-medium text-ink ring-1 ring-line' => $isCurrent,
-                                    'text-muted' => ! $isCurrent,
-                                ])
+                                class="relative flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition {{ $tileClass }}"
                                 @if ($isCurrent) aria-current="page" @endif
                             >
-                                {{-- As wide as the dots above (10px), so every label lines up. --}}
-                                <span class="-mx-[3px] w-4 shrink-0 text-center" aria-hidden="true">{{ $navLink->emoji }}</span>
-                                <span class="min-w-0 flex-1 truncate">{{ $navLink->text() }}</span>
+                                @if ($navLink->emoji)
+                                    <span class="text-2xl leading-none" aria-hidden="true">{{ $navLink->emoji }}</span>
+                                @else
+                                    <span class="font-display text-2xl leading-none font-semibold" aria-hidden="true">{{ mb_strtoupper(mb_substr($navLink->text(), 0, 1)) }}</span>
+                                @endif
+                                <span class="line-clamp-2 w-full text-xs leading-tight break-words">{{ $navLink->text() }}</span>
                                 @if ($navLink->isExternal())
-                                    <span class="font-mono text-xs" aria-hidden="true">↗</span>
+                                    <span class="absolute top-1.5 right-2 font-mono text-[10px] text-muted" aria-hidden="true">↗</span>
                                 @endif
                             </a>
                         </li>
