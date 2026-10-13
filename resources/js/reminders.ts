@@ -1,13 +1,14 @@
 import { toast } from './toasts';
 
 /**
- * Reminders that come due while a page of the site is open: the home page's
- * panel and the reminders page list them with their time (see
+ * Reminders that come due while a page of the site is open: the member's
+ * own page and the reminders page list them with their time (see
  * site/reminders/item.blade.php). When one comes due, a toast shows in the
  * corner with Done and Snooze (see toasts.ts), the reminder is marked as due
  * in the list, and the tab's title counts the toasts waiting, so they show
- * from other tabs too. Where the member turned them on, a system notification shows as
- * well while the tab is out of sight (see startNotifyToggle).
+ * from other tabs too. Where the member turned them on, a system
+ * notification shows as well while the tab is out of sight (see
+ * startNotifyToggle).
  */
 
 // Whether system notifications are on in this browser: the member chose so

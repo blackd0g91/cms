@@ -26,18 +26,18 @@ function giveaway(array $overrides = []): array
 beforeEach(function () {
     Date::setTestNow('2026-10-11 15:00:00');
 
-    // Not one of the usual cards: shown to a member who chose it.
+    // Not one of the usual cards: shown on the page of a member who chose it.
     $this->actingAs(User::factory()->member()->create(['home_widgets' => ['games']]));
 });
 
-test('the home page shows the free games, opening into a dialog', function () {
+test('the free games show on the page of a member who chose them, opening into a dialog', function () {
     Http::fake(['www.gamerpower.com/*' => Http::response([
         giveaway(),
         giveaway(['title' => 'The Big Con (Mobile) Giveaway', 'platforms' => 'Android, iOS', 'worth' => 'N/A', 'end_date' => 'N/A']),
         giveaway(['title' => 'Dwarven Realms (Steam) Key Giveaway', 'end_date' => '2026-10-12 12:00:00']),
     ])]);
 
-    $this->get(route('home'))
+    $this->get(route('me'))
         ->assertOk()
         ->assertSee('data-dialog-open="free-games"', false)
         ->assertSee('3 games free to keep')
@@ -108,13 +108,13 @@ test('they are fetched once an hour, leaving out games that ended since', functi
 test('the page still works when GamerPower does not, and asks again later', function () {
     Http::fake(['www.gamerpower.com/*' => Http::response('Down', 500)]);
 
-    $this->get(route('home'))->assertOk()->assertDontSee('data-dialog-open="free-games"', false);
-    $this->get(route('home'));
+    $this->get(route('me'))->assertOk()->assertDontSee('data-dialog-open="free-games"', false);
+    $this->get(route('me'));
 
     Http::assertSentCount(1);
 
     $this->travel(16)->minutes();
-    $this->get(route('home'));
+    $this->get(route('me'));
 
     Http::assertSentCount(2);
 });
@@ -122,7 +122,7 @@ test('the page still works when GamerPower does not, and asks again later', func
 test('no card without giveaways', function () {
     Http::fake(['www.gamerpower.com/*' => Http::response(['status' => 0, 'status_message' => 'No active giveaways available at the moment.'], 201)]);
 
-    $this->get(route('home'))->assertOk()->assertDontSee('data-dialog-open="free-games"', false);
+    $this->get(route('me'))->assertOk()->assertDontSee('data-dialog-open="free-games"', false);
 });
 
 test('when a game stops being free, for people', function () {

@@ -4,7 +4,7 @@
     <div class="max-w-2xl space-y-6">
         <div>
             <h1 class="font-display text-4xl font-semibold tracking-tight">Reminders</h1>
-            <p class="mt-2 text-muted">What to remember, and when. The ones due soon show on the home page too.</p>
+            <p class="mt-2 text-muted">What to remember, and when. The ones due soon show on <a href="{{ route('me') }}" class="text-ink underline underline-offset-4 hover:text-accent">your page</a> too.</p>
             <div class="mt-2">
                 @include('site.reminders.notify')
             </div>

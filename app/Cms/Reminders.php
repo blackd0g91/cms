@@ -41,7 +41,7 @@ class Reminders
 
     /**
      * The end of the week ahead for the member, as the "This week" group
-     * counts it: what the home page shows.
+     * counts it: what the member's own page shows.
      */
     public function weekAhead(User $user): CarbonImmutable
     {

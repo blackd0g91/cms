@@ -17,7 +17,7 @@ class EmailVerificationController extends Controller
     public function notice(Request $request): View|RedirectResponse
     {
         if ($request->user()?->hasVerifiedEmail()) {
-            return redirect()->route('home');
+            return redirect()->route('me');
         }
 
         return view('site.auth.verify-email');
@@ -27,13 +27,13 @@ class EmailVerificationController extends Controller
     {
         $request->fulfill();
 
-        return redirect()->route('home')->with('status', 'Your email address is confirmed. Welcome!');
+        return redirect()->route('me')->with('status', 'Your email address is confirmed. Welcome!');
     }
 
     public function send(Request $request): RedirectResponse
     {
         if ($request->user()?->hasVerifiedEmail()) {
-            return redirect()->route('home');
+            return redirect()->route('me');
         }
 
         $request->user()?->sendEmailVerificationNotification();

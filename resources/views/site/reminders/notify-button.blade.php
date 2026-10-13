@@ -1,6 +1,6 @@
 {{--
-    The notifications switch as a round bell button, for the home page's
-    panel: the same switch as site/reminders/notify.blade.php (see
+    The notifications switch as a round bell button, for the reminders on the
+    member's own page: the same switch as site/reminders/notify.blade.php (see
     startNotifyToggle in reminders.ts), with what it does in its tooltip. The
     bell is filled, with a dot, when notifications are on in this browser.
 --}}

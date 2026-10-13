@@ -28,10 +28,10 @@ test('members can not open any page of the control panel', function () {
     expect(Post::query()->count())->toBe(0);
 });
 
-test('a logged in member is sent from the control panel login to the site', function () {
+test('a logged in member is sent from the control panel login to their own page', function () {
     $this->actingAs(User::factory()->member()->create())
         ->get(route('cp.login'))
-        ->assertRedirect(route('home'));
+        ->assertRedirect(route('me'));
 });
 
 test('members can not log in to the control panel, even with their password', function () {

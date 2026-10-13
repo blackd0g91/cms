@@ -17,7 +17,7 @@ use Illuminate\View\View;
 
 /**
  * Your account on the site: name, email address and password, the cards on
- * the home page, the weather location, and deleting it with everything in
+ * their own page, the weather location, and deleting it with everything in
  * it. Staff can change theirs here too, but not delete it: an admin removes
  * them from the control panel.
  */
@@ -76,7 +76,7 @@ class AccountController extends Controller
     }
 
     /**
-     * The cards at the top of the home page: the ones ticked, in the order
+     * The cards at the top of their own page: the ones ticked, in the order
      * they were sent (see sortable.ts), none at all, or back to the defaults.
      */
     public function updateWidgets(Request $request): RedirectResponse
@@ -87,7 +87,7 @@ class AccountController extends Controller
         if ($request->boolean('reset')) {
             $user->update(['home_widgets' => null]);
 
-            return redirect()->route('account.edit')->with('status', 'Your home page has the usual cards again.');
+            return redirect()->route('account.edit')->with('status', 'Your page has the usual cards again.');
         }
 
         $validated = $request->validateWithBag('widgets', [
@@ -97,7 +97,7 @@ class AccountController extends Controller
 
         $user->update(['home_widgets' => array_values($validated['widgets'] ?? [])]);
 
-        return redirect()->route('account.edit')->with('status', 'Your home page cards are saved.');
+        return redirect()->route('account.edit')->with('status', 'Your cards are saved.');
     }
 
     /**

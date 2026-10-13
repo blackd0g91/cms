@@ -139,38 +139,58 @@ test('nobody can touch someone else\'s reminders', function () {
     expect($reminder->fresh()->text)->toBe('Mine');
 });
 
-test('the home page panel shows members what is due soon, and is not there for guests', function () {
-    // Guests sign up from the account icon in the header instead.
-    $this->get(route('home'))
-        ->assertDontSee('aria-label="Your space"', false)
-        ->assertDontSee('Create an account')
-        ->assertSee('title="Log in"', false);
-
-    remind($this->member, 'Due today', '2026-10-12 18:00');
+test('a member\'s page shows what is due soon, with a form to add one', function () {
+    $today = remind($this->member, 'Due today', '2026-10-12 18:00');
     remind($this->member, 'Due on Saturday', '2026-10-17 18:00');
     remind($this->member, 'Due next week', '2026-10-20 18:00');
 
     $this->actingAs($this->member)
-        ->get(route('home'))
+        ->get(route('me'))
+        ->assertOk()
         ->assertSee('Due today')
         ->assertSee('Due on Saturday')
         ->assertDontSee('Due next week')
         // The title leads to the reminders page, and + opens the form in a dialog.
         ->assertSee('<a href="'.route('reminders.index').'" class="decoration-2', false)
         ->assertSee('data-dialog-open="new-reminder"', false)
-        ->assertSee('<dialog'."\n".'            id="new-reminder"', false)
+        ->assertSee('<dialog'."\n".'    id="new-reminder"', false)
         ->assertDontSee('data-dialog-open-now', false)
-        ->assertSee('href="'.route('reminders.index').'"', false)
         ->assertSee('action="'.route('reminders.store').'"', false)
+        // Each can be snoozed, changed and deleted from there too.
+        ->assertSee('action="'.route('reminders.snooze', $today).'"', false)
         // The forms are complete: Blade directives all compiled.
         ->assertSee('name="_token"', false)
         ->assertDontSee('@csrf', false);
 
     $this->get(route('reminders.index'))->assertSee('name="_token"', false)->assertDontSee('@csrf', false);
+});
 
-    $this->actingAs(User::factory()->member()->unverified()->create())
-        ->get(route('home'))
-        ->assertSee('Confirm your email address to start adding reminders');
+test('the home page is the same for everyone, without reminders', function () {
+    remind($this->member, 'Due today', '2026-10-12 18:00');
+
+    // Guests sign up from the account icon in the header instead.
+    $this->get(route('home'))
+        ->assertDontSee('Create an account')
+        ->assertSee('title="Log in"', false);
+
+    $this->actingAs($this->member)->get(route('home'))
+        ->assertDontSee('Due today')
+        ->assertDontSee('data-reminder=', false);
+});
+
+test('a member\'s page needs a confirmed address, and greets them in their time', function () {
+    $this->get(route('me'))->assertRedirect(route('login'));
+    $this->actingAs(User::factory()->member()->unverified()->create())->get(route('me'))->assertRedirect(route('verification.notice'));
+
+    // 15:00 in UTC is noon in São Paulo.
+    $this->member->update(['name' => 'Ana Maria Souza']);
+    $this->actingAs($this->member)->get(route('me'))
+        ->assertSee('Monday, October 12')
+        ->assertSee('Good afternoon, Ana');
+});
+
+test('the account menu leads to the member\'s page', function () {
+    $this->actingAs($this->member)->get(route('home'))->assertSee('href="'.route('me').'"', false);
 });
 
 test('deleting the account deletes its reminders', function () {
@@ -205,7 +225,7 @@ test('the lists tell the page when each reminder comes due', function () {
     $reminder = remind($this->member, 'Call the dentist', '2026-10-12 12:30');
 
     $this->actingAs($this->member)
-        ->get(route('home'))
+        ->get(route('me'))
         ->assertSee('data-reminder="'.$reminder->id.'"', false)
         ->assertSee('data-reminder-due="2026-10-12T15:30:00+00:00"', false)
         ->assertSee('data-reminder-done="'.route('reminders.complete', $reminder).'"', false)
@@ -218,17 +238,17 @@ test('the lists tell the page when each reminder comes due', function () {
 test('the panel and the reminders page offer system notifications', function () {
     $this->actingAs($this->member);
 
-    $this->get(route('home'))->assertSee('data-reminder-notify', false)->assertSee('Notify me in this browser');
+    $this->get(route('me'))->assertSee('data-reminder-notify', false)->assertSee('Notify me in this browser');
     $this->get(route('reminders.index'))->assertSee('data-reminder-notify', false);
 });
 
-test('the home page\'s form opens again with what was typed when it has an error', function () {
+test('the form on a member\'s page opens again with what was typed when it has an error', function () {
     $this->actingAs($this->member)
-        ->from(route('home'))
+        ->from(route('me'))
         ->post(route('reminders.store'), ['text' => 'Too late', 'due' => '2026-10-12T08:00', 'repeat' => 'weekly', 'email' => '1'])
-        ->assertRedirect(route('home'));
+        ->assertRedirect(route('me'));
 
-    $this->get(route('home'))
+    $this->get(route('me'))
         ->assertSee('data-dialog-open-now', false)
         ->assertSee('Pick a time from now on.')
         ->assertSee('value="Too late"', false)

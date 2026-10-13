@@ -38,7 +38,9 @@ const WEATHER_CARD = 'aria-label="Weather"';
 const PICTURE_CARD = 'data-dialog-open="picture-of-the-day"';
 const GAMES_CARD = 'data-dialog-open="free-games"';
 
-test('guests, and members who have not chosen, get the weather and the picture of the day', function () {
+test('the home page has the usual cards for everyone: the weather and the picture of the day', function () {
+    $this->member->update(['home_widgets' => ['games']]);
+
     $this->get(route('home'))
         ->assertSeeInOrder([WEATHER_CARD, PICTURE_CARD], false)
         ->assertDontSee(GAMES_CARD, false);
@@ -51,15 +53,21 @@ test('guests, and members who have not chosen, get the weather and the picture o
     Http::assertNotSent(fn ($request) => str_contains($request->url(), 'gamerpower'));
 });
 
-test('members choose their cards and their order', function () {
+test('a member\'s page has the usual cards until they choose theirs', function () {
+    $this->actingAs($this->member)->get(route('me'))
+        ->assertSeeInOrder([WEATHER_CARD, PICTURE_CARD], false)
+        ->assertDontSee(GAMES_CARD, false);
+});
+
+test('members choose the cards on their page, and their order', function () {
     $this->actingAs($this->member)
         ->put(route('account.widgets'), ['widgets' => ['games', 'weather']])
         ->assertRedirect(route('account.edit'))
-        ->assertSessionHas('status', 'Your home page cards are saved.');
+        ->assertSessionHas('status', 'Your cards are saved.');
 
     expect($this->member->fresh()->home_widgets)->toBe(['games', 'weather']);
 
-    $this->get(route('home'))
+    $this->get(route('me'))
         ->assertSeeInOrder([GAMES_CARD, WEATHER_CARD], false)
         ->assertDontSee(PICTURE_CARD, false);
 
@@ -70,12 +78,12 @@ test('members can have no cards at all, and go back to the usual ones', function
     $this->actingAs($this->member)->put(route('account.widgets'));
 
     expect($this->member->fresh()->home_widgets)->toBe([]);
-    $this->get(route('home'))->assertDontSee(WEATHER_CARD, false)->assertDontSee(PICTURE_CARD, false);
+    $this->get(route('me'))->assertDontSee(WEATHER_CARD, false)->assertDontSee(PICTURE_CARD, false);
 
     $this->put(route('account.widgets'), ['reset' => '1'])->assertSessionHas('status');
 
     expect($this->member->fresh()->home_widgets)->toBeNull();
-    $this->get(route('home'))->assertSeeInOrder([WEATHER_CARD, PICTURE_CARD], false);
+    $this->get(route('me'))->assertSeeInOrder([WEATHER_CARD, PICTURE_CARD], false);
 });
 
 test('only the cards the site has, once each', function () {
@@ -97,7 +105,7 @@ test('the account page lists the chosen cards first, ticked, then the rest', fun
     $this->member->update(['home_widgets' => ['games']]);
 
     $this->actingAs($this->member)->get(route('account.edit'))
-        ->assertSee('Home page cards')
+        ->assertSee('Cards on your page')
         ->assertSeeInOrder(['value="games" checked', 'value="weather"', 'value="picture"'], false)
         ->assertDontSee('value="weather" checked', false)
         ->assertSee('Back to the usual');

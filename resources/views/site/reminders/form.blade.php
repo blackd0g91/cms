@@ -1,7 +1,7 @@
 {{--
     Adding a reminder, or changing one. Expects $user, and optionally
     $reminder (to change it), $stacked (the fields one under the other, as in
-    the home page's dialog, rather than in a row) and $idPrefix (for more than
+    the dialog on the member's own page, rather than in a row) and $idPrefix (for more than
     one form on a page). The browser fills in its time zone, and the next full
     hour when the member's is not known yet (see site.ts).
 --}}

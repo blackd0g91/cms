@@ -270,7 +270,7 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
 startDialogs();
 startFilters();
 
-// Lists put in order with buttons, like the home page cards on the account
+// Lists put in order with buttons, like the cards on the account
 // page (see sortable.ts).
 startSortables();
 

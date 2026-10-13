@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Already logged in, the login pages lead on: the control panel's to
         // it (or, for a member, who can not use it, to the site), the site's
         // to its home page.
-        $middleware->redirectUsersTo(fn (Request $request) => $request->is('cp', 'cp/*') && $request->user()?->isStaff() ? route('cp.dashboard') : route('home'));
+        $middleware->redirectUsersTo(fn (Request $request) => $request->is('cp', 'cp/*') && $request->user()?->isStaff() ? route('cp.dashboard') : route('me'));
 
         // Only counts a click (see ClickController), and is sent without a form.
         $middleware->validateCsrfTokens(except: ['clicks']);

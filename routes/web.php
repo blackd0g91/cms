@@ -10,6 +10,7 @@ use App\Http\Controllers\Site\ClickController;
 use App\Http\Controllers\Site\FeedController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\ManifestController;
+use App\Http\Controllers\Site\MeController;
 use App\Http\Controllers\Site\PushSubscriptionController;
 use App\Http\Controllers\Site\ReminderController;
 use App\Http\Controllers\Site\ReminderEmailController;
@@ -64,6 +65,7 @@ Route::middleware('auth')->group(function () {
 
 // A member's own things, under /me. They need a confirmed address.
 Route::middleware(['auth', 'verified'])->prefix('me')->group(function () {
+    Route::get('/', MeController::class)->name('me');
     Route::get('reminders', [ReminderController::class, 'index'])->name('reminders.index');
     Route::post('reminders', [ReminderController::class, 'store'])->middleware('throttle:60,1')->name('reminders.store');
     Route::put('reminders/{reminder}', [ReminderController::class, 'update'])->name('reminders.update');

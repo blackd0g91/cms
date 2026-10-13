@@ -77,6 +77,6 @@ class PasswordResetController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('home')->with('status', 'Your new password is set, and you are logged in.');
+        return redirect()->route('me')->with('status', 'Your new password is set, and you are logged in.');
     }
 }

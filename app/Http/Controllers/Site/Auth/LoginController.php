@@ -33,7 +33,7 @@ class LoginController extends Controller
             $request->user()?->update(['timezone' => $timezone]);
         }
 
-        return redirect()->intended(route('home', absolute: false));
+        return redirect()->intended(route('me', absolute: false));
     }
 
     public function destroy(Request $request): RedirectResponse

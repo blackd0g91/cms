@@ -1,6 +1,6 @@
 {{--
-    In the header: a link to log in, or, logged in, a menu with the account,
-    the control panel for staff, and logging out.
+    In the header: a link to log in, or, logged in, a menu with their own
+    page, the account, the control panel for staff, and logging out.
 --}}
 @auth
     @php
@@ -26,6 +26,7 @@
                     Confirm your email
                 </a>
             @endunless
+            <a href="{{ route('me') }}" class="block rounded-lg px-3 py-2 font-medium transition hover:bg-paper">Your page</a>
             <a href="{{ route('account.edit') }}" class="block rounded-lg px-3 py-2 transition hover:bg-paper">Your account</a>
             @if ($user->isStaff())
                 <a href="{{ route('cp.dashboard') }}" class="block rounded-lg px-3 py-2 transition hover:bg-paper">Control panel</a>

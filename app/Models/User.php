@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $email
  * @property UserRole $role
  * @property array{latitude: float, longitude: float, name: string|null}|null $location Where they last asked for the weather
- * @property list<string>|null $home_widgets The cards they chose for the home page, in order, or null for the defaults
+ * @property list<string>|null $home_widgets The cards they chose for their own page, in order, or null for the defaults
  * @property string|null $timezone Their own, from their browser, for their reminders
  * @property Carbon|null $email_verified_at
  * @property string|null $password
@@ -103,7 +103,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * The cards at the top of their home page, in their order: the ones
+     * The cards at the top of their own page, in their order: the ones
      * they chose, or the defaults until they do.
      *
      * @return list<HomeWidget>

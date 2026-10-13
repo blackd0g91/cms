@@ -71,11 +71,11 @@ test('the link in the email confirms the address', function () {
     $user = User::factory()->member()->unverified()->create();
     $url = URL::temporarySignedRoute('verification.verify', now()->addHour(), ['id' => $user->id, 'hash' => sha1($user->email)]);
 
-    $this->actingAs($user)->get($url)->assertRedirect(route('home'));
+    $this->actingAs($user)->get($url)->assertRedirect(route('me'));
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-    $this->get(route('home'))->assertSee('Your email address is confirmed');
-    $this->get(route('verification.notice'))->assertRedirect(route('home'));
+    $this->get(route('me'))->assertSee('Your email address is confirmed');
+    $this->get(route('verification.notice'))->assertRedirect(route('me'));
 });
 
 test('the confirmation email can be sent again', function () {
@@ -91,7 +91,7 @@ test('members and staff log in on the site, and log out again', function () {
     $member = User::factory()->member()->create(['email' => 'ana@example.com']);
 
     $this->post(route('login.store'), ['email' => 'ana@example.com', 'password' => 'password'])
-        ->assertRedirect(route('home'));
+        ->assertRedirect(route('me'));
     $this->assertAuthenticatedAs($member);
 
     $this->post(route('logout'))->assertRedirect(route('home'));
@@ -118,8 +118,8 @@ test('pages that need an account send guests to the site login, and the control 
 test('logged in, the login pages lead on', function () {
     $this->actingAs(User::factory()->member()->create());
 
-    $this->get(route('login'))->assertRedirect(route('home'));
-    $this->get(route('register'))->assertRedirect(route('home'));
+    $this->get(route('login'))->assertRedirect(route('me'));
+    $this->get(route('register'))->assertRedirect(route('me'));
 });
 
 test('a forgotten password gets a link, without telling which addresses have an account', function () {
@@ -142,7 +142,7 @@ test('the link sets a new password and logs in, confirming the address', functio
         'email' => 'ana@example.com',
         'password' => 'a-new-long-password',
         'password_confirmation' => 'a-new-long-password',
-    ])->assertRedirect(route('home'));
+    ])->assertRedirect(route('me'));
 
     $this->assertAuthenticatedAs($user);
     expect(Hash::check('a-new-long-password', $user->fresh()->password))->toBeTrue()

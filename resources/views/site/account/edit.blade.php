@@ -43,8 +43,8 @@
         </section>
 
         <section aria-labelledby="account-widgets" class="rounded-3xl border border-line bg-card p-6 shadow-sm sm:p-8">
-            <h2 id="account-widgets" class="font-display text-2xl font-semibold tracking-tight">Home page cards</h2>
-            <p class="mt-3 text-muted">The small cards at the top of the home page: tick the ones you want, and move them into the order you like.</p>
+            <h2 id="account-widgets" class="font-display text-2xl font-semibold tracking-tight">Cards on your page</h2>
+            <p class="mt-3 text-muted">The small cards at the top of <a href="{{ route('me') }}" class="text-ink underline underline-offset-4 hover:text-accent">your page</a>: tick the ones you want, and move them into the order you like. The home page keeps the usual ones, for everyone.</p>
 
             @php
                 // The chosen ones first, in their order, then the rest.
@@ -99,7 +99,7 @@
             @if ($user->location)
                 <p class="mt-3 text-muted">
                     <strong class="font-medium text-ink">{{ $user->location['name'] ?? 'A place without a name' }}</strong>,
-                    from the weather card on the home page, rounded to about a kilometer. Your other devices start from it.
+                    from the weather card, rounded to about a kilometer. Your other devices start from it.
                 </p>
                 <form method="post" action="{{ route('account.location.destroy') }}" class="mt-5">
                     @csrf
@@ -108,7 +108,7 @@
                 </form>
             @else
                 <p class="mt-3 text-muted">
-                    None kept. When you show your weather on the home page while logged in, the place is kept here,
+                    None kept. When you show your weather while logged in, the place is kept here,
                     rounded to about a kilometer, so your other devices can start from it.
                 </p>
             @endif

@@ -3,8 +3,9 @@
 namespace App\Enums;
 
 /**
- * The small cards at the top of the home page. Each member chooses theirs,
- * and their order, on their account page; everyone else sees the defaults.
+ * The small cards at the top of the home page, where everyone gets the
+ * defaults, and of a member's own page, where they get the ones they chose,
+ * in their order, on their account page.
  */
 enum HomeWidget: string
 {
