@@ -139,8 +139,12 @@ test('nobody can touch someone else\'s reminders', function () {
     expect($reminder->fresh()->text)->toBe('Mine');
 });
 
-test('the home page panel invites guests, and shows members what is due soon', function () {
-    $this->get(route('home'))->assertSee('Your space')->assertSee('Create an account');
+test('the home page panel shows members what is due soon, and is not there for guests', function () {
+    // Guests sign up from the account icon in the header instead.
+    $this->get(route('home'))
+        ->assertDontSee('aria-label="Your space"', false)
+        ->assertDontSee('Create an account')
+        ->assertSee('title="Log in"', false);
 
     remind($this->member, 'Due today', '2026-10-12 18:00');
     remind($this->member, 'Due on Saturday', '2026-10-17 18:00');

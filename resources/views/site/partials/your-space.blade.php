@@ -1,23 +1,14 @@
 {{--
-    The home page's panel for the features that come with an account: for
-    guests, what an account gives them; for members, their reminders due in
-    the week ahead, with a button to add one in a dialog. More features stack
+    The home page's panel for the features that come with an account, for
+    those logged in: their reminders due in the week ahead, with a button to
+    add one in a dialog, once their address is confirmed. More features stack
     below in time.
 --}}
 @php
     $user = auth()->user();
 @endphp
 <div class="space-y-4">
-    @if (! $user)
-        <section class="rounded-2xl border border-line bg-card p-4 shadow-sm">
-            <h2 class="font-display text-xl font-semibold tracking-tight">Your space</h2>
-            <p class="mt-1.5 text-sm text-muted">A free account keeps your reminders here, on any device, with more to come.</p>
-            <div class="mt-4 flex flex-wrap gap-2">
-                <a href="{{ route('register') }}" class="rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:bg-accent">Create an account</a>
-                <a href="{{ route('login') }}" class="rounded-full border border-line px-4 py-2 text-sm transition hover:border-accent">Log in</a>
-            </div>
-        </section>
-    @elseif (! $user->hasVerifiedEmail())
+    @if (! $user->hasVerifiedEmail())
         <section class="rounded-2xl border border-line bg-card p-4 shadow-sm">
             <h2 class="font-display text-xl font-semibold tracking-tight">Your space</h2>
             <p class="mt-1.5 text-sm text-muted">Confirm your email address to start adding reminders.</p>

@@ -4,8 +4,13 @@
     {{--
         The page, with the panel for account features on the right on wide
         screens (where post pages have "On this page"), or first on others.
+        Only for those logged in: guests get the page to itself, and can sign
+        up from the account icon in the header.
     --}}
-    <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_16rem] xl:gap-10">
+    @php
+        $panel = auth()->check();
+    @endphp
+    <div @class(['grid gap-8 xl:gap-10', 'xl:grid-cols-[minmax(0,1fr)_16rem]' => $panel])>
         <div class="min-w-0">
             {{--
                 A row of small cards that open into dialogs, the ones the
@@ -13,7 +18,7 @@
                 nothing to show today are left out.
             --}}
             @if ($widgets !== [])
-                <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2">
+                <div @class(['mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3', 'xl:grid-cols-2' => $panel])>
                     @foreach ($widgets as $widget)
                         @switch($widget)
                             @case(\App\Enums\HomeWidget::Weather)
@@ -60,13 +65,15 @@
                 <h1 class="sr-only">Latest entries</h1>
             @endif
 
-            @include('site.partials.post-grid', ['posts' => $posts, 'featureFirst' => true, 'besidePanel' => true])
+            @include('site.partials.post-grid', ['posts' => $posts, 'featureFirst' => true, 'besidePanel' => $panel])
         </div>
 
-        <aside aria-label="Your space" class="order-first xl:order-none">
-            <div class="xl:sticky xl:top-10">
-                @include('site.partials.your-space')
-            </div>
-        </aside>
+        @if ($panel)
+            <aside aria-label="Your space" class="order-first xl:order-none">
+                <div class="xl:sticky xl:top-10">
+                    @include('site.partials.your-space')
+                </div>
+            </aside>
+        @endif
     </div>
 @endsection
