@@ -13,6 +13,7 @@ export type IconName =
     | 'links'
     | 'media'
     | 'users'
+    | 'bell'
     | 'settings'
     | 'external'
     | 'logout'
@@ -79,6 +80,11 @@ defineProps<{ name: IconName }>();
             <path d="M3 20a6.5 6.5 0 0 1 13 0" />
             <path
                 d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8M21 20a6.5 6.5 0 0 0-3.5-5.8"
+            />
+        </template>
+        <template v-else-if="name === 'bell'">
+            <path
+                d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"
             />
         </template>
         <template v-else-if="name === 'settings'">

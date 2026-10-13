@@ -12,6 +12,7 @@ import { dashboard, health, logout } from '@/routes/cp';
 import { edit as accountEdit } from '@/routes/cp/account';
 import { edit as linksEdit } from '@/routes/cp/links';
 import { index as mediaIndex } from '@/routes/cp/media';
+import { index as notificationsIndex } from '@/routes/cp/notifications';
 import { index as postsIndex } from '@/routes/cp/posts';
 import { edit as settingsEdit } from '@/routes/cp/settings';
 import { index as tagsIndex } from '@/routes/cp/tags';
@@ -112,6 +113,13 @@ const groups: NavGroup[] = [
                 href: usersIndex().url,
                 icon: 'users',
                 active: (path) => path.startsWith(usersIndex().url),
+                adminOnly: true,
+            },
+            {
+                title: 'Notifications',
+                href: notificationsIndex().url,
+                icon: 'bell',
+                active: (path) => path === notificationsIndex().url,
                 adminOnly: true,
             },
             {

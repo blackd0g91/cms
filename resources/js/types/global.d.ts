@@ -20,6 +20,8 @@ declare module '@inertiajs/core' {
         flashDataType: {
             // Shown once on the users page, to copy and send.
             link?: PasswordLink;
+            // How a push notification sent from the notifications page went.
+            pushResult?: { people: number; reached: number; failed: number };
         };
         sharedPageProps: {
             name: string;

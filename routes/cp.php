@@ -9,6 +9,7 @@ use App\Http\Controllers\Cp\LinkController;
 use App\Http\Controllers\Cp\MarkdownPreviewController;
 use App\Http\Controllers\Cp\MediaController;
 use App\Http\Controllers\Cp\PostController;
+use App\Http\Controllers\Cp\PushMessageController;
 use App\Http\Controllers\Cp\SettingsController;
 use App\Http\Controllers\Cp\TagController;
 use App\Http\Controllers\Cp\TemplateController;
@@ -70,6 +71,10 @@ Route::prefix('cp')->name('cp.')->group(function () {
             Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
             Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
             Route::post('users/{user}/link', [UserController::class, 'link'])->name('users.link');
+
+            // Push notifications with a message of your own.
+            Route::get('notifications', [PushMessageController::class, 'index'])->name('notifications.index');
+            Route::post('notifications', [PushMessageController::class, 'store'])->middleware('throttle:10,1')->name('notifications.store');
         });
 
         Route::get('posts', [PostController::class, 'index'])->name('posts.index');
