@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Site\Auth\EmailVerificationController;
+use App\Http\Controllers\Site\Auth\LoginController;
+use App\Http\Controllers\Site\Auth\PasswordResetController;
+use App\Http\Controllers\Site\Auth\RegisterController;
 use App\Http\Controllers\Site\ClickController;
 use App\Http\Controllers\Site\FeedController;
 use App\Http\Controllers\Site\HomeController;
@@ -20,3 +24,23 @@ Route::get('feed.xml', [FeedController::class, 'index'])->name('feed');
 Route::get('{template:handle}/feed.xml', [FeedController::class, 'template'])->name('site.template.feed');
 Route::get('sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
 Route::get('robots.txt', [SitemapController::class, 'robots'])->name('robots');
+
+// Accounts on the site: members sign up here, and anyone with an account
+// logs in here. The names are the ones Laravel's emails link to.
+Route::middleware('guest')->group(function () {
+    Route::get('register', [RegisterController::class, 'create'])->name('register');
+    Route::post('register', [RegisterController::class, 'store'])->middleware('throttle:5,60')->name('register.store');
+    Route::get('login', [LoginController::class, 'create'])->name('login');
+    Route::post('login', [LoginController::class, 'store'])->name('login.store');
+    Route::get('forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetController::class, 'email'])->middleware('throttle:6,1')->name('password.email');
+    Route::get('reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.store');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::get('verify-email', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('verify-email', [EmailVerificationController::class, 'send'])->middleware('throttle:6,1')->name('verification.send');
+});

@@ -98,8 +98,8 @@
                     </span>
                 </a>
 
-                {{-- Search and the theme button: side by side on the right, or
-                     with search on its own row on small screens. --}}
+                {{-- Search, the theme button and the account: side by side on the
+                     right, or with search on its own row on small screens. --}}
                 <div class="contents md:col-start-3 md:row-start-1 md:flex md:items-center md:justify-end md:gap-3">
                     <form action="{{ route('search') }}" method="get" role="search" class="relative col-span-3 row-start-2 w-full md:max-w-xs md:min-w-32 md:flex-1">
                         <label for="site-search" class="sr-only">Search</label>
@@ -113,17 +113,20 @@
                         >
                         <kbd class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-line px-1.5 font-mono text-[10px] text-muted sm:block">/</kbd>
                     </form>
-                    <button
-                        type="button"
-                        data-theme-toggle
-                        hidden
-                        class="col-start-3 row-start-1 grid size-10 shrink-0 place-items-center justify-self-end rounded-full border border-line bg-card text-muted transition hover:border-accent hover:text-ink"
-                    >
-                        {{-- site.ts shows the icon for the current choice. --}}
-                        <svg data-theme-icon="system" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
-                        <svg data-theme-icon="light" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-                        <svg data-theme-icon="dark" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
-                    </button>
+                    <div class="col-start-3 row-start-1 flex shrink-0 items-center gap-2 justify-self-end">
+                        <button
+                            type="button"
+                            data-theme-toggle
+                            hidden
+                            class="grid size-10 shrink-0 place-items-center rounded-full border border-line bg-card text-muted transition hover:border-accent hover:text-ink"
+                        >
+                            {{-- site.ts shows the icon for the current choice. --}}
+                            <svg data-theme-icon="system" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+                            <svg data-theme-icon="light" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                            <svg data-theme-icon="dark" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+                        </button>
+                        @include('site.partials.account')
+                    </div>
                 </div>
             </div>
         </header>
@@ -147,6 +150,14 @@
             </aside>
 
             <main class="min-w-0 flex-1">
+                {{-- What just happened, like logging in after choosing a new password. --}}
+                @if (session('status'))
+                    <p role="status" class="mb-6 flex items-center gap-3 rounded-2xl border border-line bg-card px-4 py-3 text-sm shadow-sm">
+                        <span class="size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>
+                        {{ session('status') }}
+                    </p>
+                @endif
+
                 @yield('content')
             </main>
         </div>

@@ -19,10 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->redirectGuestsTo(fn () => route('cp.login'));
-        // Logged in, the control panel's login page leads to it, or for a
-        // member (who can not use it) to the site.
-        $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->isStaff() ? route('cp.dashboard') : route('home'));
+        // To log in: on the control panel's own page for its pages, on the
+        // site's for the rest.
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('cp', 'cp/*') ? route('cp.login') : route('login'));
+        // Already logged in, the login pages lead on: the control panel's to
+        // it (or, for a member, who can not use it, to the site), the site's
+        // to its home page.
+        $middleware->redirectUsersTo(fn (Request $request) => $request->is('cp', 'cp/*') && $request->user()?->isStaff() ? route('cp.dashboard') : route('home'));
 
         // Only counts a click (see ClickController), and is sent without a form.
         $middleware->validateCsrfTokens(except: ['clicks']);
