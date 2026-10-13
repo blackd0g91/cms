@@ -104,7 +104,7 @@ test('the sidebar shows the links in order under their heading', function () {
 
     $this->get('/')
         ->assertOk()
-        ->assertSeeInOrder(['Links', 'About me', '🐙', 'GitHub', '↗', 'All tags'])
+        ->assertSeeInOrder(['Links', 'About me', '🐙', 'GitHub', 'All tags'])
         // Without an emoji, the first letter stands in.
         ->assertSee('aria-hidden="true">A</span>', false)
         ->assertSee('href="'.url('/recipes/about').'"', false)

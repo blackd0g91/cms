@@ -22,7 +22,7 @@
         @endforeach
     </ul>
 
-    {{-- The links set in the control panel, as small square tiles two to a
+    {{-- The links set in the control panel, as small tiles two to a
          row with the emoji (or the first letter) above the name: at the
          bottom of the sidebar, and right below the rest in the menu on
          phones. --}}
@@ -44,18 +44,15 @@
                             <a
                                 href="{{ $navLink->href() }}"
                                 data-click="link:{{ $navLink->id }}"
-                                class="relative flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition {{ $tileClass }}"
+                                class="flex flex-col items-center justify-center gap-1 rounded-xl border px-1.5 py-2.5 text-center transition {{ $tileClass }}"
                                 @if ($isCurrent) aria-current="page" @endif
                             >
                                 @if ($navLink->emoji)
-                                    <span class="text-2xl leading-none" aria-hidden="true">{{ $navLink->emoji }}</span>
+                                    <span class="text-xl leading-none" aria-hidden="true">{{ $navLink->emoji }}</span>
                                 @else
-                                    <span class="font-display text-2xl leading-none font-semibold" aria-hidden="true">{{ mb_strtoupper(mb_substr($navLink->text(), 0, 1)) }}</span>
+                                    <span class="font-display text-xl leading-none font-semibold" aria-hidden="true">{{ mb_strtoupper(mb_substr($navLink->text(), 0, 1)) }}</span>
                                 @endif
                                 <span class="line-clamp-2 w-full text-xs leading-tight break-words">{{ $navLink->text() }}</span>
-                                @if ($navLink->isExternal())
-                                    <span class="absolute top-1.5 right-2 font-mono text-[10px] text-muted" aria-hidden="true">↗</span>
-                                @endif
                             </a>
                         </li>
                     @endforeach

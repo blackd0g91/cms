@@ -53,16 +53,6 @@ class Link extends Model
     }
 
     /**
-     * Whether the link leaves the site.
-     */
-    public function isExternal(): bool
-    {
-        return $this->post_id === null
-            && preg_match('#^https?://#i', (string) $this->url) === 1
-            && parse_url((string) $this->url, PHP_URL_HOST) !== request()->getHost();
-    }
-
-    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
