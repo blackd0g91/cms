@@ -2,7 +2,8 @@
     An email that asks for one thing, with a button for it: confirming an
     address, choosing a new password. Styles are inline, as many email apps
     ignore the rest. Expects $siteName, $heading, $lines (paragraphs before
-    the button), $actionText, $actionUrl and $outro.
+    the button), $actionText, $actionUrl and $outro, and optionally $links
+    (more links under the button, label => address).
 --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -21,6 +22,13 @@
             <p style="margin: 24px 0 0">
                 <a href="{{ $actionUrl }}" style="display: inline-block; padding: 10px 20px; border-radius: 999px; background: #221d17; color: #f5efe3; font-weight: 600; text-decoration: none">{{ $actionText }}</a>
             </p>
+            @if (! empty($links))
+                <p style="margin: 16px 0 0; font-size: 14px">
+                    @foreach ($links as $label => $url)
+                        <a href="{{ $url }}" style="color: #221d17">{{ $label }}</a>@unless ($loop->last) &nbsp;·&nbsp; @endunless
+                    @endforeach
+                </p>
+            @endif
             <p style="margin: 24px 0 0; color: #7b6f5f; font-size: 13px">{{ $outro }}</p>
             <p style="margin: 16px 0 0; color: #7b6f5f; font-size: 13px; word-break: break-all">
                 If the button does not work, copy this address into your browser: {{ $actionUrl }}

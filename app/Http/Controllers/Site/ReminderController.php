@@ -113,7 +113,7 @@ class ReminderController extends Controller
      * member's time zone into UTC. The time zone the browser sent is kept,
      * so later reminders and emails use it.
      *
-     * @return array{text: string, due_at: CarbonImmutable, repeat: ReminderRepeat|null}
+     * @return array{text: string, due_at: CarbonImmutable, repeat: ReminderRepeat|null, email: bool}
      */
     private function validated(Request $request, User $user): array
     {
@@ -122,6 +122,7 @@ class ReminderController extends Controller
             'due' => ['required', 'date_format:Y-m-d\TH:i'],
             'repeat' => ['nullable', Rule::enum(ReminderRepeat::class)],
             'timezone' => ['nullable', 'timezone:all'],
+            'email' => ['nullable', 'boolean'],
         ], [
             'due.required' => 'Pick a day and a time.',
             'due.date_format' => 'Pick a day and a time.',
@@ -142,6 +143,7 @@ class ReminderController extends Controller
             'text' => trim($validated['text']),
             'due_at' => $due->utc(),
             'repeat' => isset($validated['repeat']) ? ReminderRepeat::from($validated['repeat']) : null,
+            'email' => (bool) ($validated['email'] ?? false),
         ];
     }
 }

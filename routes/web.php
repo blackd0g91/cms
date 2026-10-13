@@ -9,6 +9,7 @@ use App\Http\Controllers\Site\ClickController;
 use App\Http\Controllers\Site\FeedController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\ReminderController;
+use App\Http\Controllers\Site\ReminderEmailController;
 use App\Http\Controllers\Site\SearchController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Http\Controllers\Site\TagController;
@@ -63,4 +64,10 @@ Route::middleware(['auth', 'verified'])->prefix('me')->group(function () {
     Route::post('reminders/{reminder}/done', [ReminderController::class, 'complete'])->name('reminders.complete');
     Route::post('reminders/{reminder}/snooze', [ReminderController::class, 'snooze'])->name('reminders.snooze');
     Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
+});
+
+// The links in a reminder's email, which work without logging in.
+Route::middleware(['signed', 'throttle:30,1'])->group(function () {
+    Route::get('reminders/{reminder}/{action}', [ReminderEmailController::class, 'show'])->name('reminders.email');
+    Route::post('reminders/{reminder}/{action}', [ReminderEmailController::class, 'update'])->name('reminders.email.update');
 });

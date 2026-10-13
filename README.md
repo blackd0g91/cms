@@ -84,7 +84,15 @@ The site runs on a single server, with SQLite and files on disk.
 
 **Updates:** run `./deploy.sh` on the server. It puts the site in maintenance mode, pulls the branch, installs dependencies, builds the frontend, migrates the database, makes resized images, rebuilds the caches and fixes file permissions for the web server. If a step fails, the site stays in maintenance mode so visitors never see a half-updated site; fix the error and run it again. `PHP_BIN`, `WEB_USER` and `BRANCH` can be overridden, see the top of the script.
 
-There is no scheduler or queue worker to run. Expired items in the trash are deleted when the dashboard or the trash is opened.
+**Scheduler:** reminders are emailed by a command that runs every minute, so the server's crontab needs this line (with the site's path):
+
+```
+* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1
+```
+
+There is no queue worker to run. Expired items in the trash are deleted when the dashboard or the trash is opened.
+
+**Reminder emails** are only sent for reminders where the member asked for them, within daily limits that leave room in the mail service's free allowance: `REMINDER_EMAILS_PER_MEMBER` (10) and `REMINDER_EMAILS_PER_DAY` (80, for the whole site), see `config/reminders.php`.
 
 **Email:** the server sends email through a mail service over SMTP (Oracle Cloud, for one, blocks sending directly). With [Resend](https://resend.com)'s free tier: add a domain there (a subdomain like `mail.example.com` keeps it apart from any mailbox), add the DNS records it lists, create an API key with sending access, and set the `MAIL_*` settings shown in `.env.example`. Then run `php artisan config:cache` and `php artisan app:test-email you@example.com`. Locally, `MAIL_MAILER=log` writes emails to `storage/logs/laravel.log` instead.
 

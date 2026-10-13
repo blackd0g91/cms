@@ -20,12 +20,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $text
  * @property CarbonImmutable $due_at
  * @property ReminderRepeat|null $repeat
+ * @property bool $email Whether to email it when it is due
+ * @property CarbonImmutable|null $emailed_at When it was last emailed, or passed over
  * @property CarbonImmutable|null $completed_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read User $user
  */
-#[Fillable(['text', 'due_at', 'repeat', 'completed_at'])]
+#[Fillable(['text', 'due_at', 'repeat', 'email', 'emailed_at', 'completed_at'])]
 class Reminder extends Model
 {
     /** @use HasFactory<ReminderFactory> */
@@ -52,6 +54,20 @@ class Reminder extends Model
     public function scopeActive(Builder $query): void
     {
         $query->whereNull('completed_at')->orderBy('due_at')->orderBy('id');
+    }
+
+    /**
+     * Due and to be emailed, and not emailed yet for this time: once done
+     * or snoozed, it has a new time, which is emailed again.
+     *
+     * @param  Builder<Reminder>  $query
+     */
+    public function scopeToEmail(Builder $query): void
+    {
+        $query->where('email', true)
+            ->whereNull('completed_at')
+            ->where('due_at', '<=', now())
+            ->where(fn (Builder $query) => $query->whereNull('emailed_at')->orWhereColumn('emailed_at', '<', 'due_at'));
     }
 
     /**
@@ -86,6 +102,8 @@ class Reminder extends Model
         return [
             'due_at' => 'immutable_datetime',
             'completed_at' => 'immutable_datetime',
+            'emailed_at' => 'immutable_datetime',
+            'email' => 'boolean',
             'repeat' => ReminderRepeat::class,
         ];
     }

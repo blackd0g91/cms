@@ -150,7 +150,12 @@ test('the home page panel invites guests, and shows members what is due soon', f
         ->assertSee('Due today')
         ->assertDontSee('Due next week')
         ->assertSee('href="'.route('reminders.index').'"', false)
-        ->assertSee('action="'.route('reminders.store').'"', false);
+        ->assertSee('action="'.route('reminders.store').'"', false)
+        // The forms are complete: Blade directives all compiled.
+        ->assertSee('name="_token"', false)
+        ->assertDontSee('@csrf', false);
+
+    $this->get(route('reminders.index'))->assertSee('name="_token"', false)->assertDontSee('@csrf', false);
 
     $this->actingAs(User::factory()->member()->unverified()->create())
         ->get(route('home'))

@@ -20,6 +20,9 @@
             @if ($reminder->repeat)
                 <span title="{{ $reminder->repeat->label() }}">· ↻ {{ Str::lower($reminder->repeat->label()) }}</span>
             @endif
+            @if ($reminder->email)
+                <span title="Emailed when it is due">· ✉<span class="sr-only"> emailed</span></span>
+            @endif
         </p>
 
         @unless ($compact)
