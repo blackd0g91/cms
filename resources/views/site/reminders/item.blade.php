@@ -4,7 +4,15 @@
     $reminders (App\Cms\Reminders), $user and optionally $compact.
 --}}
 @php($compact ??= false)
-<li class="flex items-start gap-3 py-2.5">
+{{-- The data-reminder attributes let a page tell when it comes due (see reminders.ts). --}}
+<li
+    class="flex items-start gap-3 py-2.5"
+    data-reminder="{{ $reminder->id }}"
+    data-reminder-due="{{ $reminder->due_at->toIso8601String() }}"
+    data-reminder-text="{{ $reminder->text }}"
+    data-reminder-done="{{ route('reminders.complete', $reminder) }}"
+    data-reminder-snooze="{{ route('reminders.snooze', $reminder) }}"
+>
     <form method="post" action="{{ route('reminders.complete', $reminder) }}" class="shrink-0">
         @csrf
         <button type="submit" title="Mark done" class="group mt-0.5 grid size-5 place-items-center rounded-full border-2 border-line transition hover:border-accent">
@@ -16,7 +24,7 @@
     <div class="min-w-0 flex-1">
         <p class="text-sm break-words">{{ $reminder->text }}</p>
         <p class="mt-0.5 flex items-center gap-1.5 font-mono text-xs text-muted">
-            {{ $reminders->when($reminder, $user->localTimezone()) }}
+            <span data-reminder-when>{{ $reminders->when($reminder, $user->localTimezone()) }}</span>
             @if ($reminder->repeat)
                 <span title="{{ $reminder->repeat->label() }}">· ↻ {{ Str::lower($reminder->repeat->label()) }}</span>
             @endif

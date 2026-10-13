@@ -26,7 +26,11 @@
         @fonts
         @vite(['resources/css/site.css', 'resources/js/site.ts'])
     </head>
-    <body class="relative flex min-h-screen flex-col bg-paper font-sans text-ink antialiased">
+    <body
+        class="relative flex min-h-screen flex-col bg-paper font-sans text-ink antialiased"
+        {{-- For the forms scripts make, like the reminder notices (see reminders.ts). --}}
+        @auth data-csrf-token="{{ csrf_token() }}" @endauth
+    >
         @if ($backdrop === 'ripples')
             @include('partials.dot-ripples', ['colors' => $backdropColors])
         @else

@@ -189,3 +189,17 @@ test('signing up and logging in keep the browser\'s time zone', function () {
     $this->post(route('login.store'), ['email' => $this->member->email, 'password' => 'password', 'timezone' => 'Nowhere/Land']);
     expect($this->member->fresh()->timezone)->toBe('Asia/Tokyo');
 });
+
+test('the lists tell the page when each reminder comes due', function () {
+    $reminder = remind($this->member, 'Call the dentist', '2026-10-12 12:30');
+
+    $this->actingAs($this->member)
+        ->get(route('home'))
+        ->assertSee('data-reminder="'.$reminder->id.'"', false)
+        ->assertSee('data-reminder-due="2026-10-12T15:30:00+00:00"', false)
+        ->assertSee('data-reminder-done="'.route('reminders.complete', $reminder).'"', false)
+        ->assertSee('data-csrf-token="', false);
+
+    auth()->logout();
+    $this->get(route('home'))->assertDontSee('data-csrf-token', false);
+});

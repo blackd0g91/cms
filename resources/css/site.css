@@ -709,3 +709,103 @@ body {
         padding: 2rem 2.5rem;
     }
 }
+
+/*
+ * Reminders that come due while the page is open (see reminders.ts): notices
+ * in the corner, and the reminder marked in the list.
+ */
+.reminder-notices {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 50;
+    display: grid;
+    gap: 0.75rem;
+    width: min(22rem, calc(100vw - 2rem));
+}
+
+.reminder-notice {
+    position: relative;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--line);
+    border-radius: 1.25rem;
+    background: var(--card);
+    box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.35);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .reminder-notice {
+        animation: reminder-notice-in 0.25s ease-out;
+    }
+}
+
+@keyframes reminder-notice-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+}
+
+.reminder-notice-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.reminder-notice-text {
+    margin-top: 0.25rem;
+    padding-right: 1.5rem;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.reminder-notice-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+}
+
+.reminder-notice-actions button {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 0.875rem;
+    transition: border-color 0.15s;
+}
+
+.reminder-notice-actions button:hover {
+    border-color: var(--accent);
+}
+
+.reminder-notice-actions .reminder-notice-primary {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.reminder-notice-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.6rem;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.reminder-notice-close:hover {
+    background: var(--paper);
+    color: var(--ink);
+}
+
+[data-reminder-now] [data-reminder-when] {
+    color: var(--accent);
+    font-weight: 600;
+}

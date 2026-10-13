@@ -1,6 +1,7 @@
 import { startContours } from './backdrop';
 import { startDialogs } from './dialogs';
 import { startFilters } from './filters';
+import { startReminders } from './reminders';
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
 import { startWeather } from './weather';
@@ -266,6 +267,9 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
 // and lists narrowed down by buttons, like the free games (see filters.ts).
 startDialogs();
 startFilters();
+
+// Reminders that come due while the page is open (see reminders.ts).
+startReminders();
 
 // The weather card on the home page (see weather.ts).
 const weather = document.querySelector<HTMLElement>('[data-weather]');
