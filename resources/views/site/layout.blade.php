@@ -154,16 +154,21 @@
             </aside>
 
             <main class="min-w-0 flex-1">
-                {{-- What just happened, like logging in after choosing a new password. --}}
-                @if (session('status'))
-                    <p role="status" class="mb-6 flex items-center gap-3 rounded-2xl border border-line bg-card px-4 py-3 text-sm shadow-sm">
-                        <span class="size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>
-                        {{ session('status') }}
-                    </p>
-                @endif
-
                 @yield('content')
             </main>
+        </div>
+
+        {{--
+            Toasts in the top right corner (see toasts.ts), starting with what
+            just happened, like logging in after choosing a new password.
+        --}}
+        <div class="toasts" data-toasts aria-live="polite">
+            @if (session('status'))
+                <div class="toast" role="status">
+                    <button type="button" class="toast-close" data-toast-close aria-label="Close">×</button>
+                    <p class="toast-text">{{ session('status') }}</p>
+                </div>
+            @endif
         </div>
 
         <footer class="border-t border-line">

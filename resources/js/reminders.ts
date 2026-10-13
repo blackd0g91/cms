@@ -1,10 +1,12 @@
+import { toast } from './toasts';
+
 /**
  * Reminders that come due while a page of the site is open: the home page's
  * panel and the reminders page list them with their time (see
- * site/reminders/item.blade.php). When one comes due, a notice shows in the
- * corner with Done and Snooze, the reminder is marked as due in the list,
- * and the tab's title counts the notices waiting, so they show from other
- * tabs too. Where the member turned them on, a system notification shows as
+ * site/reminders/item.blade.php). When one comes due, a toast shows in the
+ * corner with Done and Snooze (see toasts.ts), the reminder is marked as due
+ * in the list, and the tab's title counts the toasts waiting, so they show
+ * from other tabs too. Where the member turned them on, a system notification shows as
  * well while the tab is out of sight (see startNotifyToggle).
  */
 
@@ -137,52 +139,25 @@ export function startReminders(root: ParentNode = document) {
     const title = document.title;
     let shown = 0;
 
-    const region = document.createElement('div');
-    region.className = 'reminder-notices';
-    region.setAttribute('role', 'status');
-    region.setAttribute('aria-live', 'polite');
-    document.body.append(region);
-
     const count = (change: number) => {
         shown += change;
         document.title = shown > 0 ? `(${shown}) ${title}` : title;
     };
 
     const notice = (reminder: Due) => {
-        const box = document.createElement('div');
-        box.className = 'reminder-notice';
-
-        const heading = document.createElement('p');
-        heading.className = 'reminder-notice-label';
-        heading.textContent = 'Reminder';
-
-        const text = document.createElement('p');
-        text.className = 'reminder-notice-text';
-        text.textContent = reminder.text;
-
-        const actions = document.createElement('div');
-        actions.className = 'reminder-notice-actions';
-
         const done = postForm(reminder.doneUrl, 'Done');
-        done.querySelector('button')!.className = 'reminder-notice-primary';
+        done.querySelector('button')!.className = 'toast-primary';
 
         const snooze = postForm(reminder.snoozeUrl, 'Snooze an hour', {
             until: 'hour',
         });
 
-        const close = document.createElement('button');
-        close.type = 'button';
-        close.className = 'reminder-notice-close';
-        close.setAttribute('aria-label', 'Close');
-        close.textContent = '×';
-        close.addEventListener('click', () => {
-            box.remove();
-            count(-1);
+        toast({
+            label: 'Reminder',
+            text: reminder.text,
+            actions: [done, snooze],
+            onClose: () => count(-1),
         });
-
-        actions.append(done, snooze);
-        box.append(close, heading, text, actions);
-        region.append(box);
         count(1);
 
         // Out of sight, the notice alone would go unseen.

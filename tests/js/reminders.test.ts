@@ -41,7 +41,7 @@ describe('reminders', () => {
         delete document.body.dataset.csrfToken;
     });
 
-    const notices = () => [...document.querySelectorAll('.reminder-notice')];
+    const notices = () => [...document.querySelectorAll('.toast')];
 
     it('reads each reminder once, with every place it shows', () => {
         const reminders = readReminders();
@@ -108,9 +108,7 @@ describe('reminders', () => {
         startReminders();
         vi.advanceTimersByTime(65_000);
 
-        notices()[0]
-            .querySelector<HTMLButtonElement>('.reminder-notice-close')!
-            .click();
+        notices()[0].querySelector<HTMLButtonElement>('.toast-close')!.click();
 
         expect(notices()).toHaveLength(0);
         expect(document.title).toBe('Home');
@@ -120,7 +118,7 @@ describe('reminders', () => {
         document.body.innerHTML = `<ul>${item(2, earlier, 'Pay rent')}</ul>`;
         startReminders();
 
-        expect(document.querySelector('.reminder-notices')).toBeNull();
+        expect(document.querySelector('.toast')).toBeNull();
     });
 });
 
@@ -271,7 +269,7 @@ describe('system notifications', () => {
             vi.advanceTimersByTime(65_000);
 
             expect(created).toHaveLength(0);
-            expect(document.querySelector('.reminder-notice')).not.toBeNull();
+            expect(document.querySelector('.toast')).not.toBeNull();
         });
 
         it('does not notify unless turned on in this browser', () => {

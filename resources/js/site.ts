@@ -2,6 +2,7 @@ import { startContours } from './backdrop';
 import { startDialogs } from './dialogs';
 import { startFilters } from './filters';
 import { startNotifyToggle, startReminders } from './reminders';
+import { startToasts } from './toasts';
 import { applyTheme, currentTheme, nextTheme, themeTitle } from './lib/theme';
 import type { Theme } from './lib/theme';
 import { startWeather } from './weather';
@@ -268,7 +269,9 @@ document.querySelectorAll<HTMLElement>('[data-card-light]').forEach((card) => {
 startDialogs();
 startFilters();
 
-// Reminders that come due while the page is open (see reminders.ts).
+// Toasts in the corner, and reminders that come due while the page is open,
+// which show as toasts too (see toasts.ts and reminders.ts).
+startToasts();
 startReminders();
 startNotifyToggle();
 

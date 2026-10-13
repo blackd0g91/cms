@@ -278,3 +278,11 @@ test('the home page features the newest post, and puts an intro on the templates
     // Templates without published posts are left out.
     expect(substr_count($response->getContent(), 'radial-gradient(at '))->toBe(2);
 });
+
+test('what just happened shows as a toast that can be closed', function () {
+    $this->get(route('home'))->assertSee('data-toasts', false)->assertDontSee('class="toast"', false);
+
+    $this->withSession(['status' => 'Done.'])
+        ->get(route('home'))
+        ->assertSeeInOrder(['data-toasts', 'class="toast" role="status"', 'data-toast-close', 'Done.'], false);
+});

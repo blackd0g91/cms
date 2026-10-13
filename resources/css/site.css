@@ -711,20 +711,20 @@ body {
 }
 
 /*
- * Reminders that come due while the page is open (see reminders.ts): notices
- * in the corner, and the reminder marked in the list.
+ * Toasts in the top right corner (see toasts.ts): what the site just did, and
+ * reminders that come due while the page is open (see reminders.ts).
  */
-.reminder-notices {
+.toasts {
     position: fixed;
+    top: 1rem;
     right: 1rem;
-    bottom: 1rem;
     z-index: 50;
     display: grid;
     gap: 0.75rem;
     width: min(22rem, calc(100vw - 2rem));
 }
 
-.reminder-notice {
+.toast {
     position: relative;
     padding: 1rem 1.1rem;
     border: 1px solid var(--line);
@@ -734,19 +734,20 @@ body {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .reminder-notice {
-        animation: reminder-notice-in 0.25s ease-out;
+    .toast {
+        animation: toast-in 0.25s ease-out;
     }
 }
 
-@keyframes reminder-notice-in {
+@keyframes toast-in {
     from {
         opacity: 0;
-        transform: translateY(0.75rem);
+        transform: translateY(-0.75rem);
     }
 }
 
-.reminder-notice-label {
+.toast-label {
+    margin-bottom: 0.25rem;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.08em;
@@ -754,21 +755,20 @@ body {
     color: var(--accent);
 }
 
-.reminder-notice-text {
-    margin-top: 0.25rem;
+.toast-text {
     padding-right: 1.5rem;
     font-weight: 500;
     overflow-wrap: anywhere;
 }
 
-.reminder-notice-actions {
+.toast-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.85rem;
 }
 
-.reminder-notice-actions button {
+.toast-actions button {
     padding: 0.4rem 0.9rem;
     border: 1px solid var(--line);
     border-radius: 999px;
@@ -776,17 +776,17 @@ body {
     transition: border-color 0.15s;
 }
 
-.reminder-notice-actions button:hover {
+.toast-actions button:hover {
     border-color: var(--accent);
 }
 
-.reminder-notice-actions .reminder-notice-primary {
+.toast-actions .toast-primary {
     border-color: var(--ink);
     background: var(--ink);
     color: var(--paper);
 }
 
-.reminder-notice-close {
+.toast-close {
     position: absolute;
     top: 0.5rem;
     right: 0.6rem;
@@ -800,11 +800,12 @@ body {
     line-height: 1;
 }
 
-.reminder-notice-close:hover {
+.toast-close:hover {
     background: var(--paper);
     color: var(--ink);
 }
 
+/* A reminder come due, in the lists. */
 [data-reminder-now] [data-reminder-when] {
     color: var(--accent);
     font-weight: 600;
