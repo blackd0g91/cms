@@ -6,6 +6,7 @@ use App\Models\Reminder;
 use App\Models\User;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;
 use Minishlink\WebPush\MessageSentReport;
 use Minishlink\WebPush\WebPush;
@@ -197,4 +198,61 @@ test('the service worker shows pushes and opens the site', function () {
     $worker = file_get_contents(public_path('push-worker.js'));
 
     expect($worker)->toContain("addEventListener('push'")->toContain('showNotification')->toContain("addEventListener('notificationclick'");
+});
+
+/**
+ * The push sender, with its push services answering as given (endpoint => HTTP status).
+ *
+ * @param  array<string, int>  $answers
+ */
+function pushServicesAnswering(array $answers): void
+{
+    $webPush = Mockery::mock(WebPush::class);
+    $webPush->shouldReceive('queueNotification');
+    $webPush->shouldReceive('flush')->andReturnUsing(function () use ($answers) {
+        foreach ($answers as $endpoint => $status) {
+            yield new MessageSentReport(new Request('POST', $endpoint), new Response($status), $status < 300, $status < 300 ? 'OK' : "Status {$status}");
+        }
+    });
+
+    $push = Mockery::mock(PushNotifications::class)->makePartial()->shouldAllowMockingProtectedMethods();
+    $push->shouldReceive('webPush')->andReturn($webPush);
+    app()->instance(PushNotifications::class, $push);
+}
+
+test('a test push says what each browser\'s push service answered', function () {
+    subscribe($this->member, 'https://fcm.googleapis.com/fcm/send/desktop');
+    subscribe($this->member, 'https://fcm.googleapis.com/fcm/send/phone');
+    subscribe($this->member, 'https://updates.push.services.mozilla.com/wpush/v2/old');
+    pushServicesAnswering([
+        'https://fcm.googleapis.com/fcm/send/desktop' => 201,
+        'https://fcm.googleapis.com/fcm/send/phone' => 400,
+        'https://updates.push.services.mozilla.com/wpush/v2/old' => 410,
+    ]);
+
+    expect(Artisan::call('app:test-push', ['email' => $this->member->email]))->toBe(0);
+
+    $lines = explode("\n", Artisan::output());
+    $line = fn (string $text) => collect($lines)->first(fn (string $line) => str_contains($line, $text)) ?? '';
+
+    expect($line('taken'))->toContain('Chrome, Edge or Android')
+        ->and($line('refused: Status 400'))->toContain('Chrome, Edge or Android')
+        ->and($line('gone, forgotten'))->toContain('Firefox');
+
+    expect($this->member->pushSubscriptions()->count())->toBe(2);
+});
+
+test('a test push needs keys, an account and a browser', function () {
+    $this->artisan('app:test-push', ['email' => 'nobody@example.com'])
+        ->expectsOutputToContain('There is no account')
+        ->assertFailed();
+
+    $this->artisan('app:test-push', ['email' => $this->member->email])
+        ->expectsOutputToContain('has not turned notifications on')
+        ->assertSuccessful();
+
+    config(['push.private_key' => null]);
+    $this->artisan('app:test-push', ['email' => $this->member->email])
+        ->expectsOutputToContain('Push notifications are off')
+        ->assertFailed();
 });

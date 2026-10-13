@@ -31,42 +31,94 @@ class PushNotifications
      */
     public function send(User $user, array $message): int
     {
-        $subscriptions = $user->pushSubscriptions()->get();
-
-        if (! $this->enabled() || $subscriptions->isEmpty()) {
+        if (! $this->enabled()) {
             return 0;
         }
 
         try {
-            $webPush = $this->webPush();
-
-            foreach ($subscriptions as $subscription) {
-                $webPush->queueNotification(Subscription::create([
-                    'endpoint' => $subscription->endpoint,
-                    'publicKey' => $subscription->public_key,
-                    'authToken' => $subscription->auth_token,
-                    'contentEncoding' => $subscription->content_encoding,
-                ]), (string) json_encode($message));
-            }
-
-            $reached = 0;
-
-            foreach ($webPush->flush() as $report) {
-                if ($report->isSuccess()) {
-                    $reached++;
-                } elseif ($report->isSubscriptionExpired()) {
-                    PushSubscription::query()->where('endpoint_hash', PushSubscription::hashEndpoint($report->getEndpoint()))->delete();
-                } else {
-                    Log::warning("A push notification was not delivered: {$report->getReason()}");
-                }
-            }
-
-            return $reached;
+            $results = $this->deliver($user, $message);
         } catch (Throwable $e) {
             Log::warning("Could not send push notifications: {$e->getMessage()}");
 
             return 0;
         }
+
+        foreach ($results as $result) {
+            if (! $result['delivered'] && ! $result['gone']) {
+                Log::warning("A push notification was not delivered: {$result['reason']}");
+            }
+        }
+
+        return count(array_filter($results, fn (array $result) => $result['delivered']));
+    }
+
+    /**
+     * Send a message to every browser of the member's, and what each one's
+     * push service answered: taken (on its way to the browser), refused (with
+     * why), or gone, in which case the browser is forgotten.
+     *
+     * @param  array{title: string, body: string, tag: string, url: string}  $message
+     * @return list<array{subscription: PushSubscription, delivered: bool, gone: bool, reason: string|null}>
+     */
+    public function deliver(User $user, array $message): array
+    {
+        $subscriptions = $user->pushSubscriptions()->get()->keyBy('endpoint');
+
+        if ($subscriptions->isEmpty()) {
+            return [];
+        }
+
+        $webPush = $this->webPush();
+
+        foreach ($subscriptions as $subscription) {
+            $webPush->queueNotification(Subscription::create([
+                'endpoint' => $subscription->endpoint,
+                'publicKey' => $subscription->public_key,
+                'authToken' => $subscription->auth_token,
+                'contentEncoding' => $subscription->content_encoding,
+            ]), (string) json_encode($message));
+        }
+
+        $results = [];
+
+        foreach ($webPush->flush() as $report) {
+            $subscription = $subscriptions->get($report->getEndpoint());
+
+            if (! $subscription) {
+                continue;
+            }
+
+            $gone = ! $report->isSuccess() && $report->isSubscriptionExpired();
+
+            if ($gone) {
+                $subscription->delete();
+            }
+
+            $results[] = [
+                'subscription' => $subscription,
+                'delivered' => $report->isSuccess(),
+                'gone' => $gone,
+                'reason' => $report->isSuccess() ? null : $report->getReason(),
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Which push service a browser's address belongs to, for people.
+     */
+    public static function service(PushSubscription $subscription): string
+    {
+        $host = (string) parse_url($subscription->endpoint, PHP_URL_HOST);
+
+        return match (true) {
+            str_ends_with($host, 'googleapis.com') => 'Chrome, Edge or Android',
+            str_ends_with($host, 'mozilla.com') => 'Firefox',
+            str_ends_with($host, 'push.apple.com') => 'Safari or iPhone',
+            str_ends_with($host, 'notify.windows.com') => 'Edge (Windows)',
+            default => $host,
+        };
     }
 
     /**
