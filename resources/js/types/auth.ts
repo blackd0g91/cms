@@ -1,4 +1,5 @@
-export type UserRole = 'admin' | 'editor';
+// Members sign up on the site and never reach the control panel.
+export type UserRole = 'admin' | 'editor' | 'member';
 
 export type User = {
     id: number;

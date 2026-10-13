@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -32,6 +33,16 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Someone created without a role is a member, who can not reach the
+     * control panel: staff are always given their role on purpose.
+     *
+     * @var array<string, string>
+     */
+    protected $attributes = [
+        'role' => 'member',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -48,6 +59,24 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;
+    }
+
+    /**
+     * Whether they use the control panel: an admin or an editor.
+     */
+    public function isStaff(): bool
+    {
+        return $this->role->isStaff();
+    }
+
+    /**
+     * Admins and editors, not members.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeStaff(Builder $query): void
+    {
+        $query->whereIn('role', UserRole::staff());
     }
 
     /**

@@ -182,7 +182,7 @@ class PostController extends Controller
      */
     private function authors(): array
     {
-        return array_values(User::query()->orderBy('name')->get(['id', 'name'])
+        return array_values(User::query()->staff()->orderBy('name')->get(['id', 'name'])
             ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name])
             ->all());
     }

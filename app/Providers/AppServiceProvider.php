@@ -32,7 +32,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        // Templates, links, settings and users (see routes/cp.php).
+        // The control panel, and in it templates, links, settings and users (see routes/cp.php).
+        Gate::define('staff', fn (User $user) => $user->isStaff());
         Gate::define('admin', fn (User $user) => $user->isAdmin());
 
         View::composer('site.layout', function ($view) {

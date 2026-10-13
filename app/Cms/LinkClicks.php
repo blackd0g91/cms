@@ -21,7 +21,7 @@ class LinkClicks
      */
     public function record(Request $request, string $target): void
     {
-        if ($request->user() || Bots::sent($request) || ! array_key_exists($target, $this->targets())) {
+        if ($request->user()?->isStaff() || Bots::sent($request) || ! array_key_exists($target, $this->targets())) {
             return;
         }
 

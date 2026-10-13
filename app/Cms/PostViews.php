@@ -15,7 +15,7 @@ class PostViews
 {
     public function record(Request $request, Post $post): void
     {
-        if (! $request->isMethod('GET') || $request->user() || ! $post->isPublished() || Bots::sent($request)) {
+        if (! $request->isMethod('GET') || $request->user()?->isStaff() || ! $post->isPublished() || Bots::sent($request)) {
             return;
         }
 

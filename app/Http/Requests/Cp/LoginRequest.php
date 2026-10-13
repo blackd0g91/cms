@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Cp;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,11 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        // Only staff log in here; a member's right password is turned away
+        // as any wrong one is, so the form does not tell who is a member.
+        $staff = fn (User $user) => $user->isStaff();
+
+        if (! Auth::attemptWhen($this->only('email', 'password'), $staff, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

@@ -24,7 +24,7 @@ class SiteSearches
     {
         $query = self::normalize($query);
 
-        if (! $request->isMethod('GET') || $request->user() || Bots::sent($request) || Post::searchTerms($query) === []) {
+        if (! $request->isMethod('GET') || $request->user()?->isStaff() || Bots::sent($request) || Post::searchTerms($query) === []) {
             return;
         }
 

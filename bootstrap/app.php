@@ -20,7 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => route('cp.login'));
-        $middleware->redirectUsersTo(fn () => route('cp.dashboard'));
+        // Logged in, the control panel's login page leads to it, or for a
+        // member (who can not use it) to the site.
+        $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->isStaff() ? route('cp.dashboard') : route('home'));
 
         // Only counts a click (see ClickController), and is sent without a form.
         $middleware->validateCsrfTokens(except: ['clicks']);

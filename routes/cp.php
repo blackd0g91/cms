@@ -25,7 +25,8 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::post('password', [SetPasswordController::class, 'update'])->name('password.update');
     });
 
-    Route::middleware('auth')->group(function () {
+    // Members, who sign up on the site, can not open any of it.
+    Route::middleware(['auth', 'can:staff'])->group(function () {
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('health', HealthController::class)->name('health');
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');

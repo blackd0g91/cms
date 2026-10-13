@@ -13,7 +13,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Who can log in. New people are invited with a link to choose a password,
+ * Who can use the control panel: admins and editors. Members, who sign up
+ * on the site, are not listed here and can not be given a staff role. New people are invited with a link to choose a password,
  * which is shown here once to copy and send. Admins can not change their own
  * role or remove themselves, so there is always an admin.
  */
@@ -23,7 +24,7 @@ class UserController extends Controller
 
     public function index(Request $request): Response
     {
-        $users = User::query()->withCount('posts')->orderBy('name')->get();
+        $users = User::query()->staff()->withCount('posts')->orderBy('name')->get();
         $expiries = $this->links->expiries($users->map(fn (User $user) => $user->email)->all());
 
         return Inertia::render('cp/users/Index', [
@@ -33,7 +34,7 @@ class UserController extends Controller
                 'link_expires_at' => $expiries[$user->email] ?? null,
                 'is_me' => $user->is($request->user()),
             ]),
-            'roles' => array_map(fn (UserRole $role) => ['value' => $role->value, 'label' => $role->label()], UserRole::cases()),
+            'roles' => array_map(fn (UserRole $role) => ['value' => $role->value, 'label' => $role->label()], UserRole::staff()),
         ]);
     }
 
@@ -45,7 +46,7 @@ class UserController extends Controller
         $user = User::create($request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
-            'role' => ['required', Rule::enum(UserRole::class)],
+            'role' => ['required', Rule::enum(UserRole::class)->only(UserRole::staff())],
         ]));
 
         return $this->showLink($user);
@@ -53,10 +54,11 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        $this->ensureStaff($user);
         abort_if($user->is($request->user()), 403, 'You can not change your own role.');
 
         $user->update($request->validate([
-            'role' => ['required', Rule::enum(UserRole::class)],
+            'role' => ['required', Rule::enum(UserRole::class)->only(UserRole::staff())],
         ]));
 
         return back();
@@ -67,6 +69,7 @@ class UserController extends Controller
      */
     public function destroy(Request $request, User $user): RedirectResponse
     {
+        $this->ensureStaff($user);
         abort_if($user->is($request->user()), 403, 'You can not remove yourself.');
 
         $user->delete();
@@ -80,9 +83,18 @@ class UserController extends Controller
      */
     public function link(Request $request, User $user): RedirectResponse
     {
+        $this->ensureStaff($user);
         abort_if($user->is($request->user()), 403, 'Change your own password on the Account page.');
 
         return $this->showLink($user);
+    }
+
+    /**
+     * Members are looked after elsewhere: here they are as good as missing.
+     */
+    private function ensureStaff(User $user): void
+    {
+        abort_unless($user->isStaff(), 404);
     }
 
     private function showLink(User $user): RedirectResponse

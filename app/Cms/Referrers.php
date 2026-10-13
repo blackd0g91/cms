@@ -28,7 +28,7 @@ class Referrers
 
     public function record(Request $request): void
     {
-        if ($request->user() || Bots::sent($request)) {
+        if ($request->user()?->isStaff() || Bots::sent($request)) {
             return;
         }
 

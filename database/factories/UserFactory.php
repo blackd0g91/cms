@@ -43,6 +43,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * Signed up on the site, without access to the control panel.
+     */
+    public function member(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::Member,
+        ]);
+    }
+
+    /**
      * Added from the users page, without a password yet.
      */
     public function invited(): static
