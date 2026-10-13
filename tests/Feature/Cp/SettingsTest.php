@@ -1,5 +1,6 @@
 <?php
 
+use App\Cms\AppIcon;
 use App\Cms\Settings;
 use App\Models\Media;
 use App\Models\User;
@@ -121,7 +122,8 @@ test('a logo and site icon can be chosen', function () {
     $this->get(route('home'))
         ->assertSee('src="'.$logo->url.'"', false)
         ->assertSee('<link rel="icon" href="'.$icon->url.'" type="image/png">', false)
-        ->assertSee('<link rel="apple-touch-icon" href="'.$icon->url.'">', false)
+        // Home screens get the logo as a square (see AppIconTest).
+        ->assertSee('<link rel="apple-touch-icon" href="'.route('app-icon', ['size' => 192, 'v' => app(AppIcon::class)->version()]).'">', false)
         ->assertDontSee('/favicon.ico');
 
     $this->get(route('cp.dashboard'))->assertSee('<link rel="icon" href="'.$icon->url.'"', false);
@@ -138,7 +140,7 @@ test('without a logo and icon the defaults are used', function () {
 
     $this->get(route('home'))
         ->assertSee('/favicon.ico')
-        ->assertSee('/apple-touch-icon.png')
+        ->assertSee('<link rel="apple-touch-icon" href="'.route('app-icon', ['size' => 192, 'v' => app(AppIcon::class)->version()]).'">', false)
         ->assertSee('bg-ink text-paper', false);
 });
 
@@ -161,14 +163,14 @@ test('the logo and icon count as media usage', function () {
         ->assertSessionHasErrors(['media' => 'This image is still used in: Site logo.']);
 });
 
-test('an svg site icon keeps the default apple touch icon and is not used for link previews', function () {
+test('an svg site icon is not used for link previews', function () {
     $icon = Media::factory()->create(['mime_type' => 'image/svg+xml', 'path' => 'media/icon.svg']);
     $logo = Media::factory()->create(['mime_type' => 'image/svg+xml', 'path' => 'media/logo.svg']);
     app(Settings::class)->update(['favicon_id' => $icon->id, 'logo_id' => $logo->id]);
 
     $this->get(route('home'))
         ->assertSee('<link rel="icon" href="'.$icon->url.'" type="image/svg+xml">', false)
-        ->assertSee('<link rel="apple-touch-icon" href="/apple-touch-icon.png">', false)
+        ->assertSee('<link rel="apple-touch-icon" href="'.route('app-icon', ['size' => 192, 'v' => app(AppIcon::class)->version()]).'">', false)
         ->assertSee('src="'.$logo->url.'"', false)
         ->assertDontSee('og:image', false);
 });

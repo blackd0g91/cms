@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Site\AccountController;
+use App\Http\Controllers\Site\AppIconController;
 use App\Http\Controllers\Site\Auth\EmailVerificationController;
 use App\Http\Controllers\Site\Auth\LoginController;
 use App\Http\Controllers\Site\Auth\PasswordResetController;
@@ -30,6 +31,7 @@ Route::get('{template:handle}/feed.xml', [FeedController::class, 'template'])->n
 Route::get('sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
 Route::get('robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('manifest.webmanifest', ManifestController::class)->name('manifest');
+Route::get('app-icon-{size}.png', AppIconController::class)->whereNumber('size')->name('app-icon');
 
 // Accounts on the site: members sign up here, and anyone with an account
 // logs in here. The names are the ones Laravel's emails link to.

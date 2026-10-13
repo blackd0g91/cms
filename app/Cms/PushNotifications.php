@@ -69,6 +69,8 @@ class PushNotifications
         }
 
         $webPush = $this->webPush();
+        // Shown beside it: the site's logo (see AppIcon).
+        $message['icon'] = app(AppIcon::class)->url();
 
         foreach ($subscriptions as $subscription) {
             $webPush->queueNotification(Subscription::create([

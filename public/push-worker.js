@@ -13,7 +13,7 @@ self.addEventListener('push', (event) => {
             body: message.body || '',
             // The same reminder notified by an open page as well shows once.
             tag: message.tag,
-            icon: '/apple-touch-icon.png',
+            icon: message.icon || '/apple-touch-icon.png',
             data: { url: message.url || '/' },
         }),
     );

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Site;
 
+use App\Cms\AppIcon;
 use App\Cms\Settings;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -12,7 +13,7 @@ use Illuminate\Http\JsonResponse;
  */
 class ManifestController extends Controller
 {
-    public function __invoke(Settings $settings): JsonResponse
+    public function __invoke(Settings $settings, AppIcon $icon): JsonResponse
     {
         return response()->json([
             'name' => $settings->siteName(),
@@ -22,10 +23,12 @@ class ManifestController extends Controller
             'display' => 'standalone',
             'background_color' => '#f5efe3',
             'theme_color' => '#f5efe3',
-            'icons' => [
-                ['src' => '/favicon.svg', 'sizes' => 'any', 'type' => 'image/svg+xml'],
-                ['src' => '/apple-touch-icon.png', 'sizes' => '166x166', 'type' => 'image/png'],
-            ],
+            // The logo set on the Settings page, as a square (see AppIcon).
+            'icons' => array_map(fn (int $size) => [
+                'src' => $icon->url($size),
+                'sizes' => "{$size}x{$size}",
+                'type' => 'image/png',
+            ], AppIcon::SIZES),
         ], headers: ['Content-Type' => 'application/manifest+json']);
     }
 }

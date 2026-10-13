@@ -32,6 +32,8 @@ type Sent = {
 const props = defineProps<{
     // Whether the push keys are set (see config/push.php).
     enabled: boolean;
+    // The site's logo as a square, which shows beside the message.
+    icon: string;
     // Everyone with notifications on in at least one browser.
     recipients: Recipient[];
     sent: Sent[];
@@ -244,11 +246,7 @@ const formatDate = (iso: string) =>
             <div
                 class="flex gap-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-800"
             >
-                <img
-                    src="/apple-touch-icon.png"
-                    alt=""
-                    class="size-10 shrink-0 rounded-lg"
-                />
+                <img :src="icon" alt="" class="size-10 shrink-0 rounded-lg" />
                 <div class="min-w-0 text-sm">
                     <p class="truncate font-semibold">
                         {{ form.title || 'Title' }}

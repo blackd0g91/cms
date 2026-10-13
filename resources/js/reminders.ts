@@ -40,8 +40,10 @@ const setNotify = (on: boolean) => {
 
 /** A system notification for a reminder, which brings the tab back when clicked. */
 const notifySystem = (text: string, tag: string) => {
-    const icon =
-        document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.href;
+    // The site's logo as a square (see AppIcon), as push notifications have.
+    const icon = document.querySelector<HTMLLinkElement>(
+        'link[rel="apple-touch-icon"]',
+    )?.href;
     const notification = new Notification('Reminder', {
         body: text,
         tag,

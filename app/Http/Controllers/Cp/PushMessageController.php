@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Cp;
 
+use App\Cms\AppIcon;
 use App\Cms\PushNotifications;
 use App\Http\Controllers\Controller;
 use App\Models\PushMessage;
@@ -25,6 +26,8 @@ class PushMessageController extends Controller
     {
         return Inertia::render('cp/notifications/Index', [
             'enabled' => $push->enabled(),
+            // What shows beside the message: the site's logo (see AppIcon).
+            'icon' => app(AppIcon::class)->url(),
             'recipients' => $this->recipients()
                 ->withCount('pushSubscriptions')
                 ->orderBy('name')
