@@ -38,17 +38,18 @@ composer dev
 
 ## Commands
 
-| Command                          | What it does                                                               |
-| -------------------------------- | -------------------------------------------------------------------------- |
-| `composer dev`                   | Run the site with hot reloading                                            |
-| `composer test`                  | PHP style (Pint), static analysis (PHPStan), PHP tests                     |
-| `composer ci:check`              | Everything CI runs: the above, plus the frontend checks and tests          |
-| `npm test`                       | Frontend tests (`npm run test:watch` to keep watching)                     |
-| `npm run check`                  | Frontend formatting and lint (`check:fix` to fix)                          |
-| `npm run types:check`            | TypeScript and Vue type checks                                             |
-| `composer lint`                  | Fix PHP style                                                              |
-| `npm run build`                  | Build the frontend for production                                          |
-| `php artisan app:image-variants` | Make resized copies of images that lack them (`--all` to redo every image) |
+| Command                                      | What it does                                                               |
+| -------------------------------------------- | -------------------------------------------------------------------------- |
+| `composer dev`                               | Run the site with hot reloading                                            |
+| `composer test`                              | PHP style (Pint), static analysis (PHPStan), PHP tests                     |
+| `composer ci:check`                          | Everything CI runs: the above, plus the frontend checks and tests          |
+| `npm test`                                   | Frontend tests (`npm run test:watch` to keep watching)                     |
+| `npm run check`                              | Frontend formatting and lint (`check:fix` to fix)                          |
+| `npm run types:check`                        | TypeScript and Vue type checks                                             |
+| `composer lint`                              | Fix PHP style                                                              |
+| `npm run build`                              | Build the frontend for production                                          |
+| `php artisan app:test-email you@example.com` | Send a test email, to check the mail settings                              |
+| `php artisan app:image-variants`             | Make resized copies of images that lack them (`--all` to redo every image) |
 
 ## Tests
 
@@ -84,5 +85,7 @@ The site runs on a single server, with SQLite and files on disk.
 **Updates:** run `./deploy.sh` on the server. It puts the site in maintenance mode, pulls the branch, installs dependencies, builds the frontend, migrates the database, makes resized images, rebuilds the caches and fixes file permissions for the web server. If a step fails, the site stays in maintenance mode so visitors never see a half-updated site; fix the error and run it again. `PHP_BIN`, `WEB_USER` and `BRANCH` can be overridden, see the top of the script.
 
 There is no scheduler or queue worker to run. Expired items in the trash are deleted when the dashboard or the trash is opened.
+
+**Email:** the server sends email through a mail service over SMTP (Oracle Cloud, for one, blocks sending directly). With [Resend](https://resend.com)'s free tier: add a domain there (a subdomain like `mail.example.com` keeps it apart from any mailbox), add the DNS records it lists, create an API key with sending access, and set the `MAIL_*` settings shown in `.env.example`. Then run `php artisan config:cache` and `php artisan app:test-email you@example.com`. Locally, `MAIL_MAILER=log` writes emails to `storage/logs/laravel.log` instead.
 
 **Back up** `database/database.sqlite` and `storage/app/public` (the uploaded images). Use `sqlite3 database/database.sqlite ".backup backup.sqlite"` rather than copying the file while the site is running.
