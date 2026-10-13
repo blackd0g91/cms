@@ -1,10 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+    afterEach,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vite-plus/test';
 import {
     keyBytes,
     readReminders,
     startNotifyToggle,
     startReminders,
-} from '../../resources/js/reminders';
+} from '@/reminders';
 
 const item = (id: number, due: Date, text: string) => `
     <li data-reminder="${id}" data-reminder-due="${due.toISOString()}" data-reminder-text="${text}"

@@ -40,11 +40,12 @@ class Reminders
     }
 
     /**
-     * The end of tomorrow for the member: what the home page shows.
+     * The end of the week ahead for the member, as the "This week" group
+     * counts it: what the home page shows.
      */
-    public function soon(User $user): CarbonImmutable
+    public function weekAhead(User $user): CarbonImmutable
     {
-        return now($user->localTimezone())->addDay()->endOfDay();
+        return now($user->localTimezone())->addDays(7)->startOfDay();
     }
 
     /**

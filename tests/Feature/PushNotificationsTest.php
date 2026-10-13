@@ -9,6 +9,7 @@ use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;
 use Minishlink\WebPush\MessageSentReport;
+use Minishlink\WebPush\VAPID;
 use Minishlink\WebPush\WebPush;
 
 beforeEach(function () {
@@ -255,4 +256,13 @@ test('a test push needs keys, an account and a browser', function () {
     $this->artisan('app:test-push', ['email' => $this->member->email])
         ->expectsOutputToContain('Push notifications are off')
         ->assertFailed();
+});
+
+test('a server without GMP or BCMath can still send pushes', function () {
+    $keys = VAPID::createVapidKeys();
+    config(['push.public_key' => $keys['publicKey'], 'push.private_key' => $keys['privateKey']]);
+
+    $webPush = (fn () => $this->webPush())->call(new PushNotifications);
+
+    expect($webPush)->toBeInstanceOf(WebPush::class);
 });

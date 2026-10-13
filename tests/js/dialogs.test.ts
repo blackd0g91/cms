@@ -60,4 +60,13 @@ describe('startDialogs', () => {
 
         expect(click.defaultPrevented).toBe(false);
     });
+
+    it('opens from the start when asked to, like a form sent back with an error', () => {
+        document.body.innerHTML = `
+            <a href="/me/reminders" data-dialog-open="new-reminder">Add</a>
+            <dialog id="new-reminder" data-dialog-open-now><form></form></dialog>`;
+        startDialogs();
+
+        expect(document.querySelector('dialog')!.open).toBe(true);
+    });
 });

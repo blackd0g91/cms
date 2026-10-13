@@ -124,6 +124,9 @@ class PushNotifications
     /**
      * Signed with the site's keys, and kept for an hour by the push service
      * for a browser that is offline: later than that, a reminder is old news.
+     * Its warnings about the server (such as a missing GMP or BCMath extension
+     * on production) go to the log: raised as PHP notices, Laravel would turn
+     * them into errors and nothing would be sent.
      */
     protected function webPush(): WebPush
     {
@@ -134,6 +137,7 @@ class PushNotifications
                 'privateKey' => config('push.private_key'),
             ]],
             ['TTL' => 3600, 'urgency' => 'high'],
+            logger: Log::channel(),
         );
     }
 }

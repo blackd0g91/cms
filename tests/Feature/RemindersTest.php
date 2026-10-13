@@ -143,12 +143,19 @@ test('the home page panel invites guests, and shows members what is due soon', f
     $this->get(route('home'))->assertSee('Your space')->assertSee('Create an account');
 
     remind($this->member, 'Due today', '2026-10-12 18:00');
+    remind($this->member, 'Due on Saturday', '2026-10-17 18:00');
     remind($this->member, 'Due next week', '2026-10-20 18:00');
 
     $this->actingAs($this->member)
         ->get(route('home'))
         ->assertSee('Due today')
+        ->assertSee('Due on Saturday')
         ->assertDontSee('Due next week')
+        // The title leads to the reminders page, and + opens the form in a dialog.
+        ->assertSee('<a href="'.route('reminders.index').'" class="decoration-2', false)
+        ->assertSee('data-dialog-open="new-reminder"', false)
+        ->assertSee('<dialog'."\n".'            id="new-reminder"', false)
+        ->assertDontSee('data-dialog-open-now', false)
         ->assertSee('href="'.route('reminders.index').'"', false)
         ->assertSee('action="'.route('reminders.store').'"', false)
         // The forms are complete: Blade directives all compiled.
@@ -209,4 +216,18 @@ test('the panel and the reminders page offer system notifications', function () 
 
     $this->get(route('home'))->assertSee('data-reminder-notify', false)->assertSee('Notify me in this browser');
     $this->get(route('reminders.index'))->assertSee('data-reminder-notify', false);
+});
+
+test('the home page\'s form opens again with what was typed when it has an error', function () {
+    $this->actingAs($this->member)
+        ->from(route('home'))
+        ->post(route('reminders.store'), ['text' => 'Too late', 'due' => '2026-10-12T08:00', 'repeat' => 'weekly', 'email' => '1'])
+        ->assertRedirect(route('home'));
+
+    $this->get(route('home'))
+        ->assertSee('data-dialog-open-now', false)
+        ->assertSee('Pick a time from now on.')
+        ->assertSee('value="Too late"', false)
+        ->assertSee('value="2026-10-12T08:00"', false)
+        ->assertSee('<option value="weekly" selected>', false);
 });
