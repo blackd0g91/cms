@@ -37,14 +37,14 @@
         </button>
     </div>
 
-    {{-- The weather now, opening the forecast, and a button to look the
-         location up again, like when travelling. --}}
-    <div data-weather-state="ready" hidden class="flex min-w-0 items-stretch gap-2">
+    {{-- One card with the weather now, opening the forecast, and a small
+         button to look the location up again, like when travelling. --}}
+    <div data-weather-state="ready" hidden class="flex min-w-0 items-center rounded-2xl border border-line bg-card shadow-sm transition hover:border-accent">
         <button
             type="button"
             data-weather-open
             aria-haspopup="dialog"
-            class="group flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-line bg-card p-3 text-left shadow-sm transition hover:border-accent"
+            class="group flex min-w-0 flex-1 items-center gap-3 rounded-l-2xl p-3 text-left"
         >
             <span data-weather-icon class="text-3xl leading-none" aria-hidden="true"></span>
             <span data-weather-temperature class="font-display text-2xl leading-none font-semibold tracking-tight"></span>
@@ -55,11 +55,12 @@
             <span class="sr-only">Show the forecast</span>
             <svg class="size-4 shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
         </button>
+        <span class="h-7 w-px shrink-0 bg-line" aria-hidden="true"></span>
         <button
             type="button"
             data-weather-locate
             title="Update my location"
-            class="grid w-11 shrink-0 place-items-center rounded-2xl border border-line bg-card text-muted shadow-sm transition hover:border-accent hover:text-ink"
+            class="mx-1.5 grid size-9 shrink-0 place-items-center rounded-full text-muted transition hover:bg-paper hover:text-ink"
         >
             <svg class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22"/></svg>
             <span class="sr-only">Update my location</span>
