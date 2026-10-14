@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import PageHeader from '@/components/cp/PageHeader.vue';
 import CpLayout from '@/layouts/CpLayout.vue';
 import { destroy, store, update } from '@/routes/cp/media';
@@ -14,6 +15,56 @@ const props = defineProps<{
 }>();
 
 const usagesOf = (item: Media) => props.usages[item.id] ?? [];
+
+const usageFilter = ref<'all' | 'used' | 'unused'>('all');
+const typeFilter = ref('all');
+const dateFilter = ref<'all' | '7' | '30' | '365'>('all');
+const search = ref('');
+
+const typeLabel = (mime: string) =>
+    mime === 'image/svg+xml'
+        ? 'SVG'
+        : mime.replace('image/', '').replace('jpeg', 'jpg').toUpperCase();
+
+const types = computed(() =>
+    [...new Set(props.media.map((item) => item.mime_type))].sort(),
+);
+
+const visible = computed(() => {
+    const term = search.value.trim().toLowerCase();
+    const since =
+        dateFilter.value === 'all'
+            ? null
+            : Date.now() - Number(dateFilter.value) * 86_400_000;
+
+    return props.media.filter((item) => {
+        const used = usagesOf(item).length > 0;
+
+        return (
+            (usageFilter.value === 'all' ||
+                used === (usageFilter.value === 'used')) &&
+            (typeFilter.value === 'all' ||
+                item.mime_type === typeFilter.value) &&
+            (since === null || new Date(item.created_at).getTime() >= since) &&
+            (term === '' || item.filename.toLowerCase().includes(term))
+        );
+    });
+});
+
+const filtering = computed(
+    () =>
+        usageFilter.value !== 'all' ||
+        typeFilter.value !== 'all' ||
+        dateFilter.value !== 'all' ||
+        search.value.trim() !== '',
+);
+
+const clearFilters = () => {
+    usageFilter.value = 'all';
+    typeFilter.value = 'all';
+    dateFilter.value = 'all';
+    search.value = '';
+};
 
 const form = useForm<{ file: File | null }>({ file: null });
 
@@ -101,9 +152,74 @@ const copyUrl = (item: Media) => navigator.clipboard.writeText(item.url);
         No images yet.
     </p>
 
-    <ul v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <form
+        v-if="media.length > 0"
+        class="mb-4 flex flex-wrap items-center gap-2"
+        role="search"
+        @submit.prevent
+    >
+        <input
+            v-model="search"
+            type="search"
+            placeholder="Search filenames"
+            aria-label="Search filenames"
+            class="cp-input w-48"
+        />
+        <select
+            v-model="usageFilter"
+            aria-label="Filter by usage"
+            class="cp-input w-auto"
+        >
+            <option value="all">Used and unused</option>
+            <option value="used">Used</option>
+            <option value="unused">Unused</option>
+        </select>
+        <select
+            v-model="typeFilter"
+            aria-label="Filter by file type"
+            class="cp-input w-auto"
+        >
+            <option value="all">All types</option>
+            <option v-for="type in types" :key="type" :value="type">
+                {{ typeLabel(type) }}
+            </option>
+        </select>
+        <select
+            v-model="dateFilter"
+            aria-label="Filter by upload date"
+            class="cp-input w-auto"
+        >
+            <option value="all">Any time</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="365">Last year</option>
+        </select>
+        <button
+            v-if="filtering"
+            type="button"
+            class="cp-btn text-xs"
+            @click="clearFilters"
+        >
+            Clear
+        </button>
+        <span class="text-xs text-neutral-500" aria-live="polite">
+            {{ visible.length }} of {{ media.length }}
+        </span>
+    </form>
+
+    <p
+        v-if="media.length > 0 && visible.length === 0"
+        class="cp-card p-6 text-sm text-neutral-500"
+    >
+        No images match these filters.
+    </p>
+
+    <ul
+        v-else-if="media.length > 0"
+        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+    >
         <li
-            v-for="item in media"
+            v-for="item in visible"
             :key="item.id"
             class="cp-card overflow-hidden"
         >
