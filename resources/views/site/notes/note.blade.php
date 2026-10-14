@@ -15,6 +15,13 @@
                 @endif
                 {{ $note->updated_at->setTimezone($user->localTimezone())->isoFormat($note->updated_at->year === now()->year ? 'MMM D, HH:mm' : 'MMM D YYYY, HH:mm') }}
             </p>
+            @if ($note->labels->isNotEmpty())
+                <p class="mt-2 flex flex-wrap gap-1">
+                    @foreach ($note->labels as $label)
+                        @include('site.labels.chip', ['label' => $label, 'href' => route('notes.index', ['label' => $label->id])])
+                    @endforeach
+                </p>
+            @endif
         </div>
 
         <div class="-mt-1 -mr-1 flex shrink-0 items-center">

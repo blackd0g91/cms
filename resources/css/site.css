@@ -869,3 +869,82 @@ body {
         transform: none;
     }
 }
+
+/*
+ * A member's labels (see site/labels): a chip tinted with the label's
+ * color, with a dot of it, and the text in the usual ink so it stays easy
+ * to read on any color. Picked ones, and the one a list is narrowed to, are
+ * filled in more strongly.
+ */
+.label-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid color-mix(in oklch, var(--label) 45%, transparent);
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--label) 12%, transparent);
+    padding: 0.05rem 0.55rem;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.label-chip::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--label);
+}
+
+.label-pick {
+    opacity: 0.55;
+    transition:
+        opacity 0.15s,
+        background 0.15s;
+}
+
+.label-pick:hover,
+.peer:focus-visible + .label-pick {
+    opacity: 0.85;
+}
+
+.peer:focus-visible + .label-pick {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.peer:checked + .label-pick,
+.label-chip-on {
+    opacity: 1;
+    border-color: var(--label);
+    background: color-mix(in oklch, var(--label) 28%, transparent);
+    font-weight: 500;
+}
+
+/* The color square in the labels dialog. */
+.label-color {
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--paper);
+    padding: 0.2rem;
+}
+
+.label-color::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.label-color::-webkit-color-swatch {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.label-color::-moz-color-swatch {
+    border: none;
+    border-radius: 0.5rem;
+}

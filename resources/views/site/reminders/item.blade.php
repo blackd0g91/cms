@@ -32,6 +32,13 @@
                 <span title="Emailed when it is due">· ✉<span class="sr-only"> emailed</span></span>
             @endif
         </p>
+        @if ($reminder->labels->isNotEmpty())
+            <p class="mt-1 flex flex-wrap gap-1">
+                @foreach ($reminder->labels as $label)
+                    @include('site.labels.chip', ['label' => $label, 'href' => route('reminders.index', ['label' => $label->id])])
+                @endforeach
+            </p>
+        @endif
 
         @unless ($compact)
             <details class="mt-1.5">

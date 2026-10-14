@@ -6,8 +6,10 @@ use App\Cms\Markdown;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
@@ -23,6 +25,7 @@ use Illuminate\Support\Str;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read User $user
+ * @property-read Collection<int, Label> $labels
  */
 #[Fillable(['title', 'body', 'pinned_at'])]
 class Note extends Model
@@ -43,6 +46,16 @@ class Note extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The member's labels on it, by name.
+     *
+     * @return BelongsToMany<Label, $this>
+     */
+    public function labels(): BelongsToMany
+    {
+        return $this->belongsToMany(Label::class)->orderBy('name');
     }
 
     /**

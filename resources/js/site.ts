@@ -1,6 +1,7 @@
 import { startContours } from './backdrop';
 import { startDialogs } from './dialogs';
 import { startFilters } from './filters';
+import { startLabelSwatches } from './labels';
 import { startNotePreviews } from './notes';
 import { startNotifyToggle, startReminders } from './reminders';
 import { startSortables } from './sortable';
@@ -281,8 +282,10 @@ startToasts();
 startReminders();
 startNotifyToggle();
 
-// Notes read as they will once saved, while they are written (see notes.ts).
+// Notes read as they will once saved, while they are written (see notes.ts),
+// and the quick colors for new labels (see labels.ts).
 startNotePreviews();
+startLabelSwatches();
 
 // The weather card on the home page (see weather.ts).
 const weather = document.querySelector<HTMLElement>('[data-weather]');

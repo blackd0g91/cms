@@ -29,6 +29,13 @@
                         @if ($note->title)
                             <span class="mt-0.5 line-clamp-2 block text-sm text-muted">{{ $note->preview() }}</span>
                         @endif
+                        @if ($note->labels->isNotEmpty())
+                            <span class="mt-1 flex flex-wrap gap-1">
+                                @foreach ($note->labels as $label)
+                                    @include('site.labels.chip', ['label' => $label])
+                                @endforeach
+                            </span>
+                        @endif
                     </a>
                 </li>
             @endforeach

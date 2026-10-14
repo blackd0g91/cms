@@ -137,6 +137,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Their own labels, for their notes and reminders, by name.
+     *
+     * @return HasMany<Label, $this>
+     */
+    public function labels(): HasMany
+    {
+        return $this->hasMany(Label::class)->orderBy('name');
+    }
+
+    /**
      * Their own links, as tiles on their page, in their order.
      *
      * @return HasMany<QuickLink, $this>

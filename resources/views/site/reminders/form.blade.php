@@ -52,6 +52,12 @@
         </div>
     </div>
 
+    <div @class(['sm:order-last sm:col-span-4' => ! $stacked])>
+        @include('site.labels.picker', [
+            'selected' => $reminder ? $reminder->labels->modelKeys() : array_map('intval', (array) old('labels', [])),
+        ])
+    </div>
+
     {{-- Off unless chosen: the site can only send so many emails a day. --}}
     <label @class(['flex items-center gap-2 text-sm', 'sm:order-last sm:col-span-4' => ! $stacked])>
         <input type="checkbox" name="email" value="1" @checked($reminder ? $reminder->email : old('email')) class="size-4 shrink-0 accent-(--accent)">

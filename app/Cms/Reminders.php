@@ -2,6 +2,7 @@
 
 namespace App\Cms;
 
+use App\Models\Label;
 use App\Models\Reminder;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -14,15 +15,17 @@ class Reminders
 {
     /**
      * The reminders not done yet, in groups (Overdue, Today, Tomorrow, This
-     * week, Later), leaving out empty ones. With $until, only those due
-     * before then.
+     * week, Later), leaving out empty ones, with their labels. With $until,
+     * only those due before then, and with $label, only those with it.
      *
      * @return list<array{label: string, reminders: list<Reminder>}>
      */
-    public function groups(User $user, ?CarbonImmutable $until = null, ?int $limit = null): array
+    public function groups(User $user, ?CarbonImmutable $until = null, ?int $limit = null, ?Label $label = null): array
     {
         $reminders = $user->reminders()
+            ->with('labels')
             ->active()
+            ->when($label, fn ($query, Label $label) => $query->whereHas('labels', fn ($query) => $query->whereKey($label->id)))
             ->when($until, fn ($query, CarbonImmutable $until) => $query->where('due_at', '<', $until->utc()))
             ->when($limit, fn ($query, int $limit) => $query->limit($limit))
             ->get();

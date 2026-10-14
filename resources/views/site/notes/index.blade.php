@@ -10,6 +10,9 @@
 
             @if ($total > 0)
                 <form method="get" action="{{ route('notes.index') }}" role="search" class="w-full sm:w-64">
+                    @if ($label)
+                        <input type="hidden" name="label" value="{{ $label->id }}">
+                    @endif
                     <label for="notes-search" class="sr-only">Search your notes</label>
                     <input
                         id="notes-search"
@@ -23,6 +26,8 @@
             @endif
         </div>
 
+        @include('site.labels.filter', ['route' => 'notes.index'])
+
         <section aria-label="New note" class="rounded-3xl border border-line bg-card p-5 shadow-sm sm:p-6">
             @include('site.notes.form', ['wide' => true])
             @if ($errors->note->any())
@@ -32,7 +37,10 @@
 
         @if ($notes->isEmpty())
             <p class="rounded-3xl border border-dashed border-line p-10 text-center">
-                @if ($search !== '')
+                @if ($label)
+                    <span class="block font-display text-2xl italic">No notes labeled {{ $label->name }}.</span>
+                    <a href="{{ route('notes.index') }}" class="mt-1 inline-block text-sm text-muted underline underline-offset-4 hover:text-ink">See all your notes</a>
+                @elseif ($search !== '')
                     <span class="block font-display text-2xl italic">Nothing matches "{{ $search }}".</span>
                     <a href="{{ route('notes.index') }}" class="mt-1 inline-block text-sm text-muted underline underline-offset-4 hover:text-ink">See all your notes</a>
                 @else
@@ -50,4 +58,6 @@
             @include('site.partials.pagination', ['paginator' => $notes])
         @endif
     </div>
+
+    @include('site.labels.dialog')
 @endsection

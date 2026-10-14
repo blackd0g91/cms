@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Cms\Markdown;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Site\Concerns\SyncsLabels;
 use App\Models\Note;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -20,13 +21,18 @@ use Illuminate\View\View;
  */
 class NoteController extends Controller
 {
+    use SyncsLabels;
+
     public function index(Request $request): View
     {
         /** @var User $user */
         $user = $request->user();
         $search = Str::squish((string) $request->query('q'));
+        $label = $this->labelFilter($request, $user);
 
         $notes = $user->notes()
+            ->with('labels')
+            ->when($label, fn ($query) => $query->whereHas('labels', fn ($query) => $query->whereKey($label?->id)))
             ->when($search !== '', function ($query) use ($search) {
                 $like = '%'.addcslashes($search, '%_\\').'%';
                 $query->where(fn ($query) => $query->where('title', 'like', $like)->orWhere('body', 'like', $like));
@@ -38,6 +44,8 @@ class NoteController extends Controller
         return view('site.notes.index', [
             'notes' => $notes,
             'search' => $search,
+            'label' => $label,
+            'labels' => $user->labels()->get(),
             'total' => $user->notes()->count(),
         ]);
     }
@@ -52,6 +60,7 @@ class NoteController extends Controller
         }
 
         $note = $this->validated($request);
+        $labels = $this->pickedLabels($request, $user, 'note');
 
         // Jotted down on the member's page: titled with when, so it is
         // easy to find again.
@@ -59,7 +68,7 @@ class NoteController extends Controller
             $note['title'] = now($user->localTimezone())->isoFormat('ddd, MMM D · HH:mm');
         }
 
-        $user->notes()->create($note);
+        $this->syncLabels($user->notes()->create($note), $labels);
 
         return back()->with('status', 'Note saved.');
     }
@@ -80,8 +89,13 @@ class NoteController extends Controller
     public function update(Request $request, Note $note): RedirectResponse
     {
         $this->owner($request, $note);
+        /** @var User $user */
+        $user = $request->user();
 
-        $note->update($this->validated($request));
+        $validated = $this->validated($request);
+        $labels = $this->pickedLabels($request, $user, 'note');
+        $note->update($validated);
+        $this->syncLabels($note, $labels);
 
         return back()->with('status', 'Note saved.');
     }

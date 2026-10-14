@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Site;
 use App\Cms\Reminders;
 use App\Enums\ReminderRepeat;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Site\Concerns\SyncsLabels;
 use App\Models\Reminder;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -21,13 +22,19 @@ use Illuminate\View\View;
  */
 class ReminderController extends Controller
 {
+    use SyncsLabels;
+
     public function index(Request $request, Reminders $reminders): View
     {
         /** @var User $user */
         $user = $request->user();
 
+        $label = $this->labelFilter($request, $user);
+
         return view('site.reminders.index', [
-            'groups' => $reminders->groups($user),
+            'groups' => $reminders->groups($user, label: $label),
+            'label' => $label,
+            'labels' => $user->labels()->get(),
             'reminders' => $reminders,
             'user' => $user,
         ]);
@@ -42,7 +49,9 @@ class ReminderController extends Controller
             throw ValidationException::withMessages(['text' => 'You have '.Reminder::MAX_ACTIVE.' reminders waiting, the most there can be. Finish or delete some first.']);
         }
 
-        $user->reminders()->create($this->validated($request, $user));
+        $validated = $this->validated($request, $user);
+        $labels = $this->pickedLabels($request, $user);
+        $this->syncLabels($user->reminders()->create($validated), $labels);
 
         return back()->with('status', 'Reminder added.');
     }
@@ -51,7 +60,10 @@ class ReminderController extends Controller
     {
         $user = $this->owner($request, $reminder);
 
-        $reminder->update($this->validated($request, $user));
+        $validated = $this->validated($request, $user);
+        $labels = $this->pickedLabels($request, $user);
+        $reminder->update($validated);
+        $this->syncLabels($reminder, $labels);
 
         return back()->with('status', 'Reminder changed.');
     }

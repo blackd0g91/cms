@@ -9,6 +9,7 @@ use App\Http\Controllers\Site\Auth\RegisterController;
 use App\Http\Controllers\Site\ClickController;
 use App\Http\Controllers\Site\FeedController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\LabelController;
 use App\Http\Controllers\Site\ManifestController;
 use App\Http\Controllers\Site\MeController;
 use App\Http\Controllers\Site\NoteController;
@@ -80,6 +81,9 @@ Route::middleware(['auth', 'verified'])->prefix('me')->group(function () {
     Route::put('notes/{note}', [NoteController::class, 'update'])->middleware('throttle:60,1')->name('notes.update');
     Route::post('notes/{note}/pin', [NoteController::class, 'pin'])->name('notes.pin');
     Route::delete('notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
+    Route::post('labels', [LabelController::class, 'store'])->middleware('throttle:60,1')->name('labels.store');
+    Route::put('labels/{label}', [LabelController::class, 'update'])->name('labels.update');
+    Route::delete('labels/{label}', [LabelController::class, 'destroy'])->name('labels.destroy');
     Route::post('quick-links', [QuickLinkController::class, 'store'])->middleware('throttle:60,1')->name('quick-links.store');
     Route::put('quick-links/{quickLink}', [QuickLinkController::class, 'update'])->middleware('throttle:60,1')->name('quick-links.update');
     Route::post('quick-links/{quickLink}/move', [QuickLinkController::class, 'move'])->name('quick-links.move');

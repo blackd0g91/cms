@@ -10,6 +10,8 @@
             </div>
         </div>
 
+        @include('site.labels.filter', ['route' => 'reminders.index'])
+
         <section aria-label="Add a reminder" class="rounded-3xl border border-line bg-card p-5 shadow-sm sm:p-6">
             @include('site.reminders.form')
             @if ($errors->any())
@@ -22,7 +24,12 @@
         </section>
 
         <section aria-label="Your reminders" class="rounded-3xl border border-line bg-card p-5 shadow-sm sm:p-6">
-            @if ($groups === [])
+            @if ($groups === [] && $label)
+                <p class="py-6 text-center">
+                    <span class="block font-display text-2xl italic">No reminders labeled {{ $label->name }}.</span>
+                    <a href="{{ route('reminders.index') }}" class="mt-1 inline-block text-sm text-muted underline underline-offset-4 hover:text-ink">See all your reminders</a>
+                </p>
+            @elseif ($groups === [])
                 <p class="py-6 text-center">
                     <span class="block font-display text-2xl italic">Nothing to remember.</span>
                     <span class="mt-1 block text-sm text-muted">Add one above, like "call the dentist", for tomorrow at 10:00.</span>
@@ -32,4 +39,6 @@
             @endif
         </section>
     </div>
+
+    @include('site.labels.dialog')
 @endsection

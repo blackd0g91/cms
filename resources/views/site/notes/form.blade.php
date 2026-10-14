@@ -61,6 +61,12 @@
         @endunless
     </div>
 
+    @unless ($quick)
+        @include('site.labels.picker', [
+            'selected' => $note ? $note->labels->modelKeys() : array_map('intval', (array) old('labels', [])),
+        ])
+    @endunless
+
     <div class="flex items-center justify-between gap-3">
         <p class="text-xs text-muted">Markdown works. Only you can see your notes.</p>
         <button type="submit" class="shrink-0 rounded-full bg-ink px-5 py-2 text-sm font-medium text-paper transition hover:bg-accent">

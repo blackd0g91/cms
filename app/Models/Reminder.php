@@ -7,9 +7,11 @@ use Carbon\CarbonImmutable;
 use Database\Factories\ReminderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Something a member wants to be reminded of, at a time. Times are kept in
@@ -27,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read User $user
+ * @property-read Collection<int, Label> $labels
  */
 #[Fillable(['text', 'due_at', 'repeat', 'email', 'emailed_at', 'pushed_at', 'completed_at'])]
 class Reminder extends Model
@@ -45,6 +48,16 @@ class Reminder extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The member's labels on it, by name.
+     *
+     * @return BelongsToMany<Label, $this>
+     */
+    public function labels(): BelongsToMany
+    {
+        return $this->belongsToMany(Label::class)->orderBy('name');
     }
 
     /**
