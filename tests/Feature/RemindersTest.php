@@ -255,3 +255,12 @@ test('the form on a member\'s page opens again with what was typed when it has a
         ->assertSee('value="2026-10-12T08:00"', false)
         ->assertSee('<option value="weekly" selected>', false);
 });
+
+test('the sidebar has tiles for the home page and the member\'s page, when logged in', function () {
+    $this->get(route('home'))->assertDontSee('title="Your page"', false);
+
+    $this->actingAs($this->member)->get(route('me'))
+        ->assertSeeInOrder(['title="Home page"', 'href="'.route('me').'"', 'title="Your page"', 'aria-current="page"'], false);
+
+    $this->get(route('notes.index'))->assertSee('title="Your page"', false);
+});
