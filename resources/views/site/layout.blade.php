@@ -57,6 +57,9 @@
                         Menu
                     </summary>
                     <div class="absolute left-0 z-10 mt-2 w-64 rounded-xl border border-line bg-card p-3 shadow-xl">
+                        <div class="mb-3 border-b border-line pb-3">
+                            @include('site.partials.place-tiles')
+                        </div>
                         @include('site.partials.nav')
 
                         @if ($profiles)
@@ -137,19 +140,27 @@
 
         <div class="mx-auto flex w-full max-w-6xl flex-1 gap-12 px-4 py-10">
             {{--
-                A card that stays in view while the page scrolls, like "On this
-                page", with the links at its bottom. It is as tall as the screen
+                The home and member's page tiles, floating, over a card that
+                stays in view while the page scrolls, like "On this page", with
+                the links at its bottom. Together they are as tall as the screen
                 without the header (81px), the footer (65px) and the space above
-                and below it (2.5rem each), and scrolls inside if that is not
-                enough. On pages shorter than the screen it fills the column, when
-                there are links to put at the bottom.
+                and below them (2.5rem each), the card scrolling inside if that
+                is not enough. On pages shorter than the screen the card fills
+                the column, when there are links to put at the bottom.
             --}}
             <aside class="hidden w-56 shrink-0 md:block">
                 <div @class([
-                    'panel-scrollbar sticky top-10 flex max-h-[calc(100vh-81px-65px-5rem)] flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3',
+                    'sticky top-10 flex max-h-[calc(100vh-81px-65px-5rem)] flex-col gap-3',
                     'h-full' => $navLinks->isNotEmpty(),
                 ])>
-                    @include('site.partials.nav')
+                    @include('site.partials.place-tiles')
+
+                    <div @class([
+                        'panel-scrollbar flex min-h-0 flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3',
+                        'flex-1' => $navLinks->isNotEmpty(),
+                    ])>
+                        @include('site.partials.nav')
+                    </div>
                 </div>
             </aside>
 

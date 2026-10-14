@@ -123,8 +123,10 @@ test('links to posts follow their title and slug, and wait while they are drafts
 test('the link to the page being viewed is marked as current', function () {
     Link::query()->create(['post_id' => $this->post->id, 'position' => 0]);
 
-    $this->get('/recipes/about')->assertSee('aria-current="page"', false);
-    $this->get('/')->assertDontSee('aria-current="page"', false);
+    // Marked in the link's own classes (the home tile is marked on the home page).
+    $current = 'bg-paper font-medium text-ink ring-1 ring-line';
+    $this->get('/recipes/about')->assertSee($current, false);
+    $this->get('/')->assertDontSee($current, false);
 });
 
 test('links go away with their post', function () {
