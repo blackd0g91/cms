@@ -266,6 +266,16 @@ test('the sidebar has tiles for the home page and the member\'s page, for everyo
     $this->get(route('notes.index'))->assertSee('title="Your page"', false);
 });
 
+test('logged in, the sidebar also has tiles for notes and reminders', function () {
+    $this->get(route('home'))->assertDontSee('title="Notes"', false)->assertDontSee('title="Reminders"', false);
+
+    $this->actingAs($this->member)->get(route('notes.index'))
+        ->assertSeeInOrder(['title="Home page"', 'title="Your page"', 'href="'.route('notes.index').'"', 'title="Notes"', 'aria-current="page"', 'title="Reminders"'], false);
+
+    $this->get(route('reminders.index'))
+        ->assertSeeInOrder(['href="'.route('reminders.index').'"', 'title="Reminders"', 'aria-current="page"'], false);
+});
+
 test('a reminder is changed in its own dialog, from a button beside snooze and delete', function () {
     $reminder = remind($this->member, 'Call the dentist', '2026-10-13 10:00');
     $this->actingAs($this->member);
