@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Site;
 
+use App\Cms\Markdown;
 use App\Http\Controllers\Controller;
 use App\Models\Note;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -49,9 +51,30 @@ class NoteController extends Controller
             throw ValidationException::withMessages(['body' => 'You have '.Note::MAX.' notes, the most there can be. Delete some first.'])->errorBag('note');
         }
 
-        $user->notes()->create($this->validated($request));
+        $note = $this->validated($request);
+
+        // Jotted down on the member's page: titled with when, so it is
+        // easy to find again.
+        if ($note['title'] === null && $request->boolean('quick')) {
+            $note['title'] = now($user->localTimezone())->isoFormat('ddd, MMM D · HH:mm');
+        }
+
+        $user->notes()->create($note);
 
         return back()->with('status', 'Note saved.');
+    }
+
+    /**
+     * The note as it will read, while it is being written (see notes.ts):
+     * the same markdown as the saved note.
+     */
+    public function preview(Request $request, Markdown $markdown): JsonResponse
+    {
+        $validated = $request->validate([
+            'body' => ['nullable', 'string', 'max:'.Note::MAX_LENGTH],
+        ]);
+
+        return response()->json(['html' => $markdown->render($validated['body'] ?? '')]);
     }
 
     public function update(Request $request, Note $note): RedirectResponse

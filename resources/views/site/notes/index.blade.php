@@ -24,7 +24,7 @@
         </div>
 
         <section aria-label="New note" class="rounded-3xl border border-line bg-card p-5 shadow-sm sm:p-6">
-            @include('site.notes.form')
+            @include('site.notes.form', ['wide' => true])
             @if ($errors->note->any())
                 <p class="mt-3 text-sm text-red-600 dark:text-red-400">{{ $errors->note->first() }}</p>
             @endif

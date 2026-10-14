@@ -155,3 +155,32 @@ test('the short preview of a note keeps its lines apart', function () {
     expect($note->preview())->toBe('Eggs · Bread · And coffee.')
         ->and($note->preview(10))->toBe('Eggs · Bre...');
 });
+
+test('a note jotted down on the member\'s page is titled with when, unless given a title', function () {
+    $this->actingAs($this->member);
+
+    // 15:00 UTC is noon in São Paulo.
+    $this->post(route('notes.store'), ['body' => 'Quick one', 'quick' => '1']);
+    $this->post(route('notes.store'), ['body' => 'Titled', 'title' => 'Mine', 'quick' => '1']);
+    $this->post(route('notes.store'), ['body' => 'From the notes page']);
+
+    expect(Note::query()->orderBy('id')->pluck('title')->all())->toBe(['Wed, Oct 14 · 12:00', 'Mine', null]);
+    $this->get(route('me'))->assertSee('name="quick" value="1"', false);
+});
+
+test('a note shows as it will read while it is written', function () {
+    $this->actingAs($this->member);
+
+    $this->postJson(route('notes.preview'), ['body' => '**Bold** <script>x</script>'])
+        ->assertOk()
+        ->assertJsonPath('html', fn (string $html) => str_contains($html, '<strong>Bold</strong>') && ! str_contains($html, '<script>'));
+
+    $this->postJson(route('notes.preview'), ['body' => str_repeat('a', Note::MAX_LENGTH + 1)])->assertUnprocessable();
+
+    $this->get(route('notes.index'))->assertSee('data-note-preview="'.route('notes.preview').'"', false);
+    // Not on the quick form on the member's page.
+    $this->get(route('me'))->assertDontSee('data-note-preview=', false);
+
+    auth()->logout();
+    $this->postJson(route('notes.preview'), ['body' => 'x'])->assertUnauthorized();
+});

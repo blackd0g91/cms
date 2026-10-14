@@ -76,6 +76,7 @@ Route::middleware(['auth', 'verified'])->prefix('me')->group(function () {
     Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
     Route::get('notes', [NoteController::class, 'index'])->name('notes.index');
     Route::post('notes', [NoteController::class, 'store'])->middleware('throttle:60,1')->name('notes.store');
+    Route::post('notes/preview', [NoteController::class, 'preview'])->middleware('throttle:120,1')->name('notes.preview');
     Route::put('notes/{note}', [NoteController::class, 'update'])->middleware('throttle:60,1')->name('notes.update');
     Route::post('notes/{note}/pin', [NoteController::class, 'pin'])->name('notes.pin');
     Route::delete('notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
