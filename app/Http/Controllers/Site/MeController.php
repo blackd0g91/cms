@@ -29,6 +29,7 @@ class MeController extends Controller
             'user' => $user,
             'reminders' => $reminders,
             'soon' => $reminders->groups($user, until: $reminders->weekAhead($user)),
+            'quickLinks' => $user->quickLinks()->orderBy('position')->orderBy('id')->get(),
             'notes' => $user->notes()->ordered()->limit(5)->get(),
             'noteCount' => $user->notes()->count(),
             'today' => $now->isoFormat('dddd, MMMM D'),

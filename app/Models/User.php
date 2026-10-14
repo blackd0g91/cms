@@ -137,6 +137,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Their own links, as tiles on their page, in their order.
+     *
+     * @return HasMany<QuickLink, $this>
+     */
+    public function quickLinks(): HasMany
+    {
+        return $this->hasMany(QuickLink::class);
+    }
+
+    /**
      * @return HasMany<Note, $this>
      */
     public function notes(): HasMany

@@ -3,7 +3,8 @@
 @section('content')
     {{--
         A member's own page (see MeController), made to stay open in a tab:
-        their cards, then their reminders and notes side by side.
+        their cards, their quick links, then their reminders and notes side
+        by side.
     --}}
     <div class="space-y-8">
         <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
@@ -51,6 +52,8 @@
                 </div>
             </div>
         </dialog>
+
+        @include('site.quick-links.panel')
 
         <div class="grid items-start gap-6 lg:grid-cols-2">
             <div>

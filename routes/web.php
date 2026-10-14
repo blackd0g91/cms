@@ -13,6 +13,7 @@ use App\Http\Controllers\Site\ManifestController;
 use App\Http\Controllers\Site\MeController;
 use App\Http\Controllers\Site\NoteController;
 use App\Http\Controllers\Site\PushSubscriptionController;
+use App\Http\Controllers\Site\QuickLinkController;
 use App\Http\Controllers\Site\ReminderController;
 use App\Http\Controllers\Site\ReminderEmailController;
 use App\Http\Controllers\Site\SearchController;
@@ -78,6 +79,10 @@ Route::middleware(['auth', 'verified'])->prefix('me')->group(function () {
     Route::put('notes/{note}', [NoteController::class, 'update'])->middleware('throttle:60,1')->name('notes.update');
     Route::post('notes/{note}/pin', [NoteController::class, 'pin'])->name('notes.pin');
     Route::delete('notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
+    Route::post('quick-links', [QuickLinkController::class, 'store'])->middleware('throttle:60,1')->name('quick-links.store');
+    Route::put('quick-links/{quickLink}', [QuickLinkController::class, 'update'])->middleware('throttle:60,1')->name('quick-links.update');
+    Route::post('quick-links/{quickLink}/move', [QuickLinkController::class, 'move'])->name('quick-links.move');
+    Route::delete('quick-links/{quickLink}', [QuickLinkController::class, 'destroy'])->name('quick-links.destroy');
     Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->middleware('throttle:20,1')->name('push-subscriptions.store');
     Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
 });
