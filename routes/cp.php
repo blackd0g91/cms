@@ -21,7 +21,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('cp')->name('cp.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('login', [LoginController::class, 'create'])->name('login');
-        Route::post('login', [LoginController::class, 'store'])->name('login.store');
+        // On top of the limit per email and address in LoginRequest: this one stops
+        // one address from trying many emails.
+        Route::post('login', [LoginController::class, 'store'])->middleware('throttle:20,1,login')->name('login.store');
         // From a link on the users page: to accept an invitation, or for a new password.
         Route::get('password/{token}', [SetPasswordController::class, 'edit'])->name('password.edit');
         Route::post('password', [SetPasswordController::class, 'update'])->name('password.update');

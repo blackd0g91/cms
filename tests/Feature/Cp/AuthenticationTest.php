@@ -46,6 +46,25 @@ test('logins are rate limited', function () {
     $this->assertGuest();
 });
 
+test('one address can not try many different emails', function () {
+    foreach (range(1, 20) as $i) {
+        $this->post(route('cp.login.store'), [
+            'email' => "someone{$i}@example.com",
+            'password' => 'wrong-password',
+        ])->assertSessionHasErrors('email');
+    }
+
+    $this->post(route('cp.login.store'), [
+        'email' => 'someone21@example.com',
+        'password' => 'wrong-password',
+    ])->assertTooManyRequests();
+
+    $this->post(route('login.store'), [
+        'email' => 'someone22@example.com',
+        'password' => 'wrong-password',
+    ])->assertTooManyRequests();
+});
+
 test('authenticated users can view the dashboard', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('cp.dashboard'))
