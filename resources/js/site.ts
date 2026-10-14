@@ -1,6 +1,7 @@
 import { startContours } from './backdrop';
 import { startDialogs } from './dialogs';
 import { startFilters } from './filters';
+import { startFocusTimer } from './focus-timer';
 import { startLabelSwatches } from './labels';
 import { startNotePreviews } from './notes';
 import { startNotifyToggle, startReminders } from './reminders';
@@ -286,6 +287,9 @@ startNotifyToggle();
 // and the quick colors for new labels (see labels.ts).
 startNotePreviews();
 startLabelSwatches();
+
+// The focus timer card (see focus-timer.ts).
+startFocusTimer();
 
 // The weather card on the home page (see weather.ts).
 const weather = document.querySelector<HTMLElement>('[data-weather]');

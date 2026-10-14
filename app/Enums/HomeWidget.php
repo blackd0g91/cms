@@ -12,6 +12,11 @@ enum HomeWidget: string
     case Weather = 'weather';
     case PictureOfTheDay = 'picture';
     case FreeGames = 'games';
+    case OnThisDay = 'on-this-day';
+    case WordOfTheDay = 'word';
+    case AstronomyPicture = 'nasa';
+    case UselessFact = 'fact';
+    case FocusTimer = 'timer';
 
     /**
      * What guests, and members who have not chosen, see.
@@ -29,6 +34,11 @@ enum HomeWidget: string
             self::Weather => 'Weather',
             self::PictureOfTheDay => 'Picture of the day',
             self::FreeGames => 'Free games',
+            self::OnThisDay => 'On this day',
+            self::WordOfTheDay => 'Word of the day',
+            self::AstronomyPicture => 'NASA picture of the day',
+            self::UselessFact => 'Useless fact',
+            self::FocusTimer => 'Focus timer',
         };
     }
 
@@ -38,6 +48,11 @@ enum HomeWidget: string
             self::Weather => 'Where you are, with the week ahead',
             self::PictureOfTheDay => "Wikimedia Commons' picture of the day",
             self::FreeGames => 'Games given away free to keep right now',
+            self::OnThisDay => 'What happened today in years past, from Wikipedia',
+            self::WordOfTheDay => "Wiktionary's word of the day, with what it means",
+            self::AstronomyPicture => 'A picture of space, explained by NASA',
+            self::UselessFact => 'A useless fact, a new one each day',
+            self::FocusTimer => 'A pomodoro timer: focus for 25 minutes, then a break',
         };
     }
 
@@ -47,6 +62,11 @@ enum HomeWidget: string
             self::Weather => '🌤️',
             self::PictureOfTheDay => '🖼️',
             self::FreeGames => '🎮',
+            self::OnThisDay => '📜',
+            self::WordOfTheDay => '📖',
+            self::AstronomyPicture => '🔭',
+            self::UselessFact => '💡',
+            self::FocusTimer => '🍅',
         };
     }
 }

@@ -14,6 +14,12 @@ return [
     |
     */
 
+    // NASA's astronomy picture of the day (see App\Cms\AstronomyPicture):
+    // its free DEMO_KEY is enough for the one request a day.
+    'nasa' => [
+        'key' => env('NASA_API_KEY', 'DEMO_KEY'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
