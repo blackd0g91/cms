@@ -1,8 +1,8 @@
 /**
  * Notes read as they will once saved, while they are written (see
  * site/notes/form.blade.php): the site renders the markdown, the same way
- * as the saved note, a moment after typing stops. Changing a note shows it
- * from the first time its text is focused.
+ * as the saved note, a moment after typing stops. Changing a note, in its
+ * dialog, shows it as the dialog opens.
  */
 
 // How long typing has to pause before the preview catches up.
@@ -90,6 +90,14 @@ export function startNotePreviews(root: ParentNode = document) {
                 timer = window.setTimeout(render, WAIT);
             });
             text.addEventListener('focus', render, { once: true });
+
+            const dialog = text.closest('dialog');
+            dialog?.addEventListener('dialog-open', render);
+
+            // Already open, like when sent back with an error.
+            if (dialog?.open) {
+                void render();
+            }
 
             pane.hidden = false;
 

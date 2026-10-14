@@ -14,7 +14,7 @@
 
         <section aria-label="Add a reminder" class="rounded-3xl border border-line bg-card p-5 shadow-sm sm:p-6">
             @include('site.reminders.form')
-            @if ($errors->any())
+            @if ($errors->any() && ! old('editing'))
                 <ul class="mt-3 space-y-1 text-sm text-red-600 dark:text-red-400">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>

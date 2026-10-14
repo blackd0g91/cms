@@ -10,9 +10,9 @@
 
     <div class="mt-3">
         @include('site.notes.form', ['quick' => true, 'idPrefix' => 'quick-note'])
-        @error('body', 'note')
-            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
+        @if ($errors->note->has('body') && ! old('editing'))
+            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $errors->note->first('body') }}</p>
+        @endif
     </div>
 
     @if ($notes->isNotEmpty())

@@ -82,4 +82,20 @@ describe('note previews', () => {
 
         expect(output().innerHTML).toBe('<p>SAVED TEXT</p>');
     });
+
+    it('renders a note being changed as its dialog opens', async () => {
+        document.body.innerHTML = `
+            <dialog><div data-note-preview="/me/notes/preview">
+                <textarea name="body">in a dialog</textarea>
+                <div data-note-preview-pane hidden><div data-note-preview-output></div></div>
+            </div></dialog>`;
+        startNotePreviews();
+
+        document
+            .querySelector('dialog')!
+            .dispatchEvent(new Event('dialog-open'));
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(output().innerHTML).toBe('<p>IN A DIALOG</p>');
+    });
 });

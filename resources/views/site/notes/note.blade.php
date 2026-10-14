@@ -1,6 +1,7 @@
 {{--
     One note on the notes page: its title, the markdown as it reads, when it
-    was last changed, and buttons to pin, change and delete it. Expects
+    was last changed, and buttons to change it (in a dialog), pin it and
+    delete it. Expects
     $note and $user.
 --}}
 <article id="note-{{ $note->id }}" class="flex scroll-mt-24 flex-col rounded-3xl border border-line bg-card p-5 shadow-sm">
@@ -25,6 +26,10 @@
         </div>
 
         <div class="-mt-1 -mr-1 flex shrink-0 items-center">
+            <button type="button" data-dialog-open="edit-note-{{ $note->id }}" aria-haspopup="dialog" title="Change" class="grid size-8 place-items-center rounded-full text-muted transition hover:bg-paper hover:text-ink">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>
+                <span class="sr-only">Change: {{ $note->title ?? $note->preview(40) }}</span>
+            </button>
             <form method="post" action="{{ route('notes.pin', $note) }}">
                 @csrf
                 <button type="submit" title="{{ $note->pinned_at ? 'Unpin' : 'Pin to the top' }}" @class([
@@ -51,10 +56,11 @@
         {{ $note->html() }}
     </div>
 
-    <details class="mt-4 border-t border-line pt-3">
-        <summary class="inline-flex cursor-pointer list-none text-xs text-muted underline-offset-4 hover:text-ink hover:underline [&::-webkit-details-marker]:hidden">Change</summary>
-        <div class="mt-3">
-            @include('site.notes.form', ['note' => $note, 'idPrefix' => 'note-'.$note->id])
-        </div>
-    </details>
+    {{-- Opened again when its form comes back with an error. --}}
+    <x-site.dialog :id="'edit-note-'.$note->id" title="Change note" width="max-w-3xl" :open="old('editing') === 'note-'.$note->id">
+        @if (old('editing') === 'note-'.$note->id && $errors->note->any())
+            <p class="mb-3 text-sm text-red-600 dark:text-red-400">{{ $errors->note->first() }}</p>
+        @endif
+        @include('site.notes.form', ['note' => $note, 'wide' => true, 'idPrefix' => 'note-'.$note->id])
+    </x-site.dialog>
 </article>

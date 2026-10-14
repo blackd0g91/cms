@@ -2,8 +2,9 @@
     Writing a note, or changing one. Expects optionally $note (to change it),
     $quick (the text alone, for the member's own page, titled with when it
     was written unless given one), $wide (the preview beside the text rather
-    than under it) and $idPrefix (for more than one form on a page). A new
-    note keeps what was typed when it comes back with an error. Away from the
+    than under it) and $idPrefix (for more than one form on a page). The
+    form that comes back with an error keeps what was typed in it;
+    "editing" tells which one it was. Away from the
     member's page, the note shows as it will read while it is written (see
     notes.ts).
 --}}
@@ -12,12 +13,16 @@
     $quick ??= false;
     $wide ??= false;
     $idPrefix ??= 'note';
+    $editing = $note ? 'note-'.$note->id : null;
+    $sentBack = session()->hasOldInput() && old('editing') === $editing;
+    $value = fn (string $key, mixed $current) => $sentBack ? old($key, $current) : $current;
     $inputClass = 'block w-full min-w-0 rounded-xl border border-line bg-paper px-3 py-2 text-sm placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent-soft focus:outline-none';
 @endphp
 <form method="post" action="{{ $note ? route('notes.update', $note) : route('notes.store') }}" class="space-y-3">
     @csrf
     @if ($note)
         @method('put')
+        <input type="hidden" name="editing" value="{{ $editing }}">
     @endif
     @if ($quick)
         <input type="hidden" name="quick" value="1">
@@ -30,7 +35,7 @@
                 id="{{ $idPrefix }}-title"
                 type="text"
                 name="title"
-                value="{{ $note ? $note->title : old('title') }}"
+                value="{{ $value('title', $note?->title) }}"
                 maxlength="120"
                 placeholder="Title (optional)"
                 class="{{ $inputClass }} font-medium"
@@ -49,7 +54,7 @@
                 required
                 placeholder="{{ $quick ? 'Jot something down…' : 'Write in markdown: **bold**, - lists, [links](https://…)' }}"
                 class="{{ $inputClass }} resize-y font-mono leading-relaxed"
-            >{{ $note ? $note->body : old('body') }}</textarea>
+            >{{ $value('body', $note?->body) }}</textarea>
         </div>
 
         @unless ($quick)
@@ -63,7 +68,7 @@
 
     @unless ($quick)
         @include('site.labels.picker', [
-            'selected' => $note ? $note->labels->modelKeys() : array_map('intval', (array) old('labels', [])),
+            'selected' => array_map('intval', (array) $value('labels', $note ? $note->labels->modelKeys() : [])),
         ])
     @endunless
 

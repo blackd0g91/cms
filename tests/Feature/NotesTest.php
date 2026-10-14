@@ -184,3 +184,21 @@ test('a note shows as it will read while it is written', function () {
     auth()->logout();
     $this->postJson(route('notes.preview'), ['body' => 'x'])->assertUnauthorized();
 });
+
+test('a note is changed in its own dialog', function () {
+    $note = note($this->member, ['title' => 'Groceries']);
+    $this->actingAs($this->member);
+
+    $this->get(route('notes.index'))
+        ->assertSee('data-dialog-open="edit-note-'.$note->id.'"', false)
+        ->assertSee('id="edit-note-'.$note->id.'"', false)
+        ->assertSee('name="editing" value="note-'.$note->id.'"', false);
+
+    $this->from(route('notes.index'))
+        ->put(route('notes.update', $note), ['editing' => 'note-'.$note->id, 'title' => 'Shopping', 'body' => '']);
+
+    $page = $this->get(route('notes.index'));
+    $page->assertSee('Write something first.');
+    expect(substr_count($page->getContent(), 'value="Shopping"'))->toBe(1)
+        ->and(substr_count($page->getContent(), 'data-dialog-open-now'))->toBe(1);
+});

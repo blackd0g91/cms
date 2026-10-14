@@ -153,7 +153,7 @@ test('a member\'s page shows what is due soon, with a form to add one', function
         // The title leads to the reminders page, and + opens the form in a dialog.
         ->assertSee('<a href="'.route('reminders.index').'" class="decoration-2', false)
         ->assertSee('data-dialog-open="new-reminder"', false)
-        ->assertSee('<dialog'."\n".'    id="new-reminder"', false)
+        ->assertSee('id="new-reminder"', false)
         ->assertDontSee('data-dialog-open-now', false)
         ->assertSee('action="'.route('reminders.store').'"', false)
         // Each can be snoozed, changed and deleted from there too.
@@ -263,4 +263,25 @@ test('the sidebar has tiles for the home page and the member\'s page, when logge
         ->assertSeeInOrder(['title="Home page"', 'href="'.route('me').'"', 'title="Your page"', 'aria-current="page"'], false);
 
     $this->get(route('notes.index'))->assertSee('title="Your page"', false);
+});
+
+test('a reminder is changed in its own dialog, from a button beside snooze and delete', function () {
+    $reminder = remind($this->member, 'Call the dentist', '2026-10-13 10:00');
+    $this->actingAs($this->member);
+
+    $this->get(route('reminders.index'))
+        ->assertSeeInOrder(['data-dialog-open="edit-reminder-'.$reminder->id.'"', 'title="Snooze"', 'title="Delete"'], false)
+        ->assertSee('id="edit-reminder-'.$reminder->id.'"', false)
+        ->assertSee('name="editing" value="reminder-'.$reminder->id.'"', false)
+        ->assertDontSee('<details class="mt-1.5">', false);
+
+    // Sent back with an error: that dialog opens again with what was typed,
+    // and the form for a new one stays empty.
+    $this->from(route('reminders.index'))
+        ->put(route('reminders.update', $reminder), ['editing' => 'reminder-'.$reminder->id, 'text' => 'Call the vet', 'due' => '2020-01-01T10:00']);
+
+    $page = $this->get(route('reminders.index'));
+    $page->assertSee('value="Call the vet"', false)->assertSee('Pick a time from now on.');
+    expect(substr_count($page->getContent(), 'value="Call the vet"'))->toBe(1)
+        ->and(substr_count($page->getContent(), 'data-dialog-open-now'))->toBe(1);
 });

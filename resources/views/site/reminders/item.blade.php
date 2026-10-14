@@ -1,6 +1,6 @@
 {{--
-    One reminder: a button to mark it done, what and when, and on the
-    reminders page, snoozing, changing and deleting it. Expects $reminder,
+    One reminder: a button to mark it done, what and when, and unless
+    compact, buttons to change it (in a dialog), snooze it and delete it. Expects $reminder,
     $reminders (App\Cms\Reminders), $user and optionally $compact.
 --}}
 @php($compact ??= false)
@@ -40,20 +40,14 @@
             </p>
         @endif
 
-        @unless ($compact)
-            <details class="mt-1.5">
-                <summary class="inline-flex cursor-pointer list-none gap-3 text-xs text-muted [&::-webkit-details-marker]:hidden">
-                    <span class="underline-offset-4 hover:text-ink hover:underline">Change</span>
-                </summary>
-                <div class="mt-2 rounded-2xl border border-line bg-paper/60 p-3">
-                    @include('site.reminders.form', ['reminder' => $reminder, 'idPrefix' => 'reminder-'.$reminder->id])
-                </div>
-            </details>
-        @endunless
     </div>
 
     @unless ($compact)
         <div class="flex shrink-0 items-center gap-1">
+            <button type="button" data-dialog-open="edit-reminder-{{ $reminder->id }}" aria-haspopup="dialog" title="Change" class="grid size-8 place-items-center rounded-full text-muted transition hover:bg-paper hover:text-ink">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>
+                <span class="sr-only">Change: {{ $reminder->text }}</span>
+            </button>
             <details data-popover class="relative">
                 <summary title="Snooze" class="grid size-8 cursor-pointer list-none place-items-center rounded-full text-muted transition hover:bg-paper hover:text-ink [&::-webkit-details-marker]:hidden">
                     <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/></svg>
@@ -78,5 +72,13 @@
                 </button>
             </form>
         </div>
+
+        {{-- Opened again when its form comes back with an error. --}}
+        <x-site.dialog :id="'edit-reminder-'.$reminder->id" title="Change reminder" :open="old('editing') === 'reminder-'.$reminder->id">
+            @if (old('editing') === 'reminder-'.$reminder->id && $errors->any())
+                <p class="mb-3 text-sm text-red-600 dark:text-red-400">{{ $errors->first() }}</p>
+            @endif
+            @include('site.reminders.form', ['reminder' => $reminder, 'stacked' => true, 'idPrefix' => 'reminder-'.$reminder->id])
+        </x-site.dialog>
     @endunless
 </li>

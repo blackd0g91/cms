@@ -3,7 +3,8 @@
  * like the picture of the day on the home page. The opener stays a working
  * link without the script. Inside, [data-dialog-close] closes the dialog, as
  * do Esc and a click on the backdrop. A dialog with data-dialog-open-now
- * opens as the page does.
+ * opens as the page does. An opened dialog gets a "dialog-open" event, for
+ * what is inside to get ready (like a note's preview, see notes.ts).
  */
 export function startDialogs(root: ParentNode = document) {
     root.querySelectorAll<HTMLElement>('[data-dialog-open]').forEach(
@@ -16,6 +17,11 @@ export function startDialogs(root: ParentNode = document) {
                 return;
             }
 
+            const open = () => {
+                dialog.showModal();
+                dialog.dispatchEvent(new Event('dialog-open'));
+            };
+
             opener.addEventListener('click', (event) => {
                 // Opening in a new tab still follows the link.
                 if (event.metaKey || event.ctrlKey || event.shiftKey) {
@@ -23,7 +29,7 @@ export function startDialogs(root: ParentNode = document) {
                 }
 
                 event.preventDefault();
-                dialog.showModal();
+                open();
             });
 
             dialog
@@ -47,8 +53,8 @@ export function startDialogs(root: ParentNode = document) {
             });
 
             // Open from the start, like a form sent back with an error.
-            if (dialog.hasAttribute('data-dialog-open-now')) {
-                dialog.showModal();
+            if (dialog.hasAttribute('data-dialog-open-now') && !dialog.open) {
+                open();
             }
         },
     );
