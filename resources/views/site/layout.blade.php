@@ -41,8 +41,7 @@
             {{--
                 The site's name in the middle, the profiles on the left and
                 search on the right. On small screens: the menu, the name and
-                the theme button, with search (and, logged in, the account
-                buttons) below.
+                the theme button, with search below.
             --}}
             <div class="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-x-4 gap-y-3 px-4 py-5">
                 {{-- On small screens they move into the menu. --}}
@@ -130,17 +129,8 @@
                             <svg data-theme-icon="light" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
                             <svg data-theme-icon="dark" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
                         </button>
-                        @guest
-                            @include('site.partials.account')
-                        @endguest
+                        @include('site.partials.account')
                     </div>
-                    {{-- Logged in there are too many buttons to fit beside the name
-                         on small screens, so they get a row of their own. --}}
-                    @auth
-                        <div class="col-span-3 row-start-3 flex items-center justify-center gap-2 md:-ml-1 md:shrink-0">
-                            @include('site.partials.account')
-                        </div>
-                    @endauth
                 </div>
             </div>
         </header>

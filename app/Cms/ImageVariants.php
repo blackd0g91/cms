@@ -60,9 +60,7 @@ class ImageVariants
                     break;
                 }
 
-                // Catmull-Rom rather than IMG_BICUBIC, which fails with the
-                // system libgd that some distributions build PHP against.
-                $resized = imagescale($image, $target, (int) round($height * $target / $width), IMG_CATMULLROM);
+                $resized = imagescale($image, $target, (int) round($height * $target / $width), IMG_BICUBIC);
 
                 if ($resized === false) {
                     continue;
