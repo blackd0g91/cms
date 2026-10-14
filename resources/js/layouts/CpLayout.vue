@@ -14,6 +14,7 @@ import { edit as linksEdit } from '@/routes/cp/links';
 import { index as mediaIndex } from '@/routes/cp/media';
 import { index as notificationsIndex } from '@/routes/cp/notifications';
 import { index as postsIndex } from '@/routes/cp/posts';
+import { edit as projectsEdit } from '@/routes/cp/projects';
 import { edit as settingsEdit } from '@/routes/cp/settings';
 import { index as tagsIndex } from '@/routes/cp/tags';
 import { index as templatesIndex } from '@/routes/cp/templates';
@@ -106,6 +107,13 @@ const groups: NavGroup[] = [
                 href: linksEdit().url,
                 icon: 'links',
                 active: (path) => path === linksEdit().url,
+                adminOnly: true,
+            },
+            {
+                title: 'Projects',
+                href: projectsEdit().url,
+                icon: 'projects',
+                active: (path) => path === projectsEdit().url,
                 adminOnly: true,
             },
             {

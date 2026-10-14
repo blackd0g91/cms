@@ -6,10 +6,10 @@ import { edit as settingsEdit } from '@/routes/cp/settings';
 
 export type ClickOverview = {
     total: number;
-    // Every link and profile the site shows, most clicked first.
+    // Every project, link and profile the site shows, most clicked first.
     links: {
         target: string;
-        kind: 'link' | 'profile';
+        kind: 'project' | 'link' | 'profile';
         label: string;
         emoji: string | null;
         // A profile site's icon: the inside of a 24px outline SVG.
@@ -38,8 +38,8 @@ const count = (clicks: number) =>
         >
             <h2 class="font-semibold">Link clicks</h2>
             <p class="text-xs text-neutral-500">
-                Which of your links and profiles visitors followed in the last
-                30 days<template v-if="clicks.total"
+                Which of your projects, links and profiles visitors followed in
+                the last 30 days<template v-if="clicks.total"
                     >, {{ count(clicks.total) }} in all</template
                 >
             </p>
@@ -89,7 +89,13 @@ const count = (clicks: number) =>
                         {{ link.label }}
                     </a>
                     <p class="text-xs text-neutral-500">
-                        {{ link.kind === 'profile' ? 'Profile' : 'Link' }}
+                        {{
+                            {
+                                project: 'Project',
+                                link: 'Link',
+                                profile: 'Profile',
+                            }[link.kind]
+                        }}
                     </p>
                 </div>
                 <span

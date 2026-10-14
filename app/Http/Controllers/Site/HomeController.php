@@ -9,6 +9,7 @@ use App\Enums\HomeWidget;
 use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\Project;
 use App\Models\Template;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
@@ -27,6 +28,7 @@ class HomeController extends Controller
             // The usual cards, for everyone: members have theirs on their
             // own page (see MeController).
             ...$widgets->data(HomeWidget::defaults()),
+            'projects' => Project::query()->with(['logo', 'background'])->orderBy('position')->get(),
             'intro' => is_string($intro) && $intro !== '' ? new HtmlString($markdown->render($intro)) : null,
             'posts' => Post::query()
                 ->with(['template', 'thumbnail'])

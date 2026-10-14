@@ -3,11 +3,13 @@
 namespace App\Cms;
 
 use App\Models\Link;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Counts clicks on the sidebar links and the profile icons, like PostViews
+ * Counts clicks on the project cards, the sidebar links and the profile
+ * icons, like PostViews
  * counts views: one number per link per day, nothing about the visitor. Each
  * visitor counts once per link per day (see DailyVisitor).
  */
@@ -16,7 +18,8 @@ class LinkClicks
     public function __construct(private Settings $settings) {}
 
     /**
-     * Count a click on a target ("link:{id}" or "profile:{site}"), if it is
+     * Count a click on a target ("project:{id}", "link:{id}" or
+     * "profile:{site}"), if it is
      * one of the links the site shows now.
      */
     public function record(Request $request, string $target): void
@@ -66,13 +69,17 @@ class LinkClicks
 
     /**
      * The links the site shows now, by target, in the order it shows them:
-     * the sidebar links, then the profiles.
+     * the projects, the sidebar links, then the profiles.
      *
      * @return array<string, array{kind: string, label: string, emoji: string|null, icon: string|null, href: string}>
      */
     private function targets(): array
     {
         $targets = [];
+
+        foreach (Project::query()->orderBy('position')->get(['id', 'name', 'url']) as $project) {
+            $targets["project:{$project->id}"] = ['kind' => 'project', 'label' => $project->name, 'emoji' => null, 'icon' => null, 'href' => $project->url];
+        }
 
         foreach (Link::query()->with('post.template')->orderBy('position')->get() as $link) {
             if (($href = $link->href()) !== null) {

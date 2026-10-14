@@ -8,6 +8,11 @@
         </div>
     @endif
 
+    {{-- The owner's apps and sites, before the posts. --}}
+    @if ($projects->isNotEmpty())
+        @include('site.partials.projects')
+    @endif
+
     @if ($intro)
         @php
             // A wash of the templates' colors, one from each corner (see .home-hero).
@@ -30,8 +35,15 @@
             </h2>
         @endif
     @else
-        {{-- Without an intro, the page is only the posts. --}}
+        {{-- Without an intro, the page is the posts, after the projects if any. --}}
         <h1 class="sr-only">Latest entries</h1>
+
+        @if ($projects->isNotEmpty() && $posts->isNotEmpty())
+            <h2 class="mb-5 flex items-center gap-4 font-mono text-xs tracking-wider text-muted uppercase">
+                Latest
+                <span class="h-px flex-1 bg-line"></span>
+            </h2>
+        @endif
     @endif
 
     @include('site.partials.post-grid', ['posts' => $posts, 'featureFirst' => true])

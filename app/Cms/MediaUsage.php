@@ -4,12 +4,13 @@ namespace App\Cms;
 
 use App\Models\Media;
 use App\Models\Post;
+use App\Models\Project;
 use Illuminate\Support\Collection;
 
 /**
  * Finds where images are used: post thumbnails, image fields, images inserted
- * into markdown (or any other text) by URL, the home page intro, and the site
- * logo and icon. Posts in the trash count too, as they can be restored.
+ * into markdown (or any other text) by URL, the home page intro, the site
+ * logo and icon, and the projects' logos and backgrounds. Posts in the trash count too, as they can be restored.
  */
 class MediaUsage
 {
@@ -49,6 +50,21 @@ class MediaUsage
                     'post_id' => $post->id,
                     'template_id' => $post->template_id,
                 ];
+            }
+        }
+
+        $projects = Project::query()
+            ->where(fn ($query) => $query->whereIn('logo_id', $ids)->orWhereIn('background_id', $ids))
+            ->orderBy('position')
+            ->get(['name', 'logo_id', 'background_id']);
+
+        foreach ($projects as $project) {
+            if ($project->logo_id !== null && isset($usages[$project->logo_id])) {
+                $usages[$project->logo_id][] = ['label' => "{$project->name} (project logo)", 'post_id' => null, 'template_id' => null];
+            }
+
+            if ($project->background_id !== null && isset($usages[$project->background_id])) {
+                $usages[$project->background_id][] = ['label' => "{$project->name} (project background)", 'post_id' => null, 'template_id' => null];
             }
         }
 

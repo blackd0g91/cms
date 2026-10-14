@@ -11,6 +11,7 @@ export type IconName =
     | 'templates'
     | 'tags'
     | 'links'
+    | 'projects'
     | 'media'
     | 'users'
     | 'bell'
@@ -69,6 +70,10 @@ defineProps<{ name: IconName }>();
         <template v-else-if="name === 'links'">
             <path d="M10 14a4 4 0 0 0 5.7 0l3.1-3.1a4 4 0 0 0-5.7-5.7l-1 1" />
             <path d="M14 10a4 4 0 0 0-5.7 0l-3.1 3.1a4 4 0 0 0 5.7 5.7l1-1" />
+        </template>
+        <template v-else-if="name === 'projects'">
+            <path d="m12 3.5 8.5 4.5-8.5 4.5L3.5 8z" />
+            <path d="m3.5 12 8.5 4.5 8.5-4.5M3.5 16l8.5 4.5 8.5-4.5" />
         </template>
         <template v-else-if="name === 'media'">
             <rect x="3.5" y="3.5" width="17" height="17" rx="2" />

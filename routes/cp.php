@@ -9,6 +9,7 @@ use App\Http\Controllers\Cp\LinkController;
 use App\Http\Controllers\Cp\MarkdownPreviewController;
 use App\Http\Controllers\Cp\MediaController;
 use App\Http\Controllers\Cp\PostController;
+use App\Http\Controllers\Cp\ProjectController;
 use App\Http\Controllers\Cp\PushMessageController;
 use App\Http\Controllers\Cp\SettingsController;
 use App\Http\Controllers\Cp\TagController;
@@ -59,6 +60,9 @@ Route::prefix('cp')->name('cp.')->group(function () {
         Route::middleware('can:admin')->group(function () {
             Route::get('links', [LinkController::class, 'edit'])->name('links.edit');
             Route::put('links', [LinkController::class, 'update'])->name('links.update');
+
+            Route::get('projects', [ProjectController::class, 'edit'])->name('projects.edit');
+            Route::put('projects', [ProjectController::class, 'update'])->name('projects.update');
 
             Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
             Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
