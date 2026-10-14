@@ -69,7 +69,7 @@ test('clearing a field removes the profile, and saving other settings keeps them
     expect(app(Settings::class)->get('profiles'))->toBe(['x' => 'https://x.com/me']);
 });
 
-test('the header shows an icon for each profile filled in, in a fixed order', function () {
+test('the footer shows an icon for each profile filled in, in a fixed order', function () {
     app(Settings::class)->update(['profiles' => [
         'email' => 'me@example.com',
         'github' => 'https://github.com/me',
@@ -82,10 +82,11 @@ test('the header shows an icon for each profile filled in, in a fixed order', fu
         ->assertSee('<span class="sr-only">GitHub</span>', false)
         ->assertDontSee('<span class="sr-only">LinkedIn</span>', false);
 
-    // Once beside the search box, and once in the menu for phones.
-    expect(substr_count($response->getContent(), 'href="https://github.com/me"'))->toBe(2);
+    // Once, in the footer, for every screen size.
+    expect(substr_count($response->getContent(), 'href="https://github.com/me"'))->toBe(1);
+    $response->assertSeeInOrder(['<footer', 'aria-label="Profiles"', 'Back to top'], false);
 });
 
-test('without profiles the header has no icons for them', function () {
+test('without profiles there are no icons for them', function () {
     $this->get('/')->assertOk()->assertDontSee('aria-label="Profiles"', false);
 });

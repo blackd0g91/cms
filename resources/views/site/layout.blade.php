@@ -39,20 +39,14 @@
 
         <header class="site-header border-b border-line">
             {{--
-                The site's name in the middle, the profiles on the left and
-                search on the right. On small screens: the menu, the name and
-                the theme button, with search below.
+                The site's name on the left, with the tiles for the home page
+                and the member's pages beside it, and search, the theme button
+                and the account on the right. On small screens: the menu (with
+                the tiles in it), the name and the buttons, with search below.
             --}}
-            <div class="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-x-4 gap-y-3 px-4 py-5">
-                {{-- On small screens they move into the menu. --}}
-                <div class="col-start-1 row-start-1 hidden md:block">
-                    @if ($profiles)
-                        @include('site.partials.profiles')
-                    @endif
-                </div>
-
+            <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-5">
                 {{-- On small screens the sidebar collapses into this menu. --}}
-                <details class="relative col-start-1 row-start-1 justify-self-start md:hidden">
+                <details class="relative shrink-0 md:hidden">
                     <summary class="cursor-pointer list-none rounded-full border border-line bg-card px-4 py-2 text-sm">
                         Menu
                     </summary>
@@ -61,16 +55,10 @@
                             @include('site.partials.place-tiles')
                         </div>
                         @include('site.partials.nav')
-
-                        @if ($profiles)
-                            <div class="mt-4 border-t border-line pt-3">
-                                @include('site.partials.profiles')
-                            </div>
-                        @endif
                     </div>
                 </details>
 
-                <a href="{{ route('home') }}" class="group col-start-2 row-start-1 flex min-w-0 items-center justify-center gap-3">
+                <a href="{{ route('home') }}" class="group flex min-w-0 items-center gap-3">
                     @php($logoBackground = $settings->logoBackground())
                     @if ($logo = $settings->logo())
                         @if ($logoBackground)
@@ -105,10 +93,14 @@
                     </span>
                 </a>
 
+                <div class="hidden md:block">
+                    @include('site.partials.place-tiles', ['inHeader' => true])
+                </div>
+
                 {{-- Search, the theme button and the account: side by side on the
                      right, or with search on its own row on small screens. --}}
-                <div class="contents md:col-start-3 md:row-start-1 md:flex md:items-center md:justify-end md:gap-3">
-                    <form action="{{ route('search') }}" method="get" role="search" class="relative col-span-3 row-start-2 w-full md:max-w-xs md:min-w-32 md:flex-1">
+                <div class="contents md:ml-auto md:flex md:min-w-0 md:flex-1 md:items-center md:justify-end md:gap-3">
+                    <form action="{{ route('search') }}" method="get" role="search" class="relative order-last w-full md:order-none md:max-w-xs md:min-w-32 md:flex-1">
                         <label for="site-search" class="sr-only">Search</label>
                         <input
                             id="site-search"
@@ -120,7 +112,7 @@
                         >
                         <kbd class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-line px-1.5 font-mono text-[10px] text-muted sm:block">/</kbd>
                     </form>
-                    <div class="col-start-3 row-start-1 flex shrink-0 items-center gap-2 justify-self-end">
+                    <div class="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
                         <button
                             type="button"
                             data-theme-toggle
@@ -140,27 +132,19 @@
 
         <div class="mx-auto flex w-full max-w-6xl flex-1 gap-12 px-4 py-10">
             {{--
-                The home and member's page tiles, floating, over a card that
-                stays in view while the page scrolls, like "On this page", with
-                the links at its bottom. Together they are as tall as the screen
+                A card that stays in view while the page scrolls, like "On this
+                page", with the links at its bottom. It is as tall as the screen
                 without the header (81px), the footer (65px) and the space above
-                and below them (2.5rem each), the card scrolling inside if that
-                is not enough. On pages shorter than the screen the card fills
-                the column, when there are links to put at the bottom.
+                and below it (2.5rem each), and scrolls inside if that is not
+                enough. On pages shorter than the screen it fills the column, when
+                there are links to put at the bottom.
             --}}
             <aside class="hidden w-56 shrink-0 md:block">
                 <div @class([
-                    'sticky top-10 flex max-h-[calc(100vh-81px-65px-5rem)] flex-col gap-3',
+                    'panel-scrollbar sticky top-10 flex max-h-[calc(100vh-81px-65px-5rem)] flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3',
                     'h-full' => $navLinks->isNotEmpty(),
                 ])>
-                    @include('site.partials.place-tiles')
-
-                    <div @class([
-                        'panel-scrollbar flex min-h-0 flex-col overflow-y-auto rounded-2xl border border-line bg-card p-3',
-                        'flex-1' => $navLinks->isNotEmpty(),
-                    ])>
-                        @include('site.partials.nav')
-                    </div>
+                    @include('site.partials.nav')
                 </div>
             </aside>
 
@@ -183,10 +167,15 @@
         </div>
 
         <footer class="border-t border-line">
-            <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 font-mono text-xs text-muted">
-                <span>{{ $settings->footer() }}</span>
-                <span class="flex gap-4">
+            <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-6 font-mono text-xs text-muted">
+                <span class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span>{{ $settings->footer() }}</span>
                     <a href="{{ route('privacy') }}" class="hover:text-ink">Privacy</a>
+                </span>
+                <span class="flex items-center gap-4">
+                    @if ($profiles)
+                        @include('site.partials.profiles')
+                    @endif
                     <a href="#" class="hover:text-ink">Back to top ↑</a>
                 </span>
             </div>

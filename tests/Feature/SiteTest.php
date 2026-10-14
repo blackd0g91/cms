@@ -286,3 +286,9 @@ test('what just happened shows as a toast that can be closed', function () {
         ->get(route('home'))
         ->assertSeeInOrder(['data-toasts', 'class="toast" role="status"', 'data-toast-close', 'Done.'], false);
 });
+
+test('the header has the site name on the left with the page tiles beside it, and the footer the privacy link', function () {
+    $this->get(route('home'))
+        ->assertSeeInOrder(['<header', 'href="'.route('home').'" class="group', 'title="Home page"', 'title="Your page"', 'role="search"', '</header>'], false)
+        ->assertSeeInOrder(['<footer', 'Privacy', 'Back to top'], false);
+});
