@@ -185,6 +185,25 @@ test('a note shows as it will read while it is written', function () {
     $this->postJson(route('notes.preview'), ['body' => 'x'])->assertUnauthorized();
 });
 
+test('a new note is written in a dialog, opened from a button', function () {
+    note($this->member, ['title' => 'Groceries']);
+    $this->actingAs($this->member);
+
+    $this->get(route('notes.index'))
+        ->assertSee('data-dialog-open="new-note"', false)
+        ->assertSee('id="new-note"', false)
+        ->assertDontSee('aria-label="New note"', false)
+        // Empty, though the list has a note.
+        ->assertDontSee('id="note-title"'."\n".'                type="text"'."\n".'                name="title"'."\n".'                value="Groceries"', false);
+
+    $this->from(route('notes.index'))->post(route('notes.store'), ['title' => 'Draft', 'body' => '']);
+
+    $page = $this->get(route('notes.index'));
+    $page->assertSee('Write something first.');
+    expect(substr_count($page->getContent(), 'data-dialog-open-now'))->toBe(1)
+        ->and(substr_count($page->getContent(), 'value="Draft"'))->toBe(1);
+});
+
 test('a note is changed in its own dialog', function () {
     $note = note($this->member, ['title' => 'Groceries']);
     $this->actingAs($this->member);

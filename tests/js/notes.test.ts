@@ -71,13 +71,9 @@ describe('note previews', () => {
         expect(output().innerHTML).toBe('<p>HI</p>');
     });
 
-    it('renders a note being changed when its text is first focused', async () => {
+    it('renders text already there as soon as it shows', async () => {
         text().value = 'saved text';
         startNotePreviews();
-
-        expect(fetchMock).not.toHaveBeenCalled();
-
-        text().dispatchEvent(new Event('focus'));
         await vi.advanceTimersByTimeAsync(0);
 
         expect(output().innerHTML).toBe('<p>SAVED TEXT</p>');
@@ -97,5 +93,66 @@ describe('note previews', () => {
         await vi.advanceTimersByTimeAsync(0);
 
         expect(output().innerHTML).toBe('<p>IN A DIALOG</p>');
+    });
+
+    it('switches between the text, both, and the preview, for every form', async () => {
+        localStorage.clear();
+        document.body.innerHTML = ['a', 'b']
+            .map(
+                (id) => `
+            <form id="${id}">
+                <div data-note-views hidden>
+                    <button type="button" data-note-view="write"></button>
+                    <button type="button" data-note-view="split"></button>
+                    <button type="button" data-note-view="preview"></button>
+                </div>
+                <div data-note-preview="/me/notes/preview">
+                    <div data-note-write><textarea name="body">text ${id}</textarea></div>
+                    <div data-note-preview-pane hidden><div data-note-preview-output></div></div>
+                </div>
+            </form>`,
+            )
+            .join('');
+        startNotePreviews();
+
+        const form = (id: string) => document.getElementById(id)!;
+        const write = (id: string) =>
+            form(id).querySelector<HTMLElement>('[data-note-write]')!;
+        const pane = (id: string) =>
+            form(id).querySelector<HTMLElement>('[data-note-preview-pane]')!;
+
+        // Both, side by side, to start with.
+        expect(
+            form('a').querySelector<HTMLElement>('[data-note-views]')!.hidden,
+        ).toBe(false);
+        expect(pane('a').hidden).toBe(false);
+        expect(
+            form('a')
+                .querySelector('[data-note-preview]')!
+                .classList.contains('lg:grid-cols-2'),
+        ).toBe(true);
+
+        form('a')
+            .querySelector<HTMLButtonElement>('[data-note-view="preview"]')!
+            .click();
+        await vi.advanceTimersByTimeAsync(0);
+
+        for (const id of ['a', 'b']) {
+            expect(write(id).hidden).toBe(true);
+            expect(pane(id).hidden).toBe(false);
+        }
+        expect(output().innerHTML).toBe('<p>TEXT A</p>');
+        expect(
+            form('b')
+                .querySelector('[data-note-view="preview"]')!
+                .getAttribute('aria-pressed'),
+        ).toBe('true');
+
+        form('b')
+            .querySelector<HTMLButtonElement>('[data-note-view="write"]')!
+            .click();
+        expect(pane('a').hidden).toBe(true);
+        expect(write('a').hidden).toBe(false);
+        expect(localStorage.getItem('site.notes.view')).toBe('write');
     });
 });

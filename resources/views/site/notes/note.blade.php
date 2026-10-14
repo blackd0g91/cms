@@ -57,10 +57,10 @@
     </div>
 
     {{-- Opened again when its form comes back with an error. --}}
-    <x-site.dialog :id="'edit-note-'.$note->id" title="Change note" width="max-w-3xl" :open="old('editing') === 'note-'.$note->id">
+    <x-site.dialog :id="'edit-note-'.$note->id" title="Change note" width="max-w-5xl" :open="old('editing') === 'note-'.$note->id">
         @if (old('editing') === 'note-'.$note->id && $errors->note->any())
             <p class="mb-3 text-sm text-red-600 dark:text-red-400">{{ $errors->note->first() }}</p>
         @endif
-        @include('site.notes.form', ['note' => $note, 'wide' => true, 'idPrefix' => 'note-'.$note->id])
+        @include('site.notes.form', ['note' => $note, 'idPrefix' => 'note-'.$note->id])
     </x-site.dialog>
 </article>
