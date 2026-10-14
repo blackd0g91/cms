@@ -13,7 +13,10 @@
         <h2 id="quick-links-title" class="font-mono text-xs tracking-wider text-muted uppercase">Quick links</h2>
         <span class="h-px flex-1 bg-line" aria-hidden="true"></span>
         @if ($quickLinks->isNotEmpty())
-            <button type="button" data-dialog-open="quick-links" aria-haspopup="dialog" class="text-xs text-muted underline-offset-4 hover:text-ink hover:underline">Edit</button>
+            <button type="button" data-dialog-open="quick-links" aria-haspopup="dialog" title="Edit quick links" class="-my-1.5 grid size-8 place-items-center rounded-full text-muted transition hover:bg-card hover:text-ink">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>
+                <span class="sr-only">Edit quick links</span>
+            </button>
         @endif
     </div>
 
