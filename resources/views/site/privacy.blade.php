@@ -23,6 +23,7 @@
         <h2>Your account</h2>
         <ul>
             <li>With an account, the site keeps your name, your email address, whether you confirmed it, and your password, scrambled so that nobody can read it. If you show your weather while logged in, it also keeps that place, rounded to about a kilometer, and if you choose the cards on your page, which ones and in what order.</li>
+            <li>Your notes are kept with your account, as you wrote them. Only you can see them.</li>
             <li>Your reminders are kept with your account, with your time zone (from your browser) so they come at your time. Only you can see them.</li>
             <li>If you turn on notifications in a browser, the site keeps the address that browser's push service (Google's, Mozilla's or Apple's, depending on the browser) gave it, to send your reminders there. The messages are encrypted so that only your browser can read them. Turning notifications off, or deleting your account, removes it.</li>
             <li>Your email address is used only for your account: to confirm it, and to send a link when you forget your password. Those emails go out through a mail service, which sees the address and the email.</li>

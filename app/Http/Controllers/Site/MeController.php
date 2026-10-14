@@ -12,8 +12,9 @@ use Illuminate\View\View;
 
 /**
  * A member's own page, at /me: made to stay open in a tab, with the cards
- * they chose and their reminders for the week ahead (which come up as toasts
- * when due, see reminders.ts). The home page stays the same for everyone.
+ * they chose, their reminders for the week ahead (which come up as toasts
+ * when due, see reminders.ts) and their latest notes. The home page stays
+ * the same for everyone.
  */
 class MeController extends Controller
 {
@@ -28,6 +29,8 @@ class MeController extends Controller
             'user' => $user,
             'reminders' => $reminders,
             'soon' => $reminders->groups($user, until: $reminders->weekAhead($user)),
+            'notes' => $user->notes()->ordered()->limit(5)->get(),
+            'noteCount' => $user->notes()->count(),
             'today' => $now->isoFormat('dddd, MMMM D'),
             'greeting' => match (true) {
                 $now->hour < 5 => 'Good night',

@@ -3,8 +3,7 @@
 @section('content')
     {{--
         A member's own page (see MeController), made to stay open in a tab:
-        their cards, then their reminders. More of their things join below
-        in time.
+        their cards, then their reminders and notes side by side.
     --}}
     <div class="space-y-8">
         <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
@@ -17,6 +16,11 @@
 
         @include('site.partials.cards')
 
-        @include('site.reminders.panel')
+        <div class="grid items-start gap-6 lg:grid-cols-2">
+            <div>
+                @include('site.reminders.panel')
+            </div>
+            @include('site.notes.panel')
+        </div>
     </div>
 @endsection

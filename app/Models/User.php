@@ -137,6 +137,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * @return HasMany<Note, $this>
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class);
+    }
+
+    /**
      * The browsers they turned push notifications on in.
      *
      * @return HasMany<PushSubscription, $this>
