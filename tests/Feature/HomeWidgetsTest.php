@@ -61,6 +61,7 @@ test('a member\'s page has the usual cards until they choose theirs', function (
 
 test('members choose the cards on their page, and their order', function () {
     $this->actingAs($this->member)
+        ->from(route('account.edit'))
         ->put(route('account.widgets'), ['widgets' => ['games', 'weather']])
         ->assertRedirect(route('account.edit'))
         ->assertSessionHas('status', 'Your cards are saved.');
@@ -118,4 +119,23 @@ test('the account page lists the chosen cards first, ticked, then the rest', fun
 
 test('choosing cards needs an account', function () {
     $this->put(route('account.widgets'), ['widgets' => ['games']])->assertRedirect(route('login'));
+});
+
+test('cards can be chosen right on the member\'s page, in a dialog', function () {
+    $this->actingAs($this->member)->get(route('me'))
+        ->assertSee('data-dialog-open="choose-cards"', false)
+        ->assertSee('id="choose-cards"', false)
+        ->assertSee('action="'.route('account.widgets').'"', false)
+        ->assertDontSee('data-dialog-open-now', false);
+
+    $this->from(route('me'))
+        ->put(route('account.widgets'), ['widgets' => ['games']])
+        ->assertRedirect(route('me'));
+
+    $this->from(route('me'))->put(route('account.widgets'), ['widgets' => ['stocks']]);
+    $this->get(route('me'))->assertSee('data-dialog-open-now', false);
+
+    // With none chosen, the page says how to get some back.
+    $this->put(route('account.widgets'));
+    $this->get(route('me'))->assertSee('No cards on your page.');
 });

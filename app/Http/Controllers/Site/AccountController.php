@@ -78,6 +78,7 @@ class AccountController extends Controller
     /**
      * The cards at the top of their own page: the ones ticked, in the order
      * they were sent (see sortable.ts), none at all, or back to the defaults.
+     * From the account page or the dialog on their page, and back there.
      */
     public function updateWidgets(Request $request): RedirectResponse
     {
@@ -87,7 +88,7 @@ class AccountController extends Controller
         if ($request->boolean('reset')) {
             $user->update(['home_widgets' => null]);
 
-            return redirect()->route('account.edit')->with('status', 'Your page has the usual cards again.');
+            return back()->with('status', 'Your page has the usual cards again.');
         }
 
         $validated = $request->validateWithBag('widgets', [
@@ -97,7 +98,7 @@ class AccountController extends Controller
 
         $user->update(['home_widgets' => array_values($validated['widgets'] ?? [])]);
 
-        return redirect()->route('account.edit')->with('status', 'Your cards are saved.');
+        return back()->with('status', 'Your cards are saved.');
     }
 
     /**
