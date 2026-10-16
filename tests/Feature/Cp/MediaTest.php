@@ -81,6 +81,32 @@ test('alt text can be updated', function () {
     expect($media->fresh()->alt)->toBe('A bowl of soup');
 });
 
+test('media can be renamed, keeping its extension and file', function (string $name, string $expected) {
+    $media = Media::factory()->create(['filename' => 'IMG_0042.png']);
+    $path = $media->path;
+
+    $this->patch(route('cp.media.update', $media), ['filename' => $name])->assertSessionHasNoErrors();
+
+    expect($media->fresh())
+        ->filename->toBe($expected)
+        ->path->toBe($path)
+        ->alt->toBe($media->alt);
+})->with([
+    'without extension' => ['Tomato soup', 'Tomato soup.png'],
+    'with extension' => ['Tomato soup.png', 'Tomato soup.png'],
+    'with the extension in capitals' => [' soup.PNG ', 'soup.png'],
+    'with another extension' => ['soup.jpg', 'soup.jpg.png'],
+    'with dots' => ['soup.v2', 'soup.v2.png'],
+]);
+
+test('media names can not be empty or have slashes', function (string $name) {
+    $media = Media::factory()->create(['filename' => 'photo.png']);
+
+    $this->patch(route('cp.media.update', $media), ['filename' => $name])->assertSessionHasErrors('filename');
+
+    expect($media->fresh()->filename)->toBe('photo.png');
+})->with(['', '   ', '.png', 'a/b', 'a\\b']);
+
 test('deleting media moves it to the trash, keeping the file', function () {
     $this->post(route('cp.media.store'), ['file' => fakePng()]);
     $media = Media::sole();

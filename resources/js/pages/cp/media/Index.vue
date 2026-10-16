@@ -95,6 +95,32 @@ const saveAlt = (item: Media, alt: string) => {
     router.patch(update(item.id).url, { alt }, { preserveScroll: true });
 };
 
+// The extension stays as it is (see MediaController::update()), so only the
+// name before it can be edited.
+const extensionOf = (item: Media) => item.filename.match(/\.[^.]+$/)?.[0] ?? '';
+const nameOf = (item: Media) =>
+    item.filename.slice(0, item.filename.length - extensionOf(item).length);
+
+const rename = (item: Media, input: HTMLInputElement) => {
+    const name = input.value.trim();
+
+    if (name === '') {
+        input.value = nameOf(item);
+
+        return;
+    }
+
+    if (name === nameOf(item)) {
+        return;
+    }
+
+    router.patch(
+        update(item.id).url,
+        { filename: name + extensionOf(item) },
+        { preserveScroll: true },
+    );
+};
+
 const remove = (item: Media) => {
     const usages = usagesOf(item);
     const message =
@@ -146,6 +172,9 @@ const copyUrl = (item: Media) => navigator.clipboard.writeText(item.url);
     <p v-if="form.errors.file" class="cp-error mb-4">{{ form.errors.file }}</p>
     <p v-if="$page.props.errors.media" class="cp-error mb-4">
         {{ $page.props.errors.media }}
+    </p>
+    <p v-if="$page.props.errors.filename" class="cp-error mb-4">
+        {{ $page.props.errors.filename }}
     </p>
 
     <p v-if="media.length === 0" class="cp-card p-6 text-sm text-neutral-500">
@@ -232,9 +261,23 @@ const copyUrl = (item: Media) => navigator.clipboard.writeText(item.url);
                 />
             </a>
             <div class="space-y-2 p-3">
-                <p class="truncate text-sm font-medium" :title="item.filename">
-                    {{ item.filename }}
-                </p>
+                <div class="flex items-center gap-1.5">
+                    <input
+                        type="text"
+                        :value="nameOf(item)"
+                        :aria-label="`Name of ${item.filename}`"
+                        :title="item.filename"
+                        class="cp-input min-w-0 py-1.5 font-medium"
+                        @change="
+                            rename(item, $event.target as HTMLInputElement)
+                        "
+                    />
+                    <span
+                        v-if="extensionOf(item)"
+                        class="shrink-0 text-xs text-neutral-500"
+                        >{{ extensionOf(item) }}</span
+                    >
+                </div>
                 <p class="text-xs text-neutral-500">
                     <template v-if="item.width && item.height">
                         {{ item.width }}&times;{{ item.height }} &middot;

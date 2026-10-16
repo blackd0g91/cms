@@ -49,11 +49,22 @@ class MediaController extends Controller
             : back();
     }
 
+    /**
+     * Change the alt text or the name. Only the name shown in the control
+     * panel changes: the file stays where it is, so its URL keeps working.
+     */
     public function update(Request $request, Media $media): RedirectResponse
     {
-        $media->update($request->validate([
+        $data = $request->validate([
             'alt' => ['nullable', 'string', 'max:255'],
-        ]));
+            'filename' => ['sometimes', 'required', 'string', 'max:200', 'not_regex:/[\x00-\x1F\x7F\/\\\\]/'],
+        ]);
+
+        if (isset($data['filename'])) {
+            $data['filename'] = $this->keepExtension($media, trim($data['filename']));
+        }
+
+        $media->update($data);
 
         return back();
     }
@@ -75,6 +86,30 @@ class MediaController extends Controller
         $media->delete();
 
         return back();
+    }
+
+    /**
+     * The new name with the file's own extension: renaming "photo.png" to
+     * "soup" or "soup.png" gives "soup.png". Another extension would not
+     * change what the file is, so it would only mislabel it.
+     */
+    private function keepExtension(Media $media, string $name): string
+    {
+        $extension = pathinfo($media->filename, PATHINFO_EXTENSION);
+
+        if ($extension === '') {
+            return $name;
+        }
+
+        if (strcasecmp(pathinfo($name, PATHINFO_EXTENSION), $extension) === 0) {
+            $name = trim(pathinfo($name, PATHINFO_FILENAME));
+        }
+
+        if ($name === '') {
+            throw ValidationException::withMessages(['filename' => 'The name can not be empty.']);
+        }
+
+        return "{$name}.{$extension}";
     }
 
     /**
