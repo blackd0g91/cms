@@ -25,7 +25,7 @@ class DashboardController extends Controller
         $user = $request->user();
         $top = $views->popular(7, 1)[0] ?? null;
         $lastPublished = Post::query()
-            ->with(['template:id,name,handle', 'author:id,name'])
+            ->forList()
             ->where('status', PostStatus::Published)
             ->latest('published_at')
             ->first();
@@ -89,8 +89,8 @@ class DashboardController extends Controller
     private function posts(Builder $query): array
     {
         return $query
-            ->with(['template:id,name,handle', 'author:id,name'])
-            ->get(['id', 'template_id', 'author_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
+            ->forList()
+            ->get(['id', 'template_id', 'author_id', 'thumbnail_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
             ->map(fn (Post $post) => $post->toListItem())
             ->all();
     }

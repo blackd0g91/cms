@@ -334,7 +334,18 @@ class Post extends Model
     }
 
     /**
-     * The post as a row in control panel lists. Load its template and author.
+     * Load what toListItem() shows.
+     *
+     * @param  Builder<Post>  $query
+     */
+    public function scopeForList(Builder $query): void
+    {
+        $query->with(['template:id,name,handle,color', 'author:id,name', 'thumbnail']);
+    }
+
+    /**
+     * The post as a row in control panel lists, with its template's accent
+     * and thumbnail to tell them apart. Load them with forList().
      *
      * @return array<string, mixed>
      */
@@ -343,7 +354,11 @@ class Post extends Model
         return [
             ...$this->only(['id', 'title', 'slug', 'status', 'published_at', 'updated_at']),
             'pinned' => $this->isPinned(),
-            'template' => $this->template->only(['id', 'name']),
+            'template' => [
+                ...$this->template->only(['id', 'name']),
+                'accent' => $this->template->accentColor(),
+            ],
+            'thumbnail' => $this->thumbnail?->thumb_url,
             'author' => $this->author?->name,
             'url' => $this->url(),
         ];

@@ -33,11 +33,11 @@ class PostController extends Controller
         ]);
 
         $posts = Post::query()
-            ->with(['template:id,name,handle', 'author:id,name'])
+            ->forList()
             ->when($filters['template'] ?? null, fn ($query, $id) => $query->where('template_id', $id))
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest('updated_at')
-            ->paginate(30, ['id', 'template_id', 'author_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
+            ->paginate(30, ['id', 'template_id', 'author_id', 'thumbnail_id', 'title', 'slug', 'status', 'published_at', 'pinned_at', 'updated_at'])
             ->withQueryString()
             ->through(fn (Post $post) => $post->toListItem());
 

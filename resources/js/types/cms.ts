@@ -87,7 +87,9 @@ export type PostListItem = {
     pinned: boolean;
     published_at: string | null;
     updated_at: string;
-    template: { id: number; name: string };
+    template: { id: number; name: string; accent: string };
+    // A small version of the post's thumbnail, if it has one.
+    thumbnail: string | null;
     author: string | null;
     url: string;
 };

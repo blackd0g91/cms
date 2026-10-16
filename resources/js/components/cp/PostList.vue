@@ -20,9 +20,31 @@ const formatDate = (value: string) =>
         <li
             v-for="post in posts"
             :key="post.id"
-            class="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
+            class="relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
         >
-            <div class="min-w-0">
+            <!-- The template's accent down the left side, to tell them apart at a glance. -->
+            <span
+                class="absolute inset-y-2 left-1 w-1 rounded-full"
+                :style="{ backgroundColor: post.template.accent }"
+                aria-hidden="true"
+            />
+            <img
+                v-if="post.thumbnail"
+                :src="post.thumbnail"
+                alt=""
+                loading="lazy"
+                class="size-10 shrink-0 rounded-md bg-neutral-100 object-cover dark:bg-neutral-800"
+            />
+            <!-- Without a thumbnail: the title's first letter, like the site's cards. -->
+            <span
+                v-else
+                class="grid size-10 shrink-0 place-items-center rounded-md text-sm font-semibold text-white text-shadow-xs"
+                :style="{ backgroundColor: post.template.accent }"
+                aria-hidden="true"
+            >
+                {{ post.title.charAt(0).toUpperCase() }}
+            </span>
+            <div class="min-w-0 flex-1">
                 <Link
                     :href="edit([post.template.id, post.id])"
                     class="block truncate text-sm font-medium hover:underline"

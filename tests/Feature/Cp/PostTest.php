@@ -34,6 +34,26 @@ test('all posts are listed with their template', function () {
             ->where('filters', ['template' => null, 'status' => null]));
 });
 
+test('listed posts have their template accent and thumbnail', function () {
+    $this->template->update(['color' => '#c2410c']);
+    $thumbnail = Media::factory()->create();
+    $withThumbnail = Post::factory()->for($this->template)->create(['thumbnail_id' => $thumbnail->id, 'updated_at' => now()]);
+    $automatic = Post::factory()->create(['updated_at' => now()->subDay()]);
+
+    $this->get(route('cp.posts.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('posts.data.0.id', $withThumbnail->id)
+            ->where('posts.data.0.template.accent', '#c2410c')
+            ->where('posts.data.0.thumbnail', $thumbnail->thumb_url)
+            ->where('posts.data.1.template.accent', $automatic->template->accentColor())
+            ->where('posts.data.1.thumbnail', null));
+
+    $this->get(route('cp.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('recentPosts.0.template.accent', '#c2410c')
+            ->where('recentPosts.0.thumbnail', $thumbnail->thumb_url));
+});
+
 test('posts can be filtered by template and status', function () {
     $draft = Post::factory()->for($this->template)->create();
     Post::factory()->published()->for($this->template)->create();

@@ -53,7 +53,7 @@ class PostViews
             ->limit($limit)
             ->pluck(DB::raw('sum(views)'), 'post_id');
 
-        $posts = Post::query()->with(['template:id,name,handle', 'author:id,name'])->whereKey($totals->keys())->get()->keyBy('id');
+        $posts = Post::query()->forList()->whereKey($totals->keys())->get()->keyBy('id');
 
         $popular = [];
 
