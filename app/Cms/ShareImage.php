@@ -29,7 +29,7 @@ class ShareImage
     /**
      * Change it to redraw every image, after changing how they look.
      */
-    private const int DESIGN = 1;
+    private const int DESIGN = 2;
 
     /**
      * Everything is drawn this many times larger and then scaled down, which
@@ -285,7 +285,7 @@ class ShareImage
     }
 
     /**
-     * The logo as an image GD can draw, when there is one that is not an SVG.
+     * The logo as an image GD can draw, when there is one that can be read.
      */
     private function logo(): ?GdImage
     {

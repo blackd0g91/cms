@@ -5,6 +5,8 @@ namespace App\Cms\Concerns;
 use App\Models\Media;
 use GdImage;
 use Illuminate\Support\Facades\Storage;
+use SVG\SVG;
+use Throwable;
 
 /**
  * Drawing pictures with GD, for ShareImage and AppIcon: everything is drawn
@@ -154,18 +156,52 @@ trait DrawsImages
     }
 
     /**
-     * An uploaded image as one GD can draw, unless it is an SVG (which GD
-     * can not read) or can not be read.
+     * An uploaded image as one GD can draw, unless it can not be read.
      */
     protected function raster(?Media $media): ?GdImage
     {
-        if (! $media || $media->isSvg()) {
+        $contents = $media ? Storage::disk($media->disk)->get($media->path) : null;
+
+        if ($media === null || $contents === null) {
             return null;
         }
 
-        $contents = Storage::disk($media->disk)->get($media->path);
-        $image = $contents === null ? false : @imagecreatefromstring($contents);
+        if ($media->isSvg()) {
+            return $this->rasterSvg($contents);
+        }
+
+        $image = @imagecreatefromstring($contents);
 
         return $image === false ? null : $image;
+    }
+
+    /**
+     * An SVG drawn into a picture 1024 pixels on its longer side, keeping
+     * its shape, since GD can not read SVGs. Drawn by php-svg, which knows
+     * most of what logos use (shapes, paths, transforms) but not all of it:
+     * gradients, for one, are left out.
+     */
+    private function rasterSvg(string $contents): ?GdImage
+    {
+        try {
+            $svg = SVG::fromString($contents);
+
+            if (! $svg) {
+                return null;
+            }
+
+            $document = $svg->getDocument();
+            [, , $width, $height] = $document->getViewBox()
+                ?? [0, 0, (float) $document->getWidth(), (float) $document->getHeight()];
+            $ratio = $width > 0 && $height > 0 ? $width / $height : 1;
+            $longest = 1024;
+
+            return $svg->toRasterImage(
+                (int) max(1, round($ratio >= 1 ? $longest : $longest * $ratio)),
+                (int) max(1, round($ratio >= 1 ? $longest / $ratio : $longest)),
+            );
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

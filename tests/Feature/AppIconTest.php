@@ -71,7 +71,23 @@ test('the icon has the logo\'s background, when it has one', function () {
         ->and(iconPixel($png, 0.5, 0.5))->toBe([255, 255, 255]);
 });
 
-test('an svg logo gives way to the site icon, then to the first letter', function () {
+test('an svg logo is drawn too', function (string $size) {
+    Storage::disk('public')->put('media/logo.svg', '<svg xmlns="http://www.w3.org/2000/svg" '.$size.'><rect width="200" height="100" fill="#1f6feb"/></svg>');
+    $svg = Media::factory()->create(['mime_type' => 'image/svg+xml', 'path' => 'media/logo.svg']);
+    app(Settings::class)->update(['logo_id' => $svg->id]);
+
+    $png = app(AppIcon::class)->render(192);
+
+    // A wide logo: blue in the middle, the card above and below it.
+    expect(iconPixel($png, 0.5, 0.5))->toBe([0x1F, 0x6F, 0xEB])
+        ->and(iconPixel($png, 0.5, 0.2))->toBe([255, 252, 245]);
+})->with([
+    'with a view box' => 'viewBox="0 0 200 100"',
+    'with a width and height' => 'width="200" height="100"',
+]);
+
+test('an svg logo that can not be read gives way to the site icon, then to the first letter', function () {
+    Storage::disk('public')->put('media/logo.svg', 'not an svg');
     $svg = Media::factory()->create(['mime_type' => 'image/svg+xml', 'path' => 'media/logo.svg']);
     app(Settings::class)->update(['logo_id' => $svg->id, 'favicon_id' => picture([20, 160, 60], 64, 64)->id]);
 

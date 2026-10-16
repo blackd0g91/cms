@@ -12,8 +12,8 @@ use Illuminate\Support\Str;
  * The site's icon as an app: for push notifications, phones' home screens
  * and the app manifest. A square with the logo set on the Settings page in
  * the middle, on its background when it has one, or the first letter of the
- * site's name in a badge, like the site's header. A logo GD can not read (an
- * SVG) gives way to the site icon, then to the letter. Drawn when first asked
+ * site's name in a badge, like the site's header. A logo that can not be read
+ * gives way to the site icon, then to the letter. Drawn when first asked
  * for, then kept on disk until the settings it shows change.
  *
  * @phpstan-type Rgb array{int, int, int}
@@ -31,7 +31,7 @@ class AppIcon
     /**
      * Change it to redraw every icon, after changing how they look.
      */
-    private const int DESIGN = 1;
+    private const int DESIGN = 2;
 
     private const int SCALE = 2;
 
